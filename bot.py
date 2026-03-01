@@ -5,7 +5,7 @@ import tweepy
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timezone
-import google.generativeai as genai
+from google import genai
 import time
 
 # --- 1. API KEYS ---
@@ -112,9 +112,9 @@ def post_morning_tweet():
         
     all_items = []
     for category, items in db.items():
-        for item in items:
-            all_items.append(item)
-            
+        if isinstance(items, list):
+            all_items.extend(items)
+
     selected = random.choice(all_items)
     name = selected.get('name', 'ARCHIVE_ITEM')
     item_type = selected.get('type', 'folder')
@@ -188,34 +188,32 @@ def post_morning_tweet():
 # --- EVENING: CYBER PHILOSOPHER ---
 def post_evening_tweet():
     client, api = get_twitter_clients()
-    genai.configure(api_key=GEMINI_API_KEY)
-    
-    model = genai.GenerativeModel('gemini-2.0-flash')
-    
+    gemini_client = genai.Client(api_key=GEMINI_API_KEY)
+
     prompt = """
-    You are an avant-garde Spatial Web and Metaverse architecture studio based in Milan named 'Decentralize Design'. 
+    You are an avant-garde Spatial Web and Metaverse architecture studio based in Milan named 'Decentralize Design'.
     Your core philosophy is 'The Internet is Still Flat' and 'Religious Robotics'. You oppose humans being trapped in 2D screens and advocate for the digital materiality of code and space.
-    
+
     Please find a CURRENT tech news/trend from today or this week regarding 'Metaverse, Spatial Web, AR/VR, Digital Identity, or Virtual Architecture'.
     Write a cold, philosophical, dark, metallic, and sharp English tweet consisting of EXACTLY 2 sentences.
     1st sentence: State the current event or trend objectively but coldly.
     2nd sentence: Make a striking, post-physical commentary or rebellion from your studio's perspective.
-    
+
     DO NOT USE ANY HASHTAGS. Do not use quotes around the text. Do not add introductory phrases. Just provide the raw tweet text in English.
     """
-    
-    response = model.generate_content(prompt)
+
+    response = gemini_client.models.generate_content(model='gemini-2.0-flash', contents=prompt)
     tweet_text = response.text.strip()
     # Olası bir hatada yapay zekanın eklediği hashtagleri zorla temizle
     tweet_text = ' '.join(word for word in tweet_text.split() if not word.startswith('#'))
-    
+
     client.create_tweet(text=tweet_text)
     print(f"Evening broadcast complete:\n{tweet_text}")
 
 # --- TEST: TOPIC ANALYST ---
 def post_test_tweet():
     client, _ = get_twitter_clients()
-    genai.configure(api_key=GEMINI_API_KEY)
+    gemini_client = genai.Client(api_key=GEMINI_API_KEY)
 
     topics = [
         "Metaverse", "Spatial Web", "AR/VR", "Digital Identity",
@@ -223,7 +221,6 @@ def post_test_tweet():
     ]
     chosen_topic = random.choice(topics)
 
-    model = genai.GenerativeModel('gemini-2.0-flash')
     prompt = f"""
     You are 'Decentralize Design', an avant-garde Spatial Web architecture studio based in Milan.
     Core philosophy: 'The Internet is Still Flat' and 'Religious Robotics'.
@@ -239,7 +236,7 @@ def post_test_tweet():
     DO NOT USE ANY HASHTAGS. No quotes around the text. No introductory phrases. Raw tweet text only.
     """
 
-    response = model.generate_content(prompt)
+    response = gemini_client.models.generate_content(model='gemini-2.0-flash', contents=prompt)
     tweet_text = response.text.strip()
     tweet_text = ' '.join(w for w in tweet_text.split() if not w.startswith('#'))
     if len(tweet_text) > 280:

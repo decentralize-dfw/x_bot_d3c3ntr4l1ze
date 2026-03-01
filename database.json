@@ -1022,7 +1022,7 @@
       ],
       "links": [
         {
-          "url": "https://www.digitalforgerywork.shop/space",
+          "url": "https://www.decentralize.design/space",
           "name": "Website"
         },
         {
@@ -1053,7 +1053,7 @@
       ],
       "links": [
         {
-          "url": "https://www.digitalforgerywork.shop/design",
+          "url": "https://www.decentralize.design/design",
           "name": "Website"
         },
         {
@@ -1084,7 +1084,7 @@
       ],
       "links": [
         {
-          "url": "https://www.digitalforgerywork.shop/theater",
+          "url": "https://www.decentralize.design/theater",
           "name": "Website"
         }
       ]
@@ -1107,7 +1107,7 @@
       ],
       "links": [
         {
-          "url": "https://www.digitalforgerywork.shop/gallery",
+          "url": "https://www.decentralize.design/gallery",
           "name": "Website"
         }
       ]
@@ -1840,7 +1840,7 @@
       "type": "link",
       "name": "decentralize Website",
       "iconUrl": "https://raw.githubusercontent.com/decentralize-dfw/c2w2runway/main/dfwlogo.png",
-      "url": "https://digitalforgerywork.shop/",
+      "url": "https://decentralize.design/",
       "created": "2025"
     }
   ],
@@ -10969,7 +10969,7 @@
       "links": []
     },
     {
-      "id": "balloon-img-2",
+      "id": "balloon-img-3",
       "type": "image",
       "name": "bus came final.png",
       "url": "https://static.wixstatic.com/media/54a996_023098682344492d94a269c0c2ad5f24~mv2.png",
