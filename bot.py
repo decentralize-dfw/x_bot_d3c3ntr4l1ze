@@ -5,7 +5,6 @@ import tweepy
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timezone
-from google import genai
 import time
 
 # --- 1. API KEYS ---
@@ -13,9 +12,8 @@ TWITTER_API_KEY = os.environ.get("TWITTER_API_KEY")
 TWITTER_API_SECRET = os.environ.get("TWITTER_API_SECRET")
 TWITTER_ACCESS_TOKEN = os.environ.get("TWITTER_ACCESS_TOKEN")
 TWITTER_ACCESS_TOKEN_SECRET = os.environ.get("TWITTER_ACCESS_TOKEN_SECRET")
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
-# --- TYPE LABELS (Ne olduğunu belirten etiketler) ---
+# --- TYPE LABELS ---
 TYPE_LABELS = {
     'glb': '[3D Asset]',
     'vrm': '[Avatar/VRM]',
@@ -26,6 +24,9 @@ TYPE_LABELS = {
     'text': '[Manifesto/Text]',
     'pdf': '[Document]'
 }
+
+# Sabah tweeti için medya olan item tipleri
+MEDIA_TYPES = {'image', 'video', 'glb', 'vrm', 'html', 'website', 'pdf'}
 
 def get_twitter_clients():
     client = tweepy.Client(
@@ -41,18 +42,21 @@ def get_twitter_clients():
     api = tweepy.API(auth, wait_on_rate_limit=True)
     return client, api
 
+def load_db():
+    with open('database.json', 'r', encoding='utf-8') as file:
+        return json.load(file)
+
 def download_media(media_url):
-    """Medyayı sunucuya indirir ve formatını belirler."""
     try:
         ext = ".jpg"
         lower_url = media_url.lower()
         if ".mp4" in lower_url: ext = ".mp4"
         elif ".png" in lower_url: ext = ".png"
         elif ".gif" in lower_url: ext = ".gif"
-        
+
         temp_filename = f"temp_media_{int(time.time())}{ext}"
         headers = {'User-Agent': 'Mozilla/5.0'}
-        
+
         response = requests.get(media_url, stream=True, headers=headers, timeout=15)
         if response.status_code == 200:
             with open(temp_filename, 'wb') as f:
@@ -64,23 +68,19 @@ def download_media(media_url):
     return None
 
 def extract_data_from_html(url):
-    """HTML içinden hem ilk anlamlı cümleyi hem de medyayı (video/görsel) çeker."""
     text_content = None
     media_url = None
     try:
         headers = {'User-Agent': 'Mozilla/5.0'}
         response = requests.get(url, headers=headers, timeout=15)
-        
         if response.status_code == 200:
             soup = BeautifulSoup(response.content, 'html.parser')
-            
-            # 1. METİN ÇEKME (Sadece ilk anlamlı/kısa cümleyi al)
+
             paragraphs = soup.find_all(['p', 'h1', 'h2', 'div'])
             texts = [p.get_text(strip=True) for p in paragraphs if len(p.get_text(strip=True)) > 30]
             if texts:
-                text_content = texts[0] # İlk bulunan anlamlı metin
-            
-            # 2. MEDYA ÇEKME (Sırasıyla video kaynağı, sosyal medya resmi veya standart resim)
+                text_content = texts[0]
+
             video_tag = soup.find('source', src=True)
             if video_tag:
                 media_url = video_tag['src']
@@ -92,49 +92,45 @@ def extract_data_from_html(url):
                     img_tag = soup.find('img', src=True)
                     if img_tag:
                         media_url = img_tag['src']
-                        
-            # Medya URL'si göreceli (relative) ise tam URL'ye çevir
+
             if media_url and media_url.startswith('/'):
-                base_url = "/".join(url.split("/")[:3]) # https://decentralize.design
+                base_url = "/".join(url.split("/")[:3])
                 media_url = f"{base_url}{media_url}"
-                
+
     except Exception as e:
         print(f"HTML Scrape Error: {e}")
-        
+
     return text_content, media_url
 
-# --- MORNING: MULTIMEDIA ARCHIVE EXCAVATOR ---
+# --- MORNING: MULTIMEDIA ARCHIVE ---
 def post_morning_tweet():
     client, api = get_twitter_clients()
-    
-    with open('database.json', 'r', encoding='utf-8') as file:
-        db = json.load(file)
-        
-    all_items = []
+    db = load_db()
+
+    media_items = []
     for category, items in db.items():
         if isinstance(items, list):
-            all_items.extend(items)
+            for item in items:
+                if item.get('type') in MEDIA_TYPES:
+                    media_items.append(item)
 
-    selected = random.choice(all_items)
+    selected = random.choice(media_items)
     name = selected.get('name', 'ARCHIVE_ITEM')
-    item_type = selected.get('type', 'folder')
+    item_type = selected.get('type', 'image')
     type_label = TYPE_LABELS.get(item_type, '[Archive]')
     desc = selected.get('description', '')
-    
-    # URL'den eski siteyi tamamen kazı
+
     raw_url = selected.get('url', 'https://decentralize.design')
     url = raw_url.replace('digitalforgerywork.shop', 'decentralize.design')
-    
+
     media_url_to_download = None
     extracted_text = None
-    
-    # EĞER İÇERİK HTML İSE İÇİNE GİR VE MEDYAYI ORADAN KOPAR
+
     if item_type in ['html', 'website'] and url.startswith('http'):
         extracted_text, html_media = extract_data_from_html(url)
         if html_media:
             media_url_to_download = html_media
 
-    # EĞER HTML DEĞİLSE VEYA HTML İÇİNDE MEDYA BULUNAMADIYSA VERİTABANINA BAK
     if not media_url_to_download:
         if any(ext in url.lower() for ext in ['.mp4', '.png', '.jpg', '.jpeg', '.gif']):
             media_url_to_download = url
@@ -143,7 +139,6 @@ def post_morning_tweet():
         elif selected.get('iconUrl'):
             media_url_to_download = selected['iconUrl'].replace('digitalforgerywork.shop', 'decentralize.design')
 
-    # MEDYAYI İNDİR VE TWITTER'A YÜKLE
     media_ids = []
     if media_url_to_download:
         print(f"Downloading media: {media_url_to_download}")
@@ -162,88 +157,55 @@ def post_morning_tweet():
                 print(f"Upload failed: {e}")
                 if os.path.exists(local_file): os.remove(local_file)
 
-    # TWEET METNİNİ OLUŞTUR (Sadece başlık, etiket ve tek bir cümle)
     display_text = ""
     if extracted_text:
         display_text = extracted_text[:100] + "..." if len(extracted_text) > 100 else extracted_text
     elif desc:
-        # Açıklamanın sadece ilk cümlesini al
         display_text = desc.split('.')[0] + "."
         if len(display_text) > 120:
             display_text = display_text[:117] + "..."
-            
-    # Temiz ve profesyonel format (Hashtag yok, link yok)
+
     tweet_text = f"{type_label} {name}\n\n{display_text}"
     if len(tweet_text) > 280:
         tweet_text = tweet_text[:277] + "..."
-    
-    # TWEETİ GÖNDER
+
     if media_ids:
         client.create_tweet(text=tweet_text, media_ids=media_ids)
     else:
         client.create_tweet(text=tweet_text)
-        
+
     print(f"Morning broadcast complete: {name}")
 
-# --- EVENING: CYBER PHILOSOPHER ---
+# --- EVENING: ARCHIVE THOUGHT ---
 def post_evening_tweet():
-    client, api = get_twitter_clients()
-    gemini_client = genai.Client(api_key=GEMINI_API_KEY)
-
-    prompt = """
-    You are an avant-garde Spatial Web and Metaverse architecture studio based in Milan named 'Decentralize Design'.
-    Your core philosophy is 'The Internet is Still Flat' and 'Religious Robotics'. You oppose humans being trapped in 2D screens and advocate for the digital materiality of code and space.
-
-    Please find a CURRENT tech news/trend from today or this week regarding 'Metaverse, Spatial Web, AR/VR, Digital Identity, or Virtual Architecture'.
-    Write a cold, philosophical, dark, metallic, and sharp English tweet consisting of EXACTLY 2 sentences.
-    1st sentence: State the current event or trend objectively but coldly.
-    2nd sentence: Make a striking, post-physical commentary or rebellion from your studio's perspective.
-
-    DO NOT USE ANY HASHTAGS. Do not use quotes around the text. Do not add introductory phrases. Just provide the raw tweet text in English.
-    """
-
-    response = gemini_client.models.generate_content(model='gemini-2.0-flash', contents=prompt)
-    tweet_text = response.text.strip()
-    # Olası bir hatada yapay zekanın eklediği hashtagleri zorla temizle
-    tweet_text = ' '.join(word for word in tweet_text.split() if not word.startswith('#'))
-
-    client.create_tweet(text=tweet_text)
-    print(f"Evening broadcast complete:\n{tweet_text}")
-
-# --- TEST: TOPIC ANALYST ---
-def post_test_tweet():
     client, _ = get_twitter_clients()
-    gemini_client = genai.Client(api_key=GEMINI_API_KEY)
+    db = load_db()
 
-    topics = [
-        "Metaverse", "Spatial Web", "AR/VR", "Digital Identity",
-        "Virtual Architecture", "Religious Robotics", "Web3 Identity"
-    ]
-    chosen_topic = random.choice(topics)
+    text_items = []
+    for category, items in db.items():
+        if isinstance(items, list):
+            for item in items:
+                if item.get('type') == 'text':
+                    text_items.append(item)
 
-    prompt = f"""
-    You are 'Decentralize Design', an avant-garde Spatial Web architecture studio based in Milan.
-    Core philosophy: 'The Internet is Still Flat' and 'Religious Robotics'.
-    You oppose humans being trapped in 2D screens. You advocate for digital materiality of code and space.
+    selected = random.choice(text_items)
+    desc = selected.get('description', '')
+    content = selected.get('content', '')
 
-    Topic: {chosen_topic}
+    # Açıklama yeterliyse kullan, yoksa içerikten ilk anlamlı cümleyi al
+    if desc and len(desc) > 40:
+        tweet_text = desc
+    elif content:
+        lines = [l.strip() for l in content.split('\n') if len(l.strip()) > 40]
+        tweet_text = lines[0] if lines else desc
+    else:
+        tweet_text = selected.get('name', '')
 
-    Research a current real trend or event happening now (2026) about this topic.
-    Write a cold, philosophical, dark, metallic, sharp English tweet: EXACTLY 2 sentences.
-    1st sentence: State the trend or event objectively but coldly.
-    2nd sentence: Make a striking post-physical commentary or rebellion from the studio's perspective.
-
-    DO NOT USE ANY HASHTAGS. No quotes around the text. No introductory phrases. Raw tweet text only.
-    """
-
-    response = gemini_client.models.generate_content(model='gemini-2.0-flash', contents=prompt)
-    tweet_text = response.text.strip()
-    tweet_text = ' '.join(w for w in tweet_text.split() if not w.startswith('#'))
     if len(tweet_text) > 280:
         tweet_text = tweet_text[:277] + "..."
 
     client.create_tweet(text=tweet_text)
-    print(f"Test broadcast [{chosen_topic}]:\n{tweet_text}")
+    print(f"Evening broadcast complete:\n{tweet_text}")
 
 
 if __name__ == "__main__":
@@ -255,5 +217,5 @@ if __name__ == "__main__":
     elif current_utc_hour in [15, 16, 17]:
         post_evening_tweet()
     else:
-        print(f"Test Mode (Hour: {current_utc_hour} UTC). Running Test routine...")
-        post_test_tweet()
+        print(f"Test Mode (Hour: {current_utc_hour} UTC). Running Evening routine...")
+        post_evening_tweet()
