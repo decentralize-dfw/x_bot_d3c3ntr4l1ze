@@ -4,7 +4,7 @@ import random
 import tweepy
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timezone
 import google.generativeai as genai
 import time
 
@@ -172,8 +172,10 @@ def post_morning_tweet():
         if len(display_text) > 120:
             display_text = display_text[:117] + "..."
             
-    # Temiz ve profesyonel format (Hashtag yok)
-    tweet_text = f"{type_label} {name}\n\n{display_text}\n\nENTER: {url}"
+    # Temiz ve profesyonel format (Hashtag yok, link yok)
+    tweet_text = f"{type_label} {name}\n\n{display_text}"
+    if len(tweet_text) > 280:
+        tweet_text = tweet_text[:277] + "..."
     
     # TWEETİ GÖNDER
     if media_ids:
@@ -188,7 +190,7 @@ def post_evening_tweet():
     client, api = get_twitter_clients()
     genai.configure(api_key=GEMINI_API_KEY)
     
-    model = genai.GenerativeModel('gemini-1.5-pro-latest')
+    model = genai.GenerativeModel('gemini-2.0-flash')
     
     prompt = """
     You are an avant-garde Spatial Web and Metaverse architecture studio based in Milan named 'Decentralize Design'. 
@@ -210,14 +212,51 @@ def post_evening_tweet():
     client.create_tweet(text=tweet_text)
     print(f"Evening broadcast complete:\n{tweet_text}")
 
+# --- TEST: TOPIC ANALYST ---
+def post_test_tweet():
+    client, _ = get_twitter_clients()
+    genai.configure(api_key=GEMINI_API_KEY)
+
+    topics = [
+        "Metaverse", "Spatial Web", "AR/VR", "Digital Identity",
+        "Virtual Architecture", "Religious Robotics", "Web3 Identity"
+    ]
+    chosen_topic = random.choice(topics)
+
+    model = genai.GenerativeModel('gemini-2.0-flash')
+    prompt = f"""
+    You are 'Decentralize Design', an avant-garde Spatial Web architecture studio based in Milan.
+    Core philosophy: 'The Internet is Still Flat' and 'Religious Robotics'.
+    You oppose humans being trapped in 2D screens. You advocate for digital materiality of code and space.
+
+    Topic: {chosen_topic}
+
+    Research a current real trend or event happening now (2026) about this topic.
+    Write a cold, philosophical, dark, metallic, sharp English tweet: EXACTLY 2 sentences.
+    1st sentence: State the trend or event objectively but coldly.
+    2nd sentence: Make a striking post-physical commentary or rebellion from the studio's perspective.
+
+    DO NOT USE ANY HASHTAGS. No quotes around the text. No introductory phrases. Raw tweet text only.
+    """
+
+    response = model.generate_content(prompt)
+    tweet_text = response.text.strip()
+    tweet_text = ' '.join(w for w in tweet_text.split() if not w.startswith('#'))
+    if len(tweet_text) > 280:
+        tweet_text = tweet_text[:277] + "..."
+
+    client.create_tweet(text=tweet_text)
+    print(f"Test broadcast [{chosen_topic}]:\n{tweet_text}")
+
+
 if __name__ == "__main__":
-    current_utc_hour = datetime.utcnow().hour
-    
+    current_utc_hour = datetime.now(timezone.utc).hour
+
     # UTC 6 = TR Saati 09:00 / UTC 16 = TR Saati 19:00
     if current_utc_hour in [5, 6, 7]:
         post_morning_tweet()
     elif current_utc_hour in [15, 16, 17]:
         post_evening_tweet()
     else:
-        print(f"Test Mode (Hour: {current_utc_hour} UTC). Running Morning routine...")
-        post_morning_tweet()
+        print(f"Test Mode (Hour: {current_utc_hour} UTC). Running Test routine...")
+        post_test_tweet()
