@@ -255,8 +255,28 @@ def post_evening_tweet():
     if len(tweet_text) > 280:
         tweet_text = tweet_text[:277] + "..."
 
-    client.create_tweet(text=tweet_text)
-    print(f"Evening broadcast complete:\n{tweet_text}")
+    print(f"Attempting evening tweet:\n{tweet_text}")
+    try:
+        client.create_tweet(text=tweet_text)
+        print(f"Evening broadcast complete:\n{tweet_text}")
+    except tweepy.errors.Forbidden as e:
+        api_codes = getattr(e, 'api_codes', [])
+        api_messages = getattr(e, 'api_messages', [])
+        print(f"Twitter 403 — codes: {api_codes}, messages: {api_messages}")
+        # 187 = duplicate status; retry with a fresh chunk
+        if 187 in api_codes and GROQ_API_KEY:
+            print("Duplicate detected, retrying with a different chunk...")
+            words = content.split()
+            start = random.randint(0, max(0, len(words) - 150))
+            new_chunk = ' '.join(words[start:start + 150])
+            tweet_text = distill_to_tweet(new_chunk, name)
+            if len(tweet_text) > 280:
+                tweet_text = tweet_text[:277] + "..."
+            print(f"Retry tweet:\n{tweet_text}")
+            client.create_tweet(text=tweet_text)
+            print(f"Evening broadcast complete (retry):\n{tweet_text}")
+        else:
+            raise
 
 
 if __name__ == "__main__":
