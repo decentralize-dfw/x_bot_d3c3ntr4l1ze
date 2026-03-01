@@ -368,6 +368,69 @@ def post_evening_tweet():
             raise
 
 
+# --- 23:00 (TR): ARTWORK DROP ---
+def post_artwork_tweet():
+    """Pick a random artwork, post image + metadata, then reply with site link."""
+    client, api = get_twitter_clients()
+
+    with open('artworks.json', 'r', encoding='utf-8') as f:
+        artworks = json.load(f)
+
+    if not artworks:
+        print("No artworks found in artworks.json.")
+        return
+
+    artwork = random.choice(artworks)
+    name = artwork.get('name', '')
+    description = artwork.get('description', '')
+    cats = artwork.get('categories', {})
+
+    # Build metadata block — each field on its own line
+    lines = [name, description, '']
+    for key in ['year', 'type', 'subtype', 'collection', 'medium', 'expression', 'reality', 'contents']:
+        val = cats.get(key)
+        if val is not None:
+            lines.append(str(val))
+
+    tweet_text = '\n'.join(lines).strip()
+    if len(tweet_text) > 280:
+        tweet_text = tweet_text[:277] + '...'
+
+    # Download and upload the first image
+    media_ids = []
+    media_list = artwork.get('media', [])
+    if media_list:
+        img_url = media_list[0].get('src')
+        if img_url:
+            print(f"Downloading artwork image: {img_url}")
+            local_file = download_media(img_url)
+            if local_file:
+                try:
+                    print("Uploading artwork image...")
+                    media = api.media_upload(local_file)
+                    media_ids.append(media.media_id)
+                    os.remove(local_file)
+                except Exception as e:
+                    print(f"Upload failed: {e}")
+                    if os.path.exists(local_file):
+                        os.remove(local_file)
+
+    print(f"Posting artwork tweet:\n{tweet_text}")
+    if media_ids:
+        resp = client.create_tweet(text=tweet_text, media_ids=media_ids)
+    else:
+        resp = client.create_tweet(text=tweet_text)
+
+    tweet_id = resp.data['id']
+
+    # Thread: second tweet with site link
+    client.create_tweet(
+        text="visit here to explore: de-centralize.com",
+        in_reply_to_tweet_id=tweet_id
+    )
+    print(f"Artwork thread posted: {name}")
+
+
 # --- REPLIES: ENGAGE WITH TRENDING / WATCHED TWEETS ---
 def post_replies():
     """Find 2 high-engagement tweets and reply to them in our voice."""
@@ -463,6 +526,8 @@ if __name__ == "__main__":
         post_morning_tweet()
     elif mode == "evening":
         post_evening_tweet()
+    elif mode == "artwork":
+        post_artwork_tweet()
     elif mode == "reply":
         post_replies()
     else:
@@ -472,6 +537,8 @@ if __name__ == "__main__":
             post_morning_tweet()
         elif current_utc_hour in [15, 16, 17]:
             post_evening_tweet()
+        elif current_utc_hour == 20:
+            post_artwork_tweet()
         else:
             print(f"Test Mode (Hour: {current_utc_hour} UTC). Running Evening routine...")
             post_evening_tweet()
