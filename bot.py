@@ -1,6 +1,7 @@
 import os
 import json
 import random
+import re
 import tweepy
 import requests
 from bs4 import BeautifulSoup
@@ -12,6 +13,7 @@ TWITTER_API_KEY = os.environ.get("TWITTER_API_KEY")
 TWITTER_API_SECRET = os.environ.get("TWITTER_API_SECRET")
 TWITTER_ACCESS_TOKEN = os.environ.get("TWITTER_ACCESS_TOKEN")
 TWITTER_ACCESS_TOKEN_SECRET = os.environ.get("TWITTER_ACCESS_TOKEN_SECRET")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 # --- TYPE LABELS ---
 TYPE_LABELS = {
@@ -190,30 +192,65 @@ def post_morning_tweet():
 
     print(f"Morning broadcast complete: {name}")
 
+def distill_to_tweet(chunk, source_name):
+    import groq as groq_sdk
+    groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
+    prompt = (
+        "You write for a digital design studio (Decentralize Design) that builds virtual worlds and manifestos.\n"
+        "From the text below, extract or rephrase ONE powerful, self-contained thought as a tweet (max 240 chars).\n"
+        "Rules: no quotes around it, no 'we believe / this manifesto / our studio', reads as a standalone statement.\n"
+        f"Output only the tweet text.\n\nSource: {source_name}\nText:\n{chunk}"
+    )
+    resp = groq_client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=80,
+        temperature=0.8,
+    )
+    return resp.choices[0].message.content.strip()
+
+
 # --- EVENING: ARCHIVE THOUGHT ---
 def post_evening_tweet():
     client, _ = get_twitter_clients()
     db = load_db()
 
-    text_items = []
-    for category, items in db.items():
-        if isinstance(items, list):
-            for item in items:
-                if item.get('type') == 'text':
-                    text_items.append(item)
+    text_items = [
+        item
+        for category, items in db.items()
+        if isinstance(items, list)
+        for item in items
+        if item.get('type') == 'text' and len(item.get('content', '')) > 500
+    ]
 
     selected = random.choice(text_items)
-    desc = selected.get('description', '')
     content = selected.get('content', '')
+    name = selected.get('name', '')
 
-    # Açıklama yeterliyse kullan, yoksa içerikten ilk anlamlı cümleyi al
-    if desc and len(desc) > 40:
-        tweet_text = desc
-    elif content:
-        lines = [l.strip() for l in content.split('\n') if len(l.strip()) > 40]
-        tweet_text = lines[0] if lines else desc
+    # Rastgele ~150 kelimelik parça seç
+    words = content.split()
+    if len(words) > 150:
+        start = random.randint(0, len(words) - 150)
+        chunk = ' '.join(words[start:start + 150])
     else:
-        tweet_text = selected.get('name', '')
+        chunk = content
+
+    # LLM ile distill, başarısızsa cümle bazlı fallback
+    tweet_text = None
+    if GROQ_API_KEY:
+        try:
+            tweet_text = distill_to_tweet(chunk, name)
+        except Exception as e:
+            print(f"Groq error: {e}")
+
+    if not tweet_text:
+        sentences = [
+            s.strip() for s in re.split(r'(?<=[.!?])\s+', content)
+            if 70 < len(s.strip()) < 240
+            and not s.strip().isupper()
+            and '\n' not in s.strip()[:30]
+        ]
+        tweet_text = random.choice(sentences) if sentences else content[:240]
 
     if len(tweet_text) > 280:
         tweet_text = tweet_text[:277] + "..."
