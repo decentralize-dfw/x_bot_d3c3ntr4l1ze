@@ -1,34 +1,5 @@
 [
-  {
-    "id": "demo-1",
-    "name": "MEDIA TEST DEMO",
-    "description": "This project demonstrates 3D Model (GLB), Video (MP4) and HTML Embed (YouTube) support.",
-    "link": null,
-    "media": [
-      {
-        "type": "model",
-        "src": "https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/seize-centerobject-opt-v1.glb"
-      },
-      {
-        "type": "html",
-        "src": "https://raw.githubusercontent.com/decentralize-dfw/finder/refs/heads/main/decentralize.html"
-      },
-      {
-        "type": "video",
-        "src": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
-      }
-    ],
-    "categories": {
-      "year": 2024,
-      "type": "demo",
-      "subtype": "mixed",
-      "collection": "test",
-      "medium": "digital",
-      "expression": "code",
-      "reality": "virtual",
-      "contents": "mixed"
-    }
-  },
+ 
   {
     "id": "fig-1",
     "name": "penguin is not a friend, only a sinner",
