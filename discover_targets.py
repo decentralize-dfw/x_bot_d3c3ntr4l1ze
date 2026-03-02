@@ -60,6 +60,7 @@ def discover():
                 tweet_fields=["author_id", "public_metrics"],
                 expansions=["author_id"],
                 user_fields=["username", "name", "public_metrics", "description"],
+                user_auth=True,
             )
             if not resp.data:
                 print("  → No results.")
