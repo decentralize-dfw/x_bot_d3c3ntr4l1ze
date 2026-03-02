@@ -18,9 +18,16 @@ TWITTER_ACCESS_TOKEN_SECRET = os.environ.get("TWITTER_ACCESS_TOKEN_SECRET")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 # --- REPLY / VIRAL CONFIG ---
-# Add Twitter usernames (without @) to reply specifically to their tweets.
-# If empty, the bot searches by SEARCH_KEYWORDS instead.
-WATCH_ACCOUNTS = []
+# Loaded from targets.json (auto-updated by discover_targets.py).
+# Falls back to keyword search if the file doesn't exist yet.
+def _load_watch_accounts():
+    try:
+        with open('targets.json', 'r', encoding='utf-8') as f:
+            return [t['username'] for t in json.load(f)]
+    except FileNotFoundError:
+        return []
+
+WATCH_ACCOUNTS = _load_watch_accounts()
 
 # Keyword search query used for viral context and reply targeting.
 SEARCH_KEYWORDS = (
