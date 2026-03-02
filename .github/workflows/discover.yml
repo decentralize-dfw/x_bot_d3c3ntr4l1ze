@@ -1,0 +1,39 @@
+name: Discover Niche Targets (Weekly)
+
+on:
+  schedule:
+    # Her Pazartesi 04:00 UTC (TR 07:00)
+    - cron: '0 4 * * 1'
+  workflow_dispatch: # Manuel tetikleme
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: pip install tweepy
+
+      - name: Run Discovery
+        env:
+          TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
+          TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
+          TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+        run: python discover_targets.py
+
+      - name: Commit updated targets.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add targets.json
+          git diff --staged --quiet || git commit -m "chore: update niche targets list [$(date -u +%Y-%m-%d)]"
+          git push
