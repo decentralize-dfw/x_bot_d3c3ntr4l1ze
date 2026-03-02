@@ -16,10 +16,11 @@ import time
 import tweepy
 from datetime import datetime, timezone
 
-TWITTER_API_KEY            = os.environ.get("TWITTER_API_KEY")
-TWITTER_API_SECRET         = os.environ.get("TWITTER_API_SECRET")
-TWITTER_ACCESS_TOKEN       = os.environ.get("TWITTER_ACCESS_TOKEN")
-TWITTER_ACCESS_TOKEN_SECRET= os.environ.get("TWITTER_ACCESS_TOKEN_SECRET")
+TWITTER_BEARER_TOKEN        = os.environ.get("BEARERTOKEN")
+TWITTER_API_KEY             = os.environ.get("TWITTER_API_KEY")
+TWITTER_API_SECRET          = os.environ.get("TWITTER_API_SECRET")
+TWITTER_ACCESS_TOKEN        = os.environ.get("TWITTER_ACCESS_TOKEN")
+TWITTER_ACCESS_TOKEN_SECRET = os.environ.get("TWITTER_ACCESS_TOKEN_SECRET")
 
 # Kaç kişilik liste tutulsun
 MAX_TARGETS = 60
@@ -40,6 +41,7 @@ NICHE_QUERIES = [
 
 def get_client():
     return tweepy.Client(
+        bearer_token=TWITTER_BEARER_TOKEN,
         consumer_key=TWITTER_API_KEY,
         consumer_secret=TWITTER_API_SECRET,
         access_token=TWITTER_ACCESS_TOKEN,
@@ -60,7 +62,6 @@ def discover():
                 tweet_fields=["author_id", "public_metrics"],
                 expansions=["author_id"],
                 user_fields=["username", "name", "public_metrics", "description"],
-                user_auth=True,
             )
             if not resp.data:
                 print("  → No results.")
