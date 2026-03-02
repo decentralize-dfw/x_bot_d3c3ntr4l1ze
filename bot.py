@@ -40,8 +40,11 @@ TYPE_LABELS = {
     'pdf': '[Document]'
 }
 
-# Sabah tweeti için medya olan item tipleri
-MEDIA_TYPES = {'image', 'video', 'glb', 'vrm', 'html', 'website', 'pdf'}
+# Sabah tweeti için sadece direkt upload edilebilen tipler
+MEDIA_TYPES = {'image', 'video'}
+
+def is_youtube(url):
+    return 'youtube.com' in url or 'youtu.be' in url
 
 
 def get_twitter_clients():
@@ -63,12 +66,23 @@ def load_db():
     with open('database.json', 'r', encoding='utf-8') as file:
         return json.load(file)
 
+def fix_wix_video_url(url):
+    """Wix video URL'lerini indirilebilir formata çevirir."""
+    if 'video.wixstatic.com' not in url:
+        return url
+    url = url.rstrip('/')
+    if url.endswith('/mp4'):
+        return url + '/file.mp4'
+    if not url.endswith('.mp4'):
+        return url + '/mp4/file.mp4'
+    return url
 
 def download_media(media_url):
     try:
+        media_url = fix_wix_video_url(media_url)
         ext = ".jpg"
         lower_url = media_url.lower()
-        if ".mp4" in lower_url: ext = ".mp4"
+        if ".mp4" in lower_url or "video.wixstatic.com" in lower_url: ext = ".mp4"
         elif ".png" in lower_url: ext = ".png"
         elif ".gif" in lower_url: ext = ".gif"
 
@@ -143,21 +157,28 @@ def post_morning_tweet():
     raw_url = selected.get('url', 'https://decentralize.design')
     url = raw_url.replace('digitalforgerywork.shop', 'decentralize.design')
 
+    # Açıklama metni oluştur
+    display_text = desc.split('.')[0] + "." if desc else ""
+    if len(display_text) > 120:
+        display_text = display_text[:117] + "..."
+
+    # YouTube: video upload edilemez, URL tweete eklenir — Twitter kart önizlemesi gösterir
+    if is_youtube(url):
+        tweet_text = f"{type_label} {name}\n\n{display_text}\n\n{url}"
+        if len(tweet_text) > 280:
+            tweet_text = tweet_text[:277] + "..."
+        client.create_tweet(text=tweet_text)
+        print(f"Morning broadcast (YouTube card): {name}")
+        return
+
+    # Wix ve direkt medya URL'leri: indir ve upload et
     media_url_to_download = None
-    extracted_text = None
-
-    if item_type in ['html', 'website'] and url.startswith('http'):
-        extracted_text, html_media = extract_data_from_html(url)
-        if html_media:
-            media_url_to_download = html_media
-
-    if not media_url_to_download:
-        if any(ext in url.lower() for ext in ['.mp4', '.png', '.jpg', '.jpeg', '.gif']):
-            media_url_to_download = url
-        elif selected.get('thumbnailUrl'):
-            media_url_to_download = selected['thumbnailUrl'].replace('digitalforgerywork.shop', 'decentralize.design')
-        elif selected.get('iconUrl'):
-            media_url_to_download = selected['iconUrl'].replace('digitalforgerywork.shop', 'decentralize.design')
+    if any(ext in url.lower() for ext in ['.mp4', '.png', '.jpg', '.jpeg', '.gif']) or 'video.wixstatic.com' in url:
+        media_url_to_download = url
+    elif selected.get('thumbnailUrl'):
+        media_url_to_download = selected['thumbnailUrl'].replace('digitalforgerywork.shop', 'decentralize.design')
+    elif selected.get('iconUrl'):
+        media_url_to_download = selected['iconUrl'].replace('digitalforgerywork.shop', 'decentralize.design')
 
     media_ids = []
     if media_url_to_download:
@@ -176,14 +197,6 @@ def post_morning_tweet():
             except Exception as e:
                 print(f"Upload failed: {e}")
                 if os.path.exists(local_file): os.remove(local_file)
-
-    display_text = ""
-    if extracted_text:
-        display_text = extracted_text[:100] + "..." if len(extracted_text) > 100 else extracted_text
-    elif desc:
-        display_text = desc.split('.')[0] + "."
-        if len(display_text) > 120:
-            display_text = display_text[:117] + "..."
 
     tweet_text = f"{type_label} {name}\n\n{display_text}"
     if len(tweet_text) > 280:
