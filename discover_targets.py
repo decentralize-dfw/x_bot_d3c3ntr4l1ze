@@ -11,6 +11,7 @@ GitHub Actions (discover.yml) haftada bir otomatik çalıştırır.
 """
 
 import os
+import sys
 import json
 import time
 import tweepy
@@ -22,20 +23,18 @@ TWITTER_API_SECRET          = os.environ.get("TWITTER_API_SECRET")
 TWITTER_ACCESS_TOKEN        = os.environ.get("TWITTER_ACCESS_TOKEN")
 TWITTER_ACCESS_TOKEN_SECRET = os.environ.get("TWITTER_ACCESS_TOKEN_SECRET")
 
-# Kaç kişilik liste tutulsun
-MAX_TARGETS = 60
+MAX_TARGETS  = 60
+MIN_FOLLOWERS = 200  # düşürüldü, daha fazla aday geçsin
 
-# Minimum follower eşiği (bot hesaplarını, çok küçükleri elemeye yarar)
-MIN_FOLLOWERS = 500
-
-# Niche sorgu seti — her biri ayrı çekilir, sonuçlar birleştirilir
+# min_faves kaldırıldı — basic/free tier'da desteklenmiyor
+# max_results 10 yapıldı — basic tier limiti
 NICHE_QUERIES = [
-    '(metaverse OR "virtual world" OR "spatial web") lang:en -is:retweet min_faves:15',
-    '("three.js" OR "threejs" OR "WebGL" OR "3D web") lang:en -is:retweet min_faves:10',
-    '("digital art" OR "generative art" OR "new media art") lang:en -is:retweet min_faves:20',
-    '("on-chain" OR "crypto art" OR "NFT art" OR "digital collectible") lang:en -is:retweet min_faves:15',
-    '("spatial computing" OR "extended reality" OR "XR design") lang:en -is:retweet min_faves:10',
-    '("virtual architecture" OR "metaverse design" OR "web3 design") lang:en -is:retweet min_faves:10',
+    '(metaverse OR "virtual world" OR "spatial web") lang:en -is:retweet',
+    '("three.js" OR "threejs" OR "WebGL" OR "3D web") lang:en -is:retweet',
+    '("digital art" OR "generative art" OR "new media art") lang:en -is:retweet',
+    '("on-chain" OR "crypto art" OR "NFT art" OR "digital collectible") lang:en -is:retweet',
+    '("spatial computing" OR "extended reality" OR "XR design") lang:en -is:retweet',
+    '("virtual architecture" OR "metaverse design" OR "web3 design") lang:en -is:retweet',
 ]
 
 
@@ -50,25 +49,30 @@ def get_client():
 
 
 def discover():
+    # Başlangıç tanılaması
+    print(f"Bearer token set: {'YES' if TWITTER_BEARER_TOKEN else 'NO — will fail!'}")
+    print(f"API key set:      {'YES' if TWITTER_API_KEY else 'NO'}")
+
     client = get_client()
-    author_data = {}  # username -> {score, count, user_obj}
+    author_data = {}
+    query_errors = 0
 
     for i, query in enumerate(NICHE_QUERIES):
-        print(f"[{i+1}/{len(NICHE_QUERIES)}] Searching: {query[:60]}...")
+        print(f"\n[{i+1}/{len(NICHE_QUERIES)}] {query[:70]}")
         try:
             resp = client.search_recent_tweets(
                 query=query,
-                max_results=100,
+                max_results=10,
                 tweet_fields=["author_id", "public_metrics"],
                 expansions=["author_id"],
                 user_fields=["username", "name", "public_metrics", "description"],
             )
+
             if not resp.data:
                 print("  → No results.")
                 time.sleep(2)
                 continue
 
-            # Build id → user map from expansions
             users_by_id = {}
             if resp.includes and resp.includes.get("users"):
                 for u in resp.includes["users"]:
@@ -80,22 +84,37 @@ def discover():
                     continue
                 m = tweet.public_metrics or {}
                 score = m.get("like_count", 0) + m.get("retweet_count", 0) * 3
-
                 uname = user.username.lower()
                 if uname not in author_data:
                     author_data[uname] = {"score": 0, "count": 0, "user": user}
                 author_data[uname]["score"] += score
                 author_data[uname]["count"] += 1
 
-            print(f"  → {len(resp.data)} tweets, {len(users_by_id)} authors collected.")
+            print(f"  → {len(resp.data)} tweets, {len(users_by_id)} authors.")
 
-        except tweepy.errors.TooManyRequests:
-            print("  → Rate limit hit, waiting 60s...")
+        except tweepy.errors.TooManyRequests as e:
+            print(f"  → Rate limit hit: {e}. Waiting 60s...")
             time.sleep(60)
+            query_errors += 1
+        except tweepy.errors.Forbidden as e:
+            print(f"  → 403 Forbidden: {e}")
+            print("     (API tier may not support search — check your Twitter Developer Portal)")
+            query_errors += 1
+        except tweepy.errors.Unauthorized as e:
+            print(f"  → 401 Unauthorized: {e}")
+            print("     (Check BEARERTOKEN secret)")
+            query_errors += 1
         except Exception as e:
-            print(f"  → Error: {e}")
+            print(f"  → Unexpected error [{type(e).__name__}]: {e}")
+            query_errors += 1
 
-        time.sleep(3)  # rate limit koruması
+        time.sleep(3)
+
+    print(f"\n--- Summary: {len(author_data)} unique authors found, {query_errors}/{len(NICHE_QUERIES)} queries errored ---")
+
+    if not author_data:
+        print("ERROR: 0 authors collected. Aborting without touching targets.json.")
+        sys.exit(1)  # Job fail olsun, sessiz geçmesin
 
     # Filter + rank
     candidates = []
@@ -103,6 +122,7 @@ def discover():
         user = data["user"]
         pm = user.public_metrics or {}
         followers = pm.get("followers_count", pm.get("follower_count", 0))
+        print(f"  candidate @{uname}: {followers} followers")
         if followers < MIN_FOLLOWERS:
             continue
         candidates.append({
@@ -120,13 +140,14 @@ def discover():
         reverse=True
     )
     top_new = candidates[:MAX_TARGETS]
+    print(f"{len(top_new)} candidates passed MIN_FOLLOWERS={MIN_FOLLOWERS} filter.")
 
-    # Merge with existing targets.json (preserve manually added entries)
+    # Merge with existing targets.json
     existing = []
     try:
         with open("targets.json", "r", encoding="utf-8") as f:
             existing = json.load(f)
-        print(f"\nExisting targets: {len(existing)}")
+        print(f"Existing targets loaded: {len(existing)}")
     except FileNotFoundError:
         pass
 
@@ -135,7 +156,6 @@ def discover():
         if t["username"] not in existing_map:
             existing_map[t["username"]] = t
         else:
-            # Update engagement score and follower count, keep discovery date
             existing_map[t["username"]]["engagement_score"] = t["engagement_score"]
             existing_map[t["username"]]["followers"] = t["followers"]
 
@@ -148,7 +168,7 @@ def discover():
     with open("targets.json", "w", encoding="utf-8") as f:
         json.dump(merged, f, indent=2, ensure_ascii=False)
 
-    print(f"\nTop targets saved ({len(merged)} total):")
+    print(f"\nSaved {len(merged)} targets to targets.json:")
     for t in merged[:15]:
         print(f"  @{t['username']:<25} {t['followers']:>7,} followers   score {t['engagement_score']:>5}")
 
