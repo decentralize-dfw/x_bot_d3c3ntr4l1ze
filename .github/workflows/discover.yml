@@ -6,6 +6,9 @@ on:
     - cron: '0 4 * * 1'
   workflow_dispatch: # Manuel tetikleme
 
+permissions:
+  contents: write
+
 jobs:
   discover:
     runs-on: ubuntu-latest
