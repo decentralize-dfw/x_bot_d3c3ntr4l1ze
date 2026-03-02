@@ -16,7 +16,7 @@ import time
 import tweepy
 from datetime import datetime, timezone
 
-TWITTER_BEARER_TOKEN        = os.environ.get("TWITTER_BEARER_TOKEN")
+TWITTER_BEARER_TOKEN        = os.environ.get("BEARERTOKEN")
 TWITTER_API_KEY             = os.environ.get("TWITTER_API_KEY")
 TWITTER_API_SECRET          = os.environ.get("TWITTER_API_SECRET")
 TWITTER_ACCESS_TOKEN        = os.environ.get("TWITTER_ACCESS_TOKEN")
