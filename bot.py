@@ -208,12 +208,37 @@ def post_morning_tweet():
     if len(tweet_text) > 280:
         tweet_text = tweet_text[:277] + "..."
 
-    if media_ids:
-        client.create_tweet(text=tweet_text, media_ids=media_ids)
-    else:
-        client.create_tweet(text=tweet_text)
-
-    print(f"Morning broadcast complete: {name}")
+    print(f"Attempting morning tweet:\n{tweet_text}")
+    try:
+        if media_ids:
+            client.create_tweet(text=tweet_text, media_ids=media_ids)
+        else:
+            client.create_tweet(text=tweet_text)
+        print(f"Morning broadcast complete: {name}")
+    except tweepy.errors.Forbidden as e:
+        api_codes = getattr(e, 'api_codes', [])
+        print(f"Twitter 403 — codes: {api_codes}")
+        if 187 in api_codes:
+            print("Duplicate detected, retrying with a different item...")
+            selected2 = random.choice([i for i in media_items if i != selected])
+            name2 = selected2.get('name', 'ARCHIVE_ITEM')
+            desc2 = selected2.get('description', '')
+            type_label2 = TYPE_LABELS.get(selected2.get('type', 'image'), '[Archive]')
+            caption2 = ""
+            if GROQ_API_KEY:
+                try:
+                    caption2 = generate_media_caption(name2, desc2, type_label2)
+                except Exception:
+                    pass
+            if not caption2:
+                caption2 = desc2[:137] + "..." if len(desc2) > 140 else desc2
+            retry_text = f"{type_label2} {name2}\n\n{caption2}"
+            if len(retry_text) > 280:
+                retry_text = retry_text[:277] + "..."
+            client.create_tweet(text=retry_text)
+            print(f"Morning broadcast complete (retry): {name2}")
+        else:
+            raise
 
 
 # --- LLM HELPERS ---
