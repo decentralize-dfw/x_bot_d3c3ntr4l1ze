@@ -80,21 +80,26 @@ def fix_wix_video_url(url):
 def download_media(media_url):
     try:
         media_url = fix_wix_video_url(media_url)
-        ext = ".jpg"
-        lower_url = media_url.lower()
-        if ".mp4" in lower_url or "video.wixstatic.com" in lower_url: ext = ".mp4"
-        elif ".png" in lower_url: ext = ".png"
-        elif ".gif" in lower_url: ext = ".gif"
-
-        temp_filename = f"temp_media_{int(time.time())}{ext}"
         headers = {'User-Agent': 'Mozilla/5.0'}
-
-        response = requests.get(media_url, stream=True, headers=headers, timeout=15)
+        response = requests.get(media_url, stream=True, headers=headers, timeout=30)
         if response.status_code == 200:
+            ct = response.headers.get('Content-Type', '').lower()
+            lower_url = media_url.lower()
+            if 'video' in ct or '.mp4' in lower_url or 'video.wixstatic.com' in lower_url:
+                ext = '.mp4'
+            elif 'png' in ct or '.png' in lower_url:
+                ext = '.png'
+            elif 'gif' in ct or '.gif' in lower_url:
+                ext = '.gif'
+            else:
+                ext = '.jpg'
+            temp_filename = f"temp_media_{int(time.time())}{ext}"
             with open(temp_filename, 'wb') as f:
                 for chunk in response.iter_content(1024 * 1024):
                     f.write(chunk)
             return temp_filename
+        else:
+            print(f"Media download HTTP {response.status_code}: {media_url}")
     except Exception as e:
         print(f"Media download failed: {e}")
     return None
@@ -157,13 +162,9 @@ def post_morning_tweet():
     raw_url = selected.get('url', 'https://decentralize.design')
     url = raw_url.replace('digitalforgerywork.shop', 'decentralize.design')
 
-    # Açıklama metni oluştur
-    display_text = desc.split('.')[0] + "." if desc else ""
-    if len(display_text) > 120:
-        display_text = display_text[:117] + "..."
-
     # YouTube: video upload edilemez, URL tweete eklenir — Twitter kart önizlemesi gösterir
     if is_youtube(url):
+        display_text = desc[:117] + "..." if len(desc) > 120 else desc
         tweet_text = f"{type_label} {name}\n\n{display_text}\n\n{url}"
         if len(tweet_text) > 280:
             tweet_text = tweet_text[:277] + "..."
@@ -171,14 +172,8 @@ def post_morning_tweet():
         print(f"Morning broadcast (YouTube card): {name}")
         return
 
-    # Wix ve direkt medya URL'leri: indir ve upload et
-    media_url_to_download = None
-    if any(ext in url.lower() for ext in ['.mp4', '.png', '.jpg', '.jpeg', '.gif']) or 'video.wixstatic.com' in url:
-        media_url_to_download = url
-    elif selected.get('thumbnailUrl'):
-        media_url_to_download = selected['thumbnailUrl'].replace('digitalforgerywork.shop', 'decentralize.design')
-    elif selected.get('iconUrl'):
-        media_url_to_download = selected['iconUrl'].replace('digitalforgerywork.shop', 'decentralize.design')
+    # image/video type: url field IS the media file (Arweave, GitHub raw, Wix, etc.)
+    media_url_to_download = url
 
     media_ids = []
     if media_url_to_download:
@@ -195,8 +190,19 @@ def post_morning_tweet():
                 media_ids.append(media.media_id)
                 os.remove(local_file)
             except Exception as e:
-                print(f"Upload failed: {e}")
+                print(f"Upload failed ({type(e).__name__}): {e}")
                 if os.path.exists(local_file): os.remove(local_file)
+
+    # Build caption: LLM first, fallback to first complete sentence from desc
+    display_text = ""
+    if GROQ_API_KEY:
+        try:
+            display_text = generate_media_caption(name, desc, type_label)
+        except Exception as e:
+            print(f"Caption generation error: {e}")
+    if not display_text:
+        sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', desc) if 30 < len(s.strip()) <= 140]
+        display_text = sentences[0] if sentences else (desc[:137] + "..." if len(desc) > 140 else desc)
 
     tweet_text = f"{type_label} {name}\n\n{display_text}"
     if len(tweet_text) > 280:
@@ -306,6 +312,27 @@ def generate_reply(target_tweet_text, manifesto_chunk):
         messages=[{"role": "user", "content": prompt}],
         max_tokens=80,
         temperature=0.85,
+    )
+    return resp.choices[0].message.content.strip()
+
+
+def generate_media_caption(name, description, type_label):
+    """LLM: one complete, self-contained caption for a media item. ≤120 chars."""
+    groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
+    prompt = (
+        "You write captions for @decentralize___ (a studio building 3D virtual worlds on-chain).\n"
+        "Write ONE complete sentence caption for this media item. Max 120 characters.\n"
+        "Rules: complete sentence, makes sense to someone who has never heard of this project, "
+        "no hashtags, no studio name, no 'this is...'. State what it IS or what it MEANS.\n\n"
+        f"Item: {type_label} — {name}\n"
+        f"Description: {description}\n\n"
+        "Output ONLY the caption."
+    )
+    resp = groq_client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=50,
+        temperature=0.7,
     )
     return resp.choices[0].message.content.strip()
 
