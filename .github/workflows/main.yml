@@ -20,7 +20,24 @@ on:
     - cron: '0 19 * * *'
     # 7. Media archive tweet:        UTC 22:00
     - cron: '0 22 * * *'
-  workflow_dispatch: # Manuel çalıştırma butonu her zaman açık
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Çalıştırılacak mod (boş bırakırsan schedule mantığına göre çalışır)'
+        required: false
+        default: ''
+        type: choice
+        options:
+          - ''
+          - reply
+          - reply_controversial
+          - decrypt
+          - venturebeat
+          - evening
+          - evening_controversial
+          - artwork
+          - quote
+          - morning
 
 jobs:
   transmit:
@@ -46,7 +63,14 @@ jobs:
           TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           SCHEDULE: ${{ github.event.schedule }}
+          DISPATCH_MODE: ${{ github.event.inputs.mode }}
         run: |
+          # Manuel dispatch'te mode input'u varsa onu kullan
+          if [ -n "$DISPATCH_MODE" ]; then
+            echo "Mode: manual dispatch override → $DISPATCH_MODE"
+            python bot.py "$DISPATCH_MODE"
+            exit 0
+          fi
           echo "Triggered by schedule: '$SCHEDULE'"
           if [ "$SCHEDULE" = "0 2 * * *" ]; then
             echo "Mode: decrypt.co news tweet"
