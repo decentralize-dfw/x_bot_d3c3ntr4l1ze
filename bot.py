@@ -5,7 +5,7 @@ import random
 import re
 import tweepy
 import requests
-import feedparser
+import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
 from datetime import datetime, timezone
 import time
@@ -1022,7 +1022,11 @@ def _scrape_article_body(article_url, source_name):
             or soup.find('div', class_=re.compile(r'(article|post|entry|content|story)[-_]?(body|text|content)?', re.I))
         )
         if body_tag:
-            paragraphs = [p.get_text(separator=' ', strip=True) for p in body_tag.find_all('p')]
+            paragraphs = [
+                p.get_text(separator=' ', strip=True)
+                for p in body_tag.find_all('p')
+                if len(p.get_text(strip=True)) > 50
+            ]
         else:
             paragraphs = [
                 p.get_text(separator=' ', strip=True)
@@ -1036,57 +1040,90 @@ def _scrape_article_body(article_url, source_name):
         return ""
 
 
+def _parse_rss(rss_url, source_name):
+    """Fetch and parse an RSS feed using stdlib xml + requests.
+    Returns (title, article_url, body_text) or None.
+    """
+    headers = {
+        'User-Agent': (
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+            'AppleWebKit/537.36 (KHTML, like Gecko) '
+            'Chrome/120.0.0.0 Safari/537.36'
+        )
+    }
+    try:
+        resp = requests.get(rss_url, headers=headers, timeout=15)
+        if resp.status_code != 200:
+            print(f"{source_name} RSS fetch HTTP {resp.status_code}")
+            return None
+
+        # RSS is XML — parse with stdlib (no external deps)
+        root = ET.fromstring(resp.content)
+        channel = root.find('channel')
+        if channel is None:
+            print(f"{source_name}: RSS has no <channel> element.")
+            return None
+
+        item = channel.find('item')
+        if item is None:
+            print(f"{source_name}: RSS <channel> has no <item> elements.")
+            return None
+
+        title = (item.findtext('title') or '').strip()
+        article_url = (item.findtext('link') or '').strip()
+
+        # content:encoded namespace (most full-text RSS feeds use this)
+        CONTENT_NS = 'http://purl.org/rss/1.0/modules/content/'
+        raw_body = (
+            item.findtext(f'{{{CONTENT_NS}}}encoded')
+            or item.findtext('description')
+            or ''
+        )
+
+        body_text = ''
+        if raw_body:
+            body_text = BeautifulSoup(raw_body, 'html.parser').get_text(separator=' ', strip=True)
+
+        return title, article_url, body_text
+
+    except ET.ParseError as e:
+        print(f"{source_name} RSS XML parse error: {e}")
+        return None
+    except Exception as e:
+        print(f"{source_name} RSS error: {e}")
+        return None
+
+
 def _fetch_article_content(site_url, source_name):
     """Fetch the top article via RSS feed and return (title, full_text).
 
     Strategy:
-    1. Parse the RSS feed for the site.
-    2. Take the most recent entry.
-    3. Use the summary/content from the feed entry as the article body.
-    4. If the feed body is too short (<300 chars), scrape the article URL.
-    Falls back to homepage HTML scraping if the RSS feed is unavailable.
+    1. Parse the RSS feed with stdlib xml (no extra dependencies).
+    2. Use content:encoded or description from the feed as the body.
+    3. If the feed body is too short (<300 chars), scrape the article URL.
+    4. Falls back to homepage HTML scraping if the RSS feed is unavailable.
     """
     rss_url = _RSS_FEEDS.get(source_name)
 
     # --- Primary: RSS feed ---
     if rss_url:
-        try:
-            print(f"{source_name}: parsing RSS feed {rss_url}")
-            feed = feedparser.parse(rss_url)
-            if feed.entries:
-                entry = feed.entries[0]
-                title = entry.get('title', '').strip()
-                article_url = entry.get('link', '')
+        print(f"{source_name}: parsing RSS feed {rss_url}")
+        rss_result = _parse_rss(rss_url, source_name)
+        if rss_result:
+            title, article_url, body_text = rss_result
 
-                # Extract body text from feed entry (summary or content)
-                raw_body = ''
-                if entry.get('content'):
-                    raw_body = entry.content[0].get('value', '')
-                elif entry.get('summary'):
-                    raw_body = entry.summary
+            # If RSS body is short, scrape the full article page
+            if len(body_text) < 300 and article_url:
+                print(f"{source_name}: RSS body short ({len(body_text)} chars), scraping article...")
+                scraped = _scrape_article_body(article_url, source_name)
+                if scraped:
+                    body_text = scraped
 
-                # Strip HTML tags from feed body
-                if raw_body:
-                    body_text = BeautifulSoup(raw_body, 'html.parser').get_text(separator=' ', strip=True)
-                else:
-                    body_text = ''
-
-                # If feed body is short, fetch and scrape the full article
-                if len(body_text) < 300 and article_url:
-                    print(f"{source_name}: RSS body short ({len(body_text)} chars), scraping article...")
-                    scraped = _scrape_article_body(article_url, source_name)
-                    if scraped:
-                        body_text = scraped
-
-                if not body_text:
-                    print(f"{source_name}: no article body found in RSS entry.")
-                else:
-                    print(f"{source_name} RSS article: '{title}' ({len(body_text)} chars)")
-                    return title, body_text[:2500]
+            if body_text:
+                print(f"{source_name} RSS article: '{title}' ({len(body_text)} chars)")
+                return title, body_text[:2500]
             else:
-                print(f"{source_name}: RSS feed returned no entries.")
-        except Exception as e:
-            print(f"{source_name} RSS error: {e}")
+                print(f"{source_name}: no article body found in RSS entry.")
 
     # --- Fallback: homepage HTML scraping ---
     print(f"{source_name}: falling back to homepage HTML scraping...")
