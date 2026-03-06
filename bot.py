@@ -447,6 +447,54 @@ def generate_media_caption(name, description, type_label):
     return resp.choices[0].message.content.strip()
 
 
+def generate_artwork_tweet(name, description, categories):
+    """LLM: short punchy tweet for an artwork drop. ≤ 130 chars."""
+    groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
+    meta = ", ".join(
+        f"{k}: {v}" for k, v in categories.items()
+        if v and k in ('year', 'type', 'medium', 'collection')
+    )
+    prompt = (
+        "You write for @decentralize___, a studio building 3D virtual worlds on-chain.\n"
+        "Write ONE tweet announcing this artwork drop. Max 130 characters.\n"
+        "Rules: complete sentence, no hashtags, no studio name, no quotes, no 'this is...'.\n"
+        "State what it IS or what makes it special. Punchy and visual.\n\n"
+        f"Artwork: {name}\n"
+        f"Description: {description}\n"
+        f"Details: {meta}\n\n"
+        "Output ONLY the tweet text."
+    )
+    resp = groq_client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=55,
+        temperature=0.75,
+    )
+    return resp.choices[0].message.content.strip()
+
+
+def generate_news_tweet(title, article_text, source):
+    """LLM: viral controversial take on a full news article. ≤ 130 chars."""
+    groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
+    prompt = (
+        "You are @decentralize___, building 3D virtual worlds on-chain. Voice: punk architect, prophetic outsider.\n"
+        "Read the article below and write ONE viral tweet with a sharp, controversial take on it.\n"
+        "Formats: bold prediction, uncomfortable truth, expose a contradiction, or 'everyone is missing the point'.\n"
+        "Rules: Max 130 chars. No hashtags. No @mentions. Hook in the first line — make it sting.\n\n"
+        f"Source: {source}\n"
+        f"Title: {title}\n"
+        f"Article:\n{article_text[:2000]}\n\n"
+        "Output ONLY the tweet text."
+    )
+    resp = groq_client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=60,
+        temperature=0.95,
+    )
+    return resp.choices[0].message.content.strip()
+
+
 # --- EVENING: VIRAL MANIFESTO TWEET ---
 def post_evening_tweet():
     client, _ = get_twitter_clients()
@@ -535,16 +583,24 @@ def post_artwork_tweet():
     description = artwork.get('description', '')
     cats = artwork.get('categories', {})
 
-    # Build metadata block — each field on its own line
-    lines = [name, description, '']
-    for key in ['year', 'type', 'subtype', 'collection', 'medium', 'expression', 'reality', 'contents']:
-        val = cats.get(key)
-        if val is not None:
-            lines.append(str(val))
+    # Generate tweet text via LLM (≤130 chars, no truncation)
+    tweet_text = None
+    if GROQ_API_KEY:
+        try:
+            tweet_text = generate_artwork_tweet(name, description, cats)
+        except Exception as e:
+            print(f"Artwork LLM error: {e}")
 
-    tweet_text = '\n'.join(lines).strip()
-    if len(tweet_text) > 280:
-        tweet_text = tweet_text[:277] + '...'
+    if not tweet_text:
+        # Fallback: word-boundary trim, no ellipsis
+        base = f"{name} — {description}".strip()
+        words = base.split()
+        tweet_text = ""
+        for w in words:
+            candidate = (tweet_text + " " + w).strip()
+            if len(candidate) > 130:
+                break
+            tweet_text = candidate
 
     # Download and upload the first image
     media_ids = []
@@ -603,18 +659,24 @@ def post_replies():
         return
 
     # Build query: specific accounts or keyword search
+    # Twitter API query limit is 512 chars; build the from: list incrementally
     if WATCH_ACCOUNTS:
-        from_part = " OR ".join(f"from:{a}" for a in WATCH_ACCOUNTS)
-        query = f"({from_part}) -is:retweet"
+        parts = []
+        for account in WATCH_ACCOUNTS:
+            candidate = " OR ".join(parts + [f"from:{account}"])
+            if len(f"({candidate}) -is:retweet") > 480:
+                break
+            parts.append(f"from:{account}")
+        query = f"({' OR '.join(parts)}) -is:retweet"
     else:
         query = f"{SEARCH_KEYWORDS} -is:retweet -is:reply lang:en"
 
+    print(f"Reply search query ({len(query)} chars): {query[:120]}...")
     try:
         resp = client.search_recent_tweets(
             query=query,
             max_results=20,
             tweet_fields=["public_metrics", "text", "id"],
-            sort_order="relevancy",
         )
     except Exception as e:
         print(f"Reply search error: {e}")
@@ -760,17 +822,22 @@ def post_controversial_replies():
         return
 
     if WATCH_ACCOUNTS:
-        from_part = " OR ".join(f"from:{a}" for a in WATCH_ACCOUNTS)
-        query = f"({from_part}) -is:retweet"
+        parts = []
+        for account in WATCH_ACCOUNTS:
+            candidate = " OR ".join(parts + [f"from:{account}"])
+            if len(f"({candidate}) -is:retweet") > 480:
+                break
+            parts.append(f"from:{account}")
+        query = f"({' OR '.join(parts)}) -is:retweet"
     else:
         query = f"{SEARCH_KEYWORDS} -is:retweet -is:reply lang:en"
 
+    print(f"Controversial reply search query ({len(query)} chars): {query[:120]}...")
     try:
         resp = client.search_recent_tweets(
             query=query,
             max_results=20,
             tweet_fields=["public_metrics", "text", "id"],
-            sort_order="relevancy",
         )
     except Exception as e:
         print(f"Reply search error: {e}")
@@ -850,7 +917,6 @@ def post_quote_tweet():
             query=f"{SEARCH_KEYWORDS} -is:retweet -is:reply lang:en",
             max_results=20,
             tweet_fields=["public_metrics", "text", "id"],
-            sort_order="relevancy",
         )
     except Exception as e:
         print(f"Quote tweet search error: {e}")
@@ -894,6 +960,112 @@ def post_quote_tweet():
         print(f"Quote tweet post error: {e}")
 
 
+# --- NEWS TWEETS: DECRYPT.CO & VENTUREBEAT ---
+def _fetch_article_content(site_url, source_name):
+    """Fetch the top article from a news site and return (title, full_text)."""
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    try:
+        resp = requests.get(site_url, headers=headers, timeout=15)
+        if resp.status_code != 200:
+            print(f"{source_name} homepage fetch failed: {resp.status_code}")
+            return None
+        soup = BeautifulSoup(resp.content, 'html.parser')
+
+        # Find first article link
+        article_url = None
+        base = site_url.rstrip('/')
+        for tag in soup.find_all(['h1', 'h2', 'h3', 'article']):
+            a = tag.find('a', href=True)
+            if a:
+                href = a['href']
+                if href.startswith('http'):
+                    article_url = href
+                elif href.startswith('/'):
+                    article_url = base + href
+                if article_url:
+                    break
+
+        if not article_url:
+            print(f"{source_name}: no article link found on homepage.")
+            return None
+
+        print(f"{source_name} top article: {article_url}")
+        art_resp = requests.get(article_url, headers=headers, timeout=15)
+        if art_resp.status_code != 200:
+            print(f"{source_name} article fetch failed: {art_resp.status_code}")
+            return None
+
+        art_soup = BeautifulSoup(art_resp.content, 'html.parser')
+
+        # Title
+        title = ""
+        og = art_soup.find('meta', property='og:title')
+        if og and og.get('content'):
+            title = og['content'].strip()
+        elif art_soup.find('h1'):
+            title = art_soup.find('h1').get_text(strip=True)
+
+        # Article body: prefer <article> tag, fallback to long <p> tags
+        body_tag = art_soup.find('article')
+        if body_tag:
+            paragraphs = [p.get_text(strip=True) for p in body_tag.find_all('p')]
+        else:
+            paragraphs = [p.get_text(strip=True) for p in art_soup.find_all('p') if len(p.get_text(strip=True)) > 80]
+
+        full_text = ' '.join(paragraphs)[:2500]
+
+        if not full_text:
+            print(f"{source_name}: no article text found.")
+            return None
+
+        return title, full_text
+
+    except Exception as e:
+        print(f"{source_name} fetch error: {e}")
+        return None
+
+
+def _post_news_tweet(site_url, source_name):
+    if not GROQ_API_KEY:
+        print(f"GROQ_API_KEY not set, skipping {source_name} tweet.")
+        return
+    client, _ = get_twitter_clients()
+    result = _fetch_article_content(site_url, source_name)
+    if not result:
+        print(f"No article content from {source_name}, skipping.")
+        return
+    title, article_text = result
+    print(f"{source_name} title: {title}")
+    try:
+        tweet_text = generate_news_tweet(title, article_text, source_name)
+    except Exception as e:
+        print(f"News tweet generation error: {e}")
+        return
+    # Safety: word-boundary trim to 140 chars, no ellipsis
+    if len(tweet_text) > 140:
+        words = tweet_text.split()
+        tweet_text = ""
+        for w in words:
+            candidate = (tweet_text + " " + w).strip()
+            if len(candidate) > 140:
+                break
+            tweet_text = candidate
+    print(f"Posting {source_name} tweet ({len(tweet_text)} chars): {tweet_text}")
+    try:
+        client.create_tweet(text=tweet_text)
+        print(f"{source_name} tweet posted.")
+    except Exception as e:
+        print(f"{source_name} tweet post error: {e}")
+
+
+def post_decrypt_tweet():
+    _post_news_tweet("https://decrypt.co", "decrypt.co")
+
+
+def post_venturebeat_tweet():
+    _post_news_tweet("https://venturebeat.com", "venturebeat.com")
+
+
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else None
 
@@ -911,6 +1083,10 @@ if __name__ == "__main__":
         post_controversial_replies()
     elif mode == "quote":
         post_quote_tweet()
+    elif mode == "decrypt":
+        post_decrypt_tweet()
+    elif mode == "venturebeat":
+        post_venturebeat_tweet()
     else:
         # Time-based fallback (for backward-compatible manual/test runs)
         current_utc_hour = datetime.now(timezone.utc).hour
