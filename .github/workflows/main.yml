@@ -8,17 +8,9 @@ on:
     - cron: '0 5 * * *'
     # 1. Artwork drop + thread:      TR 07:00 -> UTC 04:00
     - cron: '0 4 * * *'
-    # 2. Reply (normal):             TR 10:00 -> UTC 07:00
-    - cron: '0 7 * * *'
-    # 3. Reply (normal):             TR 13:00 -> UTC 10:00
-    - cron: '0 10 * * *'
-    # 4. Manifesto (controversial):  TR 16:00 -> UTC 13:00
+    # 2. Manifesto (controversial):  TR 16:00 -> UTC 13:00
     - cron: '0 13 * * *'
-    # 5. Reply (controversial):      TR 19:00 -> UTC 16:00
-    - cron: '0 16 * * *'
-    # 6. Quote tweet (controversial + CTA): TR 22:00 -> UTC 19:00
-    - cron: '0 19 * * *'
-    # 7. Media archive tweet:        UTC 22:00
+    # 3. Media archive tweet:        UTC 22:00
     - cron: '0 22 * * *'
   workflow_dispatch:
     inputs:
@@ -29,14 +21,11 @@ on:
         type: choice
         options:
           - ''
-          - reply
-          - reply_controversial
           - decrypt
           - venturebeat
           - evening
           - evening_controversial
           - artwork
-          - quote
           - morning
 
 jobs:
@@ -81,21 +70,9 @@ jobs:
           elif [ "$SCHEDULE" = "0 4 * * *" ]; then
             echo "Mode: artwork"
             python bot.py artwork
-          elif [ "$SCHEDULE" = "0 7 * * *" ]; then
-            echo "Mode: reply (normal)"
-            python bot.py reply
-          elif [ "$SCHEDULE" = "0 10 * * *" ]; then
-            echo "Mode: reply (normal)"
-            python bot.py reply
           elif [ "$SCHEDULE" = "0 13 * * *" ]; then
             echo "Mode: evening_controversial"
             python bot.py evening_controversial
-          elif [ "$SCHEDULE" = "0 16 * * *" ]; then
-            echo "Mode: reply_controversial"
-            python bot.py reply_controversial
-          elif [ "$SCHEDULE" = "0 19 * * *" ]; then
-            echo "Mode: quote"
-            python bot.py quote
           elif [ "$SCHEDULE" = "0 22 * * *" ]; then
             echo "Mode: morning (media archive)"
             python bot.py morning
