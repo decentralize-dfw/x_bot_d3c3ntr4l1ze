@@ -2,6 +2,10 @@ name: Decentralize Design Thinking on Automation
 
 on:
   schedule:
+    # 0a. Decrypt.co news tweet:      TR 05:00 -> UTC 02:00
+    - cron: '0 2 * * *'
+    # 0b. VentureBeat news tweet:     TR 08:00 -> UTC 05:00
+    - cron: '0 5 * * *'
     # 1. Artwork drop + thread:      TR 07:00 -> UTC 04:00
     - cron: '0 4 * * *'
     # 2. Reply (normal):             TR 10:00 -> UTC 07:00
@@ -44,7 +48,13 @@ jobs:
           SCHEDULE: ${{ github.event.schedule }}
         run: |
           echo "Triggered by schedule: '$SCHEDULE'"
-          if [ "$SCHEDULE" = "0 4 * * *" ]; then
+          if [ "$SCHEDULE" = "0 2 * * *" ]; then
+            echo "Mode: decrypt.co news tweet"
+            python bot.py decrypt
+          elif [ "$SCHEDULE" = "0 5 * * *" ]; then
+            echo "Mode: venturebeat.com news tweet"
+            python bot.py venturebeat
+          elif [ "$SCHEDULE" = "0 4 * * *" ]; then
             echo "Mode: artwork"
             python bot.py artwork
           elif [ "$SCHEDULE" = "0 7 * * *" ]; then
