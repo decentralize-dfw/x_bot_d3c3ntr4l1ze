@@ -603,18 +603,24 @@ def post_replies():
         return
 
     # Build query: specific accounts or keyword search
+    # Twitter API query limit is 512 chars; build the from: list incrementally
     if WATCH_ACCOUNTS:
-        from_part = " OR ".join(f"from:{a}" for a in WATCH_ACCOUNTS)
-        query = f"({from_part}) -is:retweet"
+        parts = []
+        for account in WATCH_ACCOUNTS:
+            candidate = " OR ".join(parts + [f"from:{account}"])
+            if len(f"({candidate}) -is:retweet") > 480:
+                break
+            parts.append(f"from:{account}")
+        query = f"({' OR '.join(parts)}) -is:retweet"
     else:
         query = f"{SEARCH_KEYWORDS} -is:retweet -is:reply lang:en"
 
+    print(f"Reply search query ({len(query)} chars): {query[:120]}...")
     try:
         resp = client.search_recent_tweets(
             query=query,
             max_results=20,
             tweet_fields=["public_metrics", "text", "id"],
-            sort_order="relevancy",
         )
     except Exception as e:
         print(f"Reply search error: {e}")
@@ -760,17 +766,22 @@ def post_controversial_replies():
         return
 
     if WATCH_ACCOUNTS:
-        from_part = " OR ".join(f"from:{a}" for a in WATCH_ACCOUNTS)
-        query = f"({from_part}) -is:retweet"
+        parts = []
+        for account in WATCH_ACCOUNTS:
+            candidate = " OR ".join(parts + [f"from:{account}"])
+            if len(f"({candidate}) -is:retweet") > 480:
+                break
+            parts.append(f"from:{account}")
+        query = f"({' OR '.join(parts)}) -is:retweet"
     else:
         query = f"{SEARCH_KEYWORDS} -is:retweet -is:reply lang:en"
 
+    print(f"Controversial reply search query ({len(query)} chars): {query[:120]}...")
     try:
         resp = client.search_recent_tweets(
             query=query,
             max_results=20,
             tweet_fields=["public_metrics", "text", "id"],
-            sort_order="relevancy",
         )
     except Exception as e:
         print(f"Reply search error: {e}")
@@ -850,7 +861,6 @@ def post_quote_tweet():
             query=f"{SEARCH_KEYWORDS} -is:retweet -is:reply lang:en",
             max_results=20,
             tweet_fields=["public_metrics", "text", "id"],
-            sort_order="relevancy",
         )
     except Exception as e:
         print(f"Quote tweet search error: {e}")
