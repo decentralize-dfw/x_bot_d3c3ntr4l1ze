@@ -2,16 +2,22 @@ name: Decentralize Design Thinking on Automation
 
 on:
   schedule:
-    # 0a. Decrypt.co news tweet:      TR 05:00 -> UTC 02:00
-    - cron: '0 2 * * *'
-    # 0b. VentureBeat news tweet:     TR 08:00 -> UTC 05:00
-    - cron: '0 5 * * *'
-    # 1. Artwork drop + thread:      TR 07:00 -> UTC 04:00
-    - cron: '0 4 * * *'
-    # 2. Manifesto (controversial):  TR 16:00 -> UTC 13:00
-    - cron: '0 13 * * *'
-    # 3. Media archive tweet:        UTC 22:00
-    - cron: '0 22 * * *'
+    # TR 03:00 -> UTC 00:00  — Media archive tweet
+    - cron: '0 0 * * *'
+    # TR 06:00 -> UTC 03:00  — Decrypt.co news tweet
+    - cron: '0 3 * * *'
+    # TR 09:00 -> UTC 06:00  — Artwork drop
+    - cron: '0 6 * * *'
+    # TR 12:00 -> UTC 09:00  — VentureBeat news tweet
+    - cron: '0 9 * * *'
+    # TR 15:00 -> UTC 12:00  — Evening manifesto
+    - cron: '0 12 * * *'
+    # TR 18:00 -> UTC 15:00  — Controversial manifesto
+    - cron: '0 15 * * *'
+    # TR 21:00 -> UTC 18:00  — Evening manifesto
+    - cron: '0 18 * * *'
+    # TR 00:00 -> UTC 21:00  — Controversial manifesto
+    - cron: '0 21 * * *'
   workflow_dispatch:
     inputs:
       mode:
@@ -61,21 +67,30 @@ jobs:
             exit 0
           fi
           echo "Triggered by schedule: '$SCHEDULE'"
-          if [ "$SCHEDULE" = "0 2 * * *" ]; then
-            echo "Mode: decrypt.co news tweet"
-            python bot.py decrypt
-          elif [ "$SCHEDULE" = "0 5 * * *" ]; then
-            echo "Mode: venturebeat.com news tweet"
-            python bot.py venturebeat
-          elif [ "$SCHEDULE" = "0 4 * * *" ]; then
-            echo "Mode: artwork"
-            python bot.py artwork
-          elif [ "$SCHEDULE" = "0 13 * * *" ]; then
-            echo "Mode: evening_controversial"
-            python bot.py evening_controversial
-          elif [ "$SCHEDULE" = "0 22 * * *" ]; then
+          if [ "$SCHEDULE" = "0 0 * * *" ]; then
             echo "Mode: morning (media archive)"
             python bot.py morning
+          elif [ "$SCHEDULE" = "0 3 * * *" ]; then
+            echo "Mode: decrypt.co news tweet"
+            python bot.py decrypt
+          elif [ "$SCHEDULE" = "0 6 * * *" ]; then
+            echo "Mode: artwork"
+            python bot.py artwork
+          elif [ "$SCHEDULE" = "0 9 * * *" ]; then
+            echo "Mode: venturebeat.com news tweet"
+            python bot.py venturebeat
+          elif [ "$SCHEDULE" = "0 12 * * *" ]; then
+            echo "Mode: evening (manifesto)"
+            python bot.py evening
+          elif [ "$SCHEDULE" = "0 15 * * *" ]; then
+            echo "Mode: evening_controversial"
+            python bot.py evening_controversial
+          elif [ "$SCHEDULE" = "0 18 * * *" ]; then
+            echo "Mode: evening (manifesto)"
+            python bot.py evening
+          elif [ "$SCHEDULE" = "0 21 * * *" ]; then
+            echo "Mode: evening_controversial"
+            python bot.py evening_controversial
           else
             echo "Mode: manual dispatch — running evening"
             python bot.py evening

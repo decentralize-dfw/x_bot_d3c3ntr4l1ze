@@ -893,12 +893,18 @@ if __name__ == "__main__":
     else:
         # Time-based fallback (for backward-compatible manual/test runs)
         current_utc_hour = datetime.now(timezone.utc).hour
-        if current_utc_hour == 4:
-            post_artwork_tweet()
-        elif current_utc_hour == 13:
-            post_controversial_evening_tweet()
-        elif current_utc_hour == 22:
+        if current_utc_hour == 0:
             post_morning_tweet()
+        elif current_utc_hour == 3:
+            post_decrypt_tweet()
+        elif current_utc_hour == 6:
+            post_artwork_tweet()
+        elif current_utc_hour == 9:
+            post_venturebeat_tweet()
+        elif current_utc_hour in [12, 18]:
+            post_evening_tweet()
+        elif current_utc_hour in [15, 21]:
+            post_controversial_evening_tweet()
         else:
             print(f"Test Mode (Hour: {current_utc_hour} UTC). Running Evening routine...")
             post_evening_tweet()
