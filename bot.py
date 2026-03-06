@@ -5,6 +5,7 @@ import random
 import re
 import tweepy
 import requests
+import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
 from datetime import datetime, timezone
 import time
@@ -658,31 +659,44 @@ def post_replies():
         print("No text items for context.")
         return
 
-    # Build query: specific accounts or keyword search
-    # Twitter API query limit is 512 chars; build the from: list incrementally
+    # Build query: randomly sample from target accounts each run so we don't
+    # always query the same subset (Twitter API query limit is 512 chars).
+    resp = None
     if WATCH_ACCOUNTS:
+        shuffled = random.sample(WATCH_ACCOUNTS, len(WATCH_ACCOUNTS))
         parts = []
-        for account in WATCH_ACCOUNTS:
+        for account in shuffled:
             candidate = " OR ".join(parts + [f"from:{account}"])
             if len(f"({candidate}) -is:retweet") > 480:
                 break
             parts.append(f"from:{account}")
         query = f"({' OR '.join(parts)}) -is:retweet"
-    else:
-        query = f"{SEARCH_KEYWORDS} -is:retweet -is:reply lang:en"
+        print(f"Reply search query ({len(query)} chars): {query[:120]}...")
+        try:
+            resp = client.search_recent_tweets(
+                query=query,
+                max_results=20,
+                tweet_fields=["public_metrics", "text", "id"],
+            )
+        except Exception as e:
+            print(f"Reply search error (target accounts): {e}")
 
-    print(f"Reply search query ({len(query)} chars): {query[:120]}...")
-    try:
-        resp = client.search_recent_tweets(
-            query=query,
-            max_results=20,
-            tweet_fields=["public_metrics", "text", "id"],
-        )
-    except Exception as e:
-        print(f"Reply search error: {e}")
-        return
+    # Fallback to keyword search if no results from target accounts
+    if not resp or not resp.data:
+        print("No results from target accounts, falling back to keyword search...")
+        keyword_query = f"{SEARCH_KEYWORDS} -is:retweet -is:reply lang:en"
+        print(f"Keyword query: {keyword_query[:120]}")
+        try:
+            resp = client.search_recent_tweets(
+                query=keyword_query,
+                max_results=20,
+                tweet_fields=["public_metrics", "text", "id"],
+            )
+        except Exception as e:
+            print(f"Reply search error (keyword fallback): {e}")
+            return
 
-    if not resp.data:
+    if not resp or not resp.data:
         print("No candidate tweets found.")
         return
 
@@ -821,29 +835,43 @@ def post_controversial_replies():
         print("No text items for context.")
         return
 
+    # Randomly sample target accounts each run so different accounts are hit
+    resp = None
     if WATCH_ACCOUNTS:
+        shuffled = random.sample(WATCH_ACCOUNTS, len(WATCH_ACCOUNTS))
         parts = []
-        for account in WATCH_ACCOUNTS:
+        for account in shuffled:
             candidate = " OR ".join(parts + [f"from:{account}"])
             if len(f"({candidate}) -is:retweet") > 480:
                 break
             parts.append(f"from:{account}")
         query = f"({' OR '.join(parts)}) -is:retweet"
-    else:
-        query = f"{SEARCH_KEYWORDS} -is:retweet -is:reply lang:en"
+        print(f"Controversial reply search query ({len(query)} chars): {query[:120]}...")
+        try:
+            resp = client.search_recent_tweets(
+                query=query,
+                max_results=20,
+                tweet_fields=["public_metrics", "text", "id"],
+            )
+        except Exception as e:
+            print(f"Reply search error (target accounts): {e}")
 
-    print(f"Controversial reply search query ({len(query)} chars): {query[:120]}...")
-    try:
-        resp = client.search_recent_tweets(
-            query=query,
-            max_results=20,
-            tweet_fields=["public_metrics", "text", "id"],
-        )
-    except Exception as e:
-        print(f"Reply search error: {e}")
-        return
+    # Fallback to keyword search if no results from target accounts
+    if not resp or not resp.data:
+        print("No results from target accounts, falling back to keyword search...")
+        keyword_query = f"{SEARCH_KEYWORDS} -is:retweet -is:reply lang:en"
+        print(f"Keyword query: {keyword_query[:120]}")
+        try:
+            resp = client.search_recent_tweets(
+                query=keyword_query,
+                max_results=20,
+                tweet_fields=["public_metrics", "text", "id"],
+            )
+        except Exception as e:
+            print(f"Reply search error (keyword fallback): {e}")
+            return
 
-    if not resp.data:
+    if not resp or not resp.data:
         print("No candidate tweets found.")
         return
 
@@ -961,9 +989,151 @@ def post_quote_tweet():
 
 
 # --- NEWS TWEETS: DECRYPT.CO & VENTUREBEAT ---
+
+# RSS feed URLs — more reliable than homepage scraping
+_RSS_FEEDS = {
+    "decrypt.co": "https://decrypt.co/feed/",
+    "venturebeat.com": "https://venturebeat.com/feed/",
+}
+
+def _scrape_article_body(article_url, source_name):
+    """Scrape the body text from an article URL. Returns plain text or ''."""
+    headers = {
+        'User-Agent': (
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+            'AppleWebKit/537.36 (KHTML, like Gecko) '
+            'Chrome/120.0.0.0 Safari/537.36'
+        )
+    }
+    try:
+        resp = requests.get(article_url, headers=headers, timeout=15)
+        if resp.status_code != 200:
+            print(f"{source_name} article fetch HTTP {resp.status_code}: {article_url}")
+            return ""
+        soup = BeautifulSoup(resp.content, 'html.parser')
+
+        # Remove boilerplate tags
+        for tag in soup(['script', 'style', 'nav', 'header', 'footer', 'aside']):
+            tag.decompose()
+
+        # Try <article> tag first, then main content div heuristics
+        body_tag = (
+            soup.find('article')
+            or soup.find('div', class_=re.compile(r'(article|post|entry|content|story)[-_]?(body|text|content)?', re.I))
+        )
+        if body_tag:
+            paragraphs = [
+                p.get_text(separator=' ', strip=True)
+                for p in body_tag.find_all('p')
+                if len(p.get_text(strip=True)) > 50
+            ]
+        else:
+            paragraphs = [
+                p.get_text(separator=' ', strip=True)
+                for p in soup.find_all('p')
+                if len(p.get_text(strip=True)) > 80
+            ]
+
+        return ' '.join(paragraphs)[:2500]
+    except Exception as e:
+        print(f"{source_name} article scrape error: {e}")
+        return ""
+
+
+def _parse_rss(rss_url, source_name):
+    """Fetch and parse an RSS feed using stdlib xml + requests.
+    Returns (title, article_url, body_text) or None.
+    """
+    headers = {
+        'User-Agent': (
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+            'AppleWebKit/537.36 (KHTML, like Gecko) '
+            'Chrome/120.0.0.0 Safari/537.36'
+        )
+    }
+    try:
+        resp = requests.get(rss_url, headers=headers, timeout=15)
+        if resp.status_code != 200:
+            print(f"{source_name} RSS fetch HTTP {resp.status_code}")
+            return None
+
+        # RSS is XML — parse with stdlib (no external deps)
+        root = ET.fromstring(resp.content)
+        channel = root.find('channel')
+        if channel is None:
+            print(f"{source_name}: RSS has no <channel> element.")
+            return None
+
+        item = channel.find('item')
+        if item is None:
+            print(f"{source_name}: RSS <channel> has no <item> elements.")
+            return None
+
+        title = (item.findtext('title') or '').strip()
+        article_url = (item.findtext('link') or '').strip()
+
+        # content:encoded namespace (most full-text RSS feeds use this)
+        CONTENT_NS = 'http://purl.org/rss/1.0/modules/content/'
+        raw_body = (
+            item.findtext(f'{{{CONTENT_NS}}}encoded')
+            or item.findtext('description')
+            or ''
+        )
+
+        body_text = ''
+        if raw_body:
+            body_text = BeautifulSoup(raw_body, 'html.parser').get_text(separator=' ', strip=True)
+
+        return title, article_url, body_text
+
+    except ET.ParseError as e:
+        print(f"{source_name} RSS XML parse error: {e}")
+        return None
+    except Exception as e:
+        print(f"{source_name} RSS error: {e}")
+        return None
+
+
 def _fetch_article_content(site_url, source_name):
-    """Fetch the top article from a news site and return (title, full_text)."""
-    headers = {'User-Agent': 'Mozilla/5.0'}
+    """Fetch the top article via RSS feed and return (title, full_text).
+
+    Strategy:
+    1. Parse the RSS feed with stdlib xml (no extra dependencies).
+    2. Use content:encoded or description from the feed as the body.
+    3. If the feed body is too short (<300 chars), scrape the article URL.
+    4. Falls back to homepage HTML scraping if the RSS feed is unavailable.
+    """
+    rss_url = _RSS_FEEDS.get(source_name)
+
+    # --- Primary: RSS feed ---
+    if rss_url:
+        print(f"{source_name}: parsing RSS feed {rss_url}")
+        rss_result = _parse_rss(rss_url, source_name)
+        if rss_result:
+            title, article_url, body_text = rss_result
+
+            # If RSS body is short, scrape the full article page
+            if len(body_text) < 300 and article_url:
+                print(f"{source_name}: RSS body short ({len(body_text)} chars), scraping article...")
+                scraped = _scrape_article_body(article_url, source_name)
+                if scraped:
+                    body_text = scraped
+
+            if body_text:
+                print(f"{source_name} RSS article: '{title}' ({len(body_text)} chars)")
+                return title, body_text[:2500]
+            else:
+                print(f"{source_name}: no article body found in RSS entry.")
+
+    # --- Fallback: homepage HTML scraping ---
+    print(f"{source_name}: falling back to homepage HTML scraping...")
+    headers = {
+        'User-Agent': (
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+            'AppleWebKit/537.36 (KHTML, like Gecko) '
+            'Chrome/120.0.0.0 Safari/537.36'
+        )
+    }
     try:
         resp = requests.get(site_url, headers=headers, timeout=15)
         if resp.status_code != 200:
@@ -971,7 +1141,7 @@ def _fetch_article_content(site_url, source_name):
             return None
         soup = BeautifulSoup(resp.content, 'html.parser')
 
-        # Find first article link
+        # Find first article link from heading tags
         article_url = None
         base = site_url.rstrip('/')
         for tag in soup.find_all(['h1', 'h2', 'h3', 'article']):
@@ -989,30 +1159,22 @@ def _fetch_article_content(site_url, source_name):
             print(f"{source_name}: no article link found on homepage.")
             return None
 
-        print(f"{source_name} top article: {article_url}")
-        art_resp = requests.get(article_url, headers=headers, timeout=15)
-        if art_resp.status_code != 200:
-            print(f"{source_name} article fetch failed: {art_resp.status_code}")
-            return None
+        print(f"{source_name} fallback article: {article_url}")
+        full_text = _scrape_article_body(article_url, source_name)
 
-        art_soup = BeautifulSoup(art_resp.content, 'html.parser')
-
-        # Title
+        # Title from og:title or h1
         title = ""
-        og = art_soup.find('meta', property='og:title')
-        if og and og.get('content'):
-            title = og['content'].strip()
-        elif art_soup.find('h1'):
-            title = art_soup.find('h1').get_text(strip=True)
-
-        # Article body: prefer <article> tag, fallback to long <p> tags
-        body_tag = art_soup.find('article')
-        if body_tag:
-            paragraphs = [p.get_text(strip=True) for p in body_tag.find_all('p')]
-        else:
-            paragraphs = [p.get_text(strip=True) for p in art_soup.find_all('p') if len(p.get_text(strip=True)) > 80]
-
-        full_text = ' '.join(paragraphs)[:2500]
+        try:
+            art_resp = requests.get(article_url, headers=headers, timeout=15)
+            if art_resp.status_code == 200:
+                art_soup = BeautifulSoup(art_resp.content, 'html.parser')
+                og = art_soup.find('meta', property='og:title')
+                if og and og.get('content'):
+                    title = og['content'].strip()
+                elif art_soup.find('h1'):
+                    title = art_soup.find('h1').get_text(strip=True)
+        except Exception:
+            pass
 
         if not full_text:
             print(f"{source_name}: no article text found.")
@@ -1021,7 +1183,7 @@ def _fetch_article_content(site_url, source_name):
         return title, full_text
 
     except Exception as e:
-        print(f"{source_name} fetch error: {e}")
+        print(f"{source_name} fallback fetch error: {e}")
         return None
 
 
