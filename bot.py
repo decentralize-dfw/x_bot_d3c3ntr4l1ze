@@ -18,19 +18,7 @@ TWITTER_ACCESS_TOKEN = os.environ.get("TWITTER_ACCESS_TOKEN")
 TWITTER_ACCESS_TOKEN_SECRET = os.environ.get("TWITTER_ACCESS_TOKEN_SECRET")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
-# --- REPLY / VIRAL CONFIG ---
-# Loaded from targets.json (auto-updated by discover_targets.py).
-# Falls back to keyword search if the file doesn't exist yet.
-def _load_watch_accounts():
-    try:
-        with open('targets.json', 'r', encoding='utf-8') as f:
-            return [t['username'] for t in json.load(f)]
-    except FileNotFoundError:
-        return []
-
-WATCH_ACCOUNTS = _load_watch_accounts()
-
-# Keyword search query used for viral context and reply targeting.
+# Keyword search query used for viral context.
 SEARCH_KEYWORDS = (
     '(metaverse OR "virtual world" OR "AI agent" OR "on-chain" OR '
     '"spatial computing" OR "web3" OR "3D NFT")'
@@ -68,6 +56,13 @@ def get_twitter_clients():
     )
     api = tweepy.API(auth, wait_on_rate_limit=True)
     return client, api
+
+
+def format_tweet(text):
+    """Strip surrounding quotes, uppercase, add 🥶 prefix and ꩜ suffix."""
+    text = text.strip().strip('"\'')
+    text = text.upper()
+    return f"🥶 {text} ꩜"
 
 
 def load_db():
@@ -209,12 +204,10 @@ def post_morning_tweet():
         except Exception as e:
             print(f"Caption generation error: {e}")
     if not display_text:
-        sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', desc) if 30 < len(s.strip()) <= 140]
-        display_text = sentences[0] if sentences else (desc[:137] + "..." if len(desc) > 140 else desc)
+        sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', desc) if 30 < len(s.strip()) <= 137]
+        display_text = sentences[0] if sentences else (desc[:134] + "..." if len(desc) > 137 else desc)
 
-    tweet_text = f"{type_label} {name}\n\n{display_text}"
-    if len(tweet_text) > 280:
-        tweet_text = tweet_text[:277] + "..."
+    tweet_text = format_tweet(f"{type_label} {name}\n\n{display_text}")
 
     print(f"Attempting morning tweet:\n{tweet_text}")
     try:
@@ -239,10 +232,8 @@ def post_morning_tweet():
                 except Exception:
                     pass
             if not caption2:
-                caption2 = desc2[:137] + "..." if len(desc2) > 140 else desc2
-            retry_text = f"{type_label2} {name2}\n\n{caption2}"
-            if len(retry_text) > 280:
-                retry_text = retry_text[:277] + "..."
+                caption2 = desc2[:134] + "..." if len(desc2) > 137 else desc2
+            retry_text = format_tweet(f"{type_label2} {name2}\n\n{caption2}")
             client.create_tweet(text=retry_text)
             print(f"Morning broadcast complete (retry): {name2}")
         else:
@@ -364,69 +355,6 @@ def generate_controversial_tweet(chunk, source_name, context_tweets):
     return resp.choices[0].message.content.strip()
 
 
-def generate_controversial_reply(target_tweet_text, manifesto_chunk):
-    """LLM: contrarian reply that challenges the tweet's premise."""
-    groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
-    prompt = (
-        "You are @decentralize___, building 3D virtual worlds on-chain. Voice: punk architect.\n"
-        "Reply to the tweet below with a sharp, contrarian take.\n"
-        "Challenge the assumption, flip the framing, or expose what's missing from their perspective.\n"
-        "Under 200 chars. No hashtags. No insults. Sharp and confident, not aggressive.\n"
-        "A short open question at the end works well.\n\n"
-        f"Tweet: {target_tweet_text}\n\n"
-        f"Your philosophy (context only): {manifesto_chunk[:300]}\n\n"
-        "Output ONLY the reply text."
-    )
-    resp = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=80,
-        temperature=0.9,
-    )
-    return resp.choices[0].message.content.strip()
-
-
-def generate_quote_comment(target_tweet_text, manifesto_chunk):
-    """LLM: controversial quote tweet comment with CTA."""
-    groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
-    prompt = (
-        "You are @decentralize___, building 3D virtual worlds on-chain. Voice: punk architect, visionary.\n"
-        "Quote the tweet below with a sharp, contrarian angle. Reframe it or challenge its premise.\n"
-        "End with a direct CTA: a short open question, 'prove me wrong', 'change my mind', or an invitation to think differently.\n"
-        "Max 220 chars. No hashtags. Confident, not angry. Make people want to reply.\n\n"
-        f"Tweet being quoted: {target_tweet_text}\n\n"
-        f"Your philosophy (context only): {manifesto_chunk[:300]}\n\n"
-        "Output ONLY the quote comment text."
-    )
-    resp = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=90,
-        temperature=0.9,
-    )
-    return resp.choices[0].message.content.strip()
-
-
-def generate_reply(target_tweet_text, manifesto_chunk):
-    """LLM: contextual reply to a given tweet, in our voice."""
-    groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
-    prompt = (
-        "You are @decentralize___, a studio building 3D virtual worlds on-chain.\n"
-        "Reply to the tweet below from your perspective. Add a genuine angle, spark conversation.\n"
-        "Under 200 chars. No hashtags. Don't be sycophantic. Offer a real point of view.\n\n"
-        f"Tweet: {target_tweet_text}\n\n"
-        f"Your world (context only): {manifesto_chunk[:300]}\n\n"
-        "Output ONLY the reply text."
-    )
-    resp = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=80,
-        temperature=0.85,
-    )
-    return resp.choices[0].message.content.strip()
-
-
 def generate_media_caption(name, description, type_label):
     """LLM: one complete, self-contained caption for a media item. ≤120 chars."""
     groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
@@ -541,8 +469,7 @@ def post_evening_tweet():
         ]
         tweet_text = random.choice(sentences) if sentences else content[:240]
 
-    if len(tweet_text) > 280:
-        tweet_text = tweet_text[:277] + "..."
+    tweet_text = format_tweet(tweet_text)
 
     print(f"Attempting evening tweet:\n{tweet_text}")
     try:
@@ -557,9 +484,7 @@ def post_evening_tweet():
             words = content.split()
             start = random.randint(0, max(0, len(words) - 150))
             new_chunk = ' '.join(words[start:start + 150])
-            tweet_text = distill_to_tweet(new_chunk, name)
-            if len(tweet_text) > 280:
-                tweet_text = tweet_text[:277] + "..."
+            tweet_text = format_tweet(distill_to_tweet(new_chunk, name))
             print(f"Retry tweet:\n{tweet_text}")
             client.create_tweet(text=tweet_text)
             print(f"Evening broadcast complete (retry):\n{tweet_text}")
@@ -622,6 +547,7 @@ def post_artwork_tweet():
                     if os.path.exists(local_file):
                         os.remove(local_file)
 
+    tweet_text = format_tweet(tweet_text)
     print(f"Posting artwork tweet:\n{tweet_text}")
     if media_ids:
         resp = client.create_tweet(text=tweet_text, media_ids=media_ids)
@@ -638,111 +564,6 @@ def post_artwork_tweet():
     print(f"Artwork thread posted: {name}")
 
 
-# --- REPLIES: ENGAGE WITH TRENDING / WATCHED TWEETS ---
-def post_replies():
-    """Find 2 high-engagement tweets and reply to them in our voice."""
-    if not GROQ_API_KEY:
-        print("GROQ_API_KEY not set, skipping replies.")
-        return
-
-    client, _ = get_twitter_clients()
-    db = load_db()
-
-    text_items = [
-        item
-        for category, items in db.items()
-        if isinstance(items, list)
-        for item in items
-        if item.get("type") == "text" and len(item.get("content", "")) > 200
-    ]
-    if not text_items:
-        print("No text items for context.")
-        return
-
-    # Build query: randomly sample from target accounts each run so we don't
-    # always query the same subset (Twitter API query limit is 512 chars).
-    resp = None
-    if WATCH_ACCOUNTS:
-        shuffled = random.sample(WATCH_ACCOUNTS, len(WATCH_ACCOUNTS))
-        parts = []
-        for account in shuffled:
-            candidate = " OR ".join(parts + [f"from:{account}"])
-            if len(f"({candidate}) -is:retweet") > 480:
-                break
-            parts.append(f"from:{account}")
-        query = f"({' OR '.join(parts)}) -is:retweet"
-        print(f"Reply search query ({len(query)} chars): {query[:120]}...")
-        try:
-            resp = client.search_recent_tweets(
-                query=query,
-                max_results=20,
-                tweet_fields=["public_metrics", "text", "id"],
-            )
-        except Exception as e:
-            print(f"Reply search error (target accounts): {e}")
-
-    # Fallback to keyword search if no results from target accounts
-    if not resp or not resp.data:
-        print("No results from target accounts, falling back to keyword search...")
-        keyword_query = f"{SEARCH_KEYWORDS} -is:retweet -is:reply lang:en"
-        print(f"Keyword query: {keyword_query[:120]}")
-        try:
-            resp = client.search_recent_tweets(
-                query=keyword_query,
-                max_results=20,
-                tweet_fields=["public_metrics", "text", "id"],
-            )
-        except Exception as e:
-            print(f"Reply search error (keyword fallback): {e}")
-            return
-
-    if not resp or not resp.data:
-        print("No candidate tweets found.")
-        return
-
-    # Sort by engagement score, try top candidates
-    candidates = sorted(
-        resp.data,
-        key=lambda t: (
-            t.public_metrics.get("like_count", 0)
-            + t.public_metrics.get("retweet_count", 0) * 3
-        ),
-        reverse=True,
-    )
-
-    replied = 0
-    for tweet in candidates:
-        if replied >= 2:
-            break
-
-        selected = random.choice(text_items)
-        content = selected.get("content", "")
-        words = content.split()
-        start = random.randint(0, max(0, len(words) - 80))
-        chunk = " ".join(words[start: start + 80])
-
-        try:
-            reply_text = generate_reply(tweet.text, chunk)
-        except Exception as e:
-            print(f"Reply generation error: {e}")
-            continue
-
-        if len(reply_text) > 280:
-            reply_text = reply_text[:277] + "..."
-
-        print(f"Replying to {tweet.id}:\n  > {tweet.text[:100]}\n  Reply: {reply_text}")
-        try:
-            client.create_tweet(text=reply_text, in_reply_to_tweet_id=tweet.id)
-            replied += 1
-            if replied < 2:
-                time.sleep(30)
-        except tweepy.errors.Forbidden as e:
-            api_codes = getattr(e, "api_codes", [])
-            print(f"Reply forbidden: codes={api_codes}")
-        except Exception as e:
-            print(f"Reply post error: {e}")
-
-    print(f"Done. Posted {replied} replies.")
 
 
 # --- EVENING CONTROVERSIAL: MANIFESTO TWEET WITH CONTRARIAN ANGLE ---
@@ -791,8 +612,7 @@ def post_controversial_evening_tweet():
         ]
         tweet_text = random.choice(sentences) if sentences else content[:240]
 
-    if len(tweet_text) > 280:
-        tweet_text = tweet_text[:277] + "..."
+    tweet_text = format_tweet(tweet_text)
 
     print(f"Attempting controversial evening tweet:\n{tweet_text}")
     try:
@@ -805,187 +625,13 @@ def post_controversial_evening_tweet():
             words = content.split()
             start = random.randint(0, max(0, len(words) - 150))
             new_chunk = ' '.join(words[start:start + 150])
-            tweet_text = distill_to_tweet(new_chunk, name)
-            if len(tweet_text) > 280:
-                tweet_text = tweet_text[:277] + "..."
+            tweet_text = format_tweet(distill_to_tweet(new_chunk, name))
             client.create_tweet(text=tweet_text)
             print(f"Controversial evening tweet complete (retry):\n{tweet_text}")
         else:
             raise
 
 
-# --- CONTROVERSIAL REPLIES ---
-def post_controversial_replies():
-    """Find 2 high-engagement tweets and reply with a contrarian take."""
-    if not GROQ_API_KEY:
-        print("GROQ_API_KEY not set, skipping controversial replies.")
-        return
-
-    client, _ = get_twitter_clients()
-    db = load_db()
-
-    text_items = [
-        item
-        for category, items in db.items()
-        if isinstance(items, list)
-        for item in items
-        if item.get("type") == "text" and len(item.get("content", "")) > 200
-    ]
-    if not text_items:
-        print("No text items for context.")
-        return
-
-    # Randomly sample target accounts each run so different accounts are hit
-    resp = None
-    if WATCH_ACCOUNTS:
-        shuffled = random.sample(WATCH_ACCOUNTS, len(WATCH_ACCOUNTS))
-        parts = []
-        for account in shuffled:
-            candidate = " OR ".join(parts + [f"from:{account}"])
-            if len(f"({candidate}) -is:retweet") > 480:
-                break
-            parts.append(f"from:{account}")
-        query = f"({' OR '.join(parts)}) -is:retweet"
-        print(f"Controversial reply search query ({len(query)} chars): {query[:120]}...")
-        try:
-            resp = client.search_recent_tweets(
-                query=query,
-                max_results=20,
-                tweet_fields=["public_metrics", "text", "id"],
-            )
-        except Exception as e:
-            print(f"Reply search error (target accounts): {e}")
-
-    # Fallback to keyword search if no results from target accounts
-    if not resp or not resp.data:
-        print("No results from target accounts, falling back to keyword search...")
-        keyword_query = f"{SEARCH_KEYWORDS} -is:retweet -is:reply lang:en"
-        print(f"Keyword query: {keyword_query[:120]}")
-        try:
-            resp = client.search_recent_tweets(
-                query=keyword_query,
-                max_results=20,
-                tweet_fields=["public_metrics", "text", "id"],
-            )
-        except Exception as e:
-            print(f"Reply search error (keyword fallback): {e}")
-            return
-
-    if not resp or not resp.data:
-        print("No candidate tweets found.")
-        return
-
-    candidates = sorted(
-        resp.data,
-        key=lambda t: (
-            t.public_metrics.get("like_count", 0)
-            + t.public_metrics.get("retweet_count", 0) * 3
-        ),
-        reverse=True,
-    )
-
-    replied = 0
-    for tweet in candidates:
-        if replied >= 2:
-            break
-
-        selected = random.choice(text_items)
-        content = selected.get("content", "")
-        words = content.split()
-        start = random.randint(0, max(0, len(words) - 80))
-        chunk = " ".join(words[start: start + 80])
-
-        try:
-            reply_text = generate_controversial_reply(tweet.text, chunk)
-        except Exception as e:
-            print(f"Controversial reply generation error: {e}")
-            continue
-
-        if len(reply_text) > 280:
-            reply_text = reply_text[:277] + "..."
-
-        print(f"Controversial reply to {tweet.id}:\n  > {tweet.text[:100]}\n  Reply: {reply_text}")
-        try:
-            client.create_tweet(text=reply_text, in_reply_to_tweet_id=tweet.id)
-            replied += 1
-            if replied < 2:
-                time.sleep(30)
-        except tweepy.errors.Forbidden as e:
-            api_codes = getattr(e, "api_codes", [])
-            print(f"Reply forbidden: codes={api_codes}")
-        except Exception as e:
-            print(f"Reply post error: {e}")
-
-    print(f"Done. Posted {replied} controversial replies.")
-
-
-# --- QUOTE TWEET: CONTROVERSIAL TAKE + CTA ---
-def post_quote_tweet():
-    """Find a high-engagement tweet in the niche, quote it with a contrarian take and CTA."""
-    if not GROQ_API_KEY:
-        print("GROQ_API_KEY not set, skipping quote tweet.")
-        return
-
-    client, _ = get_twitter_clients()
-    db = load_db()
-
-    text_items = [
-        item
-        for category, items in db.items()
-        if isinstance(items, list)
-        for item in items
-        if item.get("type") == "text" and len(item.get("content", "")) > 200
-    ]
-    if not text_items:
-        print("No text items for context.")
-        return
-
-    try:
-        resp = client.search_recent_tweets(
-            query=f"{SEARCH_KEYWORDS} -is:retweet -is:reply lang:en",
-            max_results=20,
-            tweet_fields=["public_metrics", "text", "id"],
-        )
-    except Exception as e:
-        print(f"Quote tweet search error: {e}")
-        return
-
-    if not resp.data:
-        print("No candidate tweets found for quoting.")
-        return
-
-    candidates = sorted(
-        resp.data,
-        key=lambda t: (
-            t.public_metrics.get("like_count", 0)
-            + t.public_metrics.get("retweet_count", 0) * 3
-            + t.public_metrics.get("reply_count", 0) * 2
-        ),
-        reverse=True,
-    )
-
-    target = candidates[0]
-    selected = random.choice(text_items)
-    content = selected.get("content", "")
-    words = content.split()
-    start = random.randint(0, max(0, len(words) - 80))
-    chunk = " ".join(words[start: start + 80])
-
-    try:
-        comment = generate_quote_comment(target.text, chunk)
-    except Exception as e:
-        print(f"Quote comment generation error: {e}")
-        return
-
-    if len(comment) > 280:
-        comment = comment[:277] + "..."
-
-    print(f"Quoting tweet {target.id}:\n  > {target.text[:100]}\n  Comment: {comment}")
-    try:
-        client.create_tweet(text=comment, quote_tweet_id=target.id)
-        print("Quote tweet posted.")
-    except Exception as e:
-        print(f"Quote tweet post error: {e}")
 
 
 # --- NEWS TWEETS: DECRYPT.CO & VENTUREBEAT ---
@@ -1203,15 +849,16 @@ def _post_news_tweet(site_url, source_name):
     except Exception as e:
         print(f"News tweet generation error: {e}")
         return
-    # Safety: word-boundary trim to 140 chars, no ellipsis
-    if len(tweet_text) > 140:
+    # Safety: word-boundary trim to 137 chars, no ellipsis
+    if len(tweet_text) > 137:
         words = tweet_text.split()
         tweet_text = ""
         for w in words:
             candidate = (tweet_text + " " + w).strip()
-            if len(candidate) > 140:
+            if len(candidate) > 137:
                 break
             tweet_text = candidate
+    tweet_text = format_tweet(tweet_text)
     print(f"Posting {source_name} tweet ({len(tweet_text)} chars): {tweet_text}")
     try:
         client.create_tweet(text=tweet_text)
@@ -1239,12 +886,6 @@ if __name__ == "__main__":
         post_controversial_evening_tweet()
     elif mode == "artwork":
         post_artwork_tweet()
-    elif mode == "reply":
-        post_replies()
-    elif mode == "reply_controversial":
-        post_controversial_replies()
-    elif mode == "quote":
-        post_quote_tweet()
     elif mode == "decrypt":
         post_decrypt_tweet()
     elif mode == "venturebeat":
@@ -1252,18 +893,18 @@ if __name__ == "__main__":
     else:
         # Time-based fallback (for backward-compatible manual/test runs)
         current_utc_hour = datetime.now(timezone.utc).hour
-        if current_utc_hour == 4:
-            post_artwork_tweet()
-        elif current_utc_hour in [7, 10]:
-            post_replies()
-        elif current_utc_hour == 13:
-            post_controversial_evening_tweet()
-        elif current_utc_hour == 16:
-            post_controversial_replies()
-        elif current_utc_hour == 19:
-            post_quote_tweet()
-        elif current_utc_hour == 22:
+        if current_utc_hour == 0:
             post_morning_tweet()
+        elif current_utc_hour == 3:
+            post_decrypt_tweet()
+        elif current_utc_hour == 6:
+            post_artwork_tweet()
+        elif current_utc_hour == 9:
+            post_venturebeat_tweet()
+        elif current_utc_hour in [12, 18]:
+            post_evening_tweet()
+        elif current_utc_hour in [15, 21]:
+            post_controversial_evening_tweet()
         else:
             print(f"Test Mode (Hour: {current_utc_hour} UTC). Running Evening routine...")
             post_evening_tweet()
