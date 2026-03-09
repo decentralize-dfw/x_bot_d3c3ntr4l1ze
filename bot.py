@@ -986,17 +986,13 @@ def post_venturebeat_tweet():
 
 # --- VIRAL MIX: TARGET AUDIENCE + MANIFESTO FUSION ---
 
-# Niche subreddits — daily top posts as trending signal
-_TREND_SUBREDDITS = [
-    "metaverse",
-    "web3",
-    "virtualreality",
-    "NFT",
-    "digitalart",
-    "XRtech",
-]
+# Dev.to tags — niche content, accessible from GitHub Actions (no datacenter block)
+_DEVTO_TAGS = ["metaverse", "web3", "xr", "nft", "virtualreality", "blockchain"]
 
-# Nitter public instances (kept as secondary attempt before Reddit)
+# HackerNews keywords — filter top stories for niche relevance
+_HN_KEYWORDS = ["metaverse", "xr", "ar ", "vr ", " vr", "web3", "spatial", "virtual", "nft", "blockchain", "3d web"]
+
+# Nitter public instances (tried first — rarely works from CI)
 _NITTER_INSTANCES = [
     "nitter.privacydev.net",
     "nitter.poast.org",
@@ -1067,31 +1063,55 @@ def fetch_target_tweets_nitter(n_targets=8, tweets_per_user=3):
     return all_tweets[:15]
 
 
-def fetch_reddit_trending(posts_per_sub=4):
-    """Fetch daily top posts from niche subreddits — reliable public API, no auth needed."""
-    headers = {'User-Agent': 'Mozilla/5.0 (compatible; bot/1.0; +https://de-centralize.com)'}
-    all_posts = []
+def fetch_niche_trending():
+    """Fetch niche trending content from Dev.to + HackerNews.
+    Both are confirmed accessible from GitHub Actions (no datacenter blocking)."""
+    headers = {'User-Agent': 'Mozilla/5.0 (compatible; bot/1.0)'}
+    results = []
 
-    for sub in _TREND_SUBREDDITS:
+    # Dev.to: top articles per tag, last week
+    for tag in _DEVTO_TAGS:
         try:
-            url = f"https://www.reddit.com/r/{sub}/top.json?t=day&limit={posts_per_sub}"
+            url = f"https://dev.to/api/articles?tag={tag}&top=1&per_page=3"
             resp = requests.get(url, headers=headers, timeout=10)
             if resp.status_code != 200:
-                print(f"Reddit r/{sub}: HTTP {resp.status_code}")
                 continue
-            posts = resp.json().get('data', {}).get('children', [])
-            titles = [
-                p['data']['title']
-                for p in posts
-                if len(p.get('data', {}).get('title', '')) > 20
-            ][:posts_per_sub]
-            all_posts.extend(titles)
-            print(f"Reddit r/{sub}: {len(titles)} posts")
+            for a in resp.json()[:3]:
+                title = a.get('title', '')
+                if title and len(title) > 20:
+                    results.append(title)
         except Exception as e:
-            print(f"Reddit r/{sub} error: {e}")
+            print(f"Dev.to #{tag} error: {e}")
 
-    print(f"Reddit total: {len(all_posts)} trending posts")
-    return all_posts[:15]
+    print(f"Dev.to: {len(results)} articles")
+
+    # HackerNews: top 100 stories, filter by niche keywords
+    try:
+        ids = requests.get(
+            'https://hacker-news.firebaseio.com/v0/topstories.json',
+            timeout=10
+        ).json()[:100]
+        hn_matched = []
+        for sid in ids:
+            if len(hn_matched) >= 6:
+                break
+            try:
+                item = requests.get(
+                    f'https://hacker-news.firebaseio.com/v0/item/{sid}.json',
+                    timeout=5
+                ).json()
+                title = item.get('title', '')
+                if title and any(kw in title.lower() for kw in _HN_KEYWORDS):
+                    hn_matched.append(title)
+            except Exception:
+                continue
+        print(f"HackerNews: {len(hn_matched)} relevant stories")
+        results.extend(hn_matched)
+    except Exception as e:
+        print(f"HackerNews error: {e}")
+
+    print(f"Niche trending total: {len(results)}")
+    return results[:15]
 
 
 def fetch_target_tweets(n_targets=10, max_results=20):
@@ -1132,9 +1152,9 @@ def fetch_target_tweets(n_targets=10, max_results=20):
     if nitter_results:
         return nitter_results
 
-    # 3. Reddit — daily top posts from niche subreddits
-    print("Nitter failed, fetching Reddit trending posts...")
-    return fetch_reddit_trending()
+    # 3. Dev.to + HackerNews — confirmed accessible from GitHub Actions
+    print("Nitter failed, fetching niche trending from Dev.to + HackerNews...")
+    return fetch_niche_trending()
 
 
 def generate_viral_mix_tweet(target_tweets, manifesto_chunk, source_name):
