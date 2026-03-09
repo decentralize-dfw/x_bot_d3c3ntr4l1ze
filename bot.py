@@ -986,7 +986,17 @@ def post_venturebeat_tweet():
 
 # --- VIRAL MIX: TARGET AUDIENCE + MANIFESTO FUSION ---
 
-# Nitter public instances — tried in order until one responds
+# Niche subreddits — daily top posts as trending signal
+_TREND_SUBREDDITS = [
+    "metaverse",
+    "web3",
+    "virtualreality",
+    "NFT",
+    "digitalart",
+    "XRtech",
+]
+
+# Nitter public instances (kept as secondary attempt before Reddit)
 _NITTER_INSTANCES = [
     "nitter.privacydev.net",
     "nitter.poast.org",
@@ -1057,49 +1067,74 @@ def fetch_target_tweets_nitter(n_targets=8, tweets_per_user=3):
     return all_tweets[:15]
 
 
+def fetch_reddit_trending(posts_per_sub=4):
+    """Fetch daily top posts from niche subreddits — reliable public API, no auth needed."""
+    headers = {'User-Agent': 'Mozilla/5.0 (compatible; bot/1.0; +https://de-centralize.com)'}
+    all_posts = []
+
+    for sub in _TREND_SUBREDDITS:
+        try:
+            url = f"https://www.reddit.com/r/{sub}/top.json?t=day&limit={posts_per_sub}"
+            resp = requests.get(url, headers=headers, timeout=10)
+            if resp.status_code != 200:
+                print(f"Reddit r/{sub}: HTTP {resp.status_code}")
+                continue
+            posts = resp.json().get('data', {}).get('children', [])
+            titles = [
+                p['data']['title']
+                for p in posts
+                if len(p.get('data', {}).get('title', '')) > 20
+            ][:posts_per_sub]
+            all_posts.extend(titles)
+            print(f"Reddit r/{sub}: {len(titles)} posts")
+        except Exception as e:
+            print(f"Reddit r/{sub} error: {e}")
+
+    print(f"Reddit total: {len(all_posts)} trending posts")
+    return all_posts[:15]
+
+
 def fetch_target_tweets(n_targets=10, max_results=20):
-    """Fetch recent high-engagement tweets from discovered target accounts.
-    Tries Twitter API first, falls back to Nitter RSS if API returns 401/403."""
+    """Fetch trending content from the niche.
+    Priority: Twitter API → Nitter RSS → Reddit (reliable fallback)."""
+    # 1. Twitter API
     try:
         with open('targets.json', 'r') as f:
             targets = json.load(f)
+        top_targets = sorted(targets, key=lambda t: t.get('engagement_score', 0), reverse=True)[:n_targets]
+        usernames = [t['username'] for t in top_targets if t.get('username')]
+        if usernames:
+            client, _ = get_twitter_clients()
+            from_clause = " OR ".join(f"from:{u}" for u in usernames)
+            resp = client.search_recent_tweets(
+                query=f"({from_clause}) -is:retweet -is:reply lang:en",
+                max_results=max_results,
+                tweet_fields=["public_metrics", "text"],
+                sort_order="relevancy",
+            )
+            if resp.data:
+                tweets = sorted(
+                    resp.data,
+                    key=lambda t: (
+                        t.public_metrics.get("like_count", 0)
+                        + t.public_metrics.get("retweet_count", 0) * 3
+                    ),
+                    reverse=True,
+                )
+                results = [t.text for t in tweets[:5]]
+                print(f"Twitter API: {len(results)} tweets fetched.")
+                return results
     except Exception as e:
-        print(f"targets.json load error: {e}")
-        return fetch_target_tweets_nitter(n_targets)
+        print(f"Twitter API error ({type(e).__name__}): {e}")
 
-    top_targets = sorted(targets, key=lambda t: t.get('engagement_score', 0), reverse=True)[:n_targets]
-    usernames = [t['username'] for t in top_targets if t.get('username')]
-    if not usernames:
-        return fetch_target_tweets_nitter(n_targets)
+    # 2. Nitter RSS
+    nitter_results = fetch_target_tweets_nitter(n_targets)
+    if nitter_results:
+        return nitter_results
 
-    client, _ = get_twitter_clients()
-    from_clause = " OR ".join(f"from:{u}" for u in usernames)
-    query = f"({from_clause}) -is:retweet -is:reply lang:en"
-
-    try:
-        resp = client.search_recent_tweets(
-            query=query,
-            max_results=max_results,
-            tweet_fields=["public_metrics", "text"],
-            sort_order="relevancy",
-        )
-        if not resp.data:
-            print("Twitter API: no results, falling back to Nitter...")
-            return fetch_target_tweets_nitter(n_targets)
-        tweets = sorted(
-            resp.data,
-            key=lambda t: (
-                t.public_metrics.get("like_count", 0)
-                + t.public_metrics.get("retweet_count", 0) * 3
-            ),
-            reverse=True,
-        )
-        results = [t.text for t in tweets[:5]]
-        print(f"Twitter API: fetched {len(results)} tweets from top {n_targets} accounts.")
-        return results
-    except Exception as e:
-        print(f"Twitter API error ({type(e).__name__}), falling back to Nitter RSS...")
-        return fetch_target_tweets_nitter(n_targets)
+    # 3. Reddit — daily top posts from niche subreddits
+    print("Nitter failed, fetching Reddit trending posts...")
+    return fetch_reddit_trending()
 
 
 def generate_viral_mix_tweet(target_tweets, manifesto_chunk, source_name):
@@ -1108,15 +1143,15 @@ def generate_viral_mix_tweet(target_tweets, manifesto_chunk, source_name):
 
     if target_tweets:
         context_block = (
-            "Study these viral tweets from thought leaders in our niche — they are getting massive engagement RIGHT NOW.\n"
-            "Understand their hook format, energy, and what made them land.\n"
-            "Then write ONE tweet that rides the same current but speaks from our perspective.\n\n"
-            "Viral tweets right now:\n"
-            + "\n---\n".join(target_tweets[:5])
+            "These are trending discussions in our niche RIGHT NOW (from Twitter thought leaders and community forums).\n"
+            "Study what topic is generating heat, what tensions are surfacing, what language people are using.\n"
+            "Then write ONE tweet that enters the same conversation but from our perspective.\n\n"
+            "Trending now:\n"
+            + "\n---\n".join(target_tweets[:8])
         )
     else:
         context_block = (
-            "No external tweets available. Use your knowledge of what is resonating in the web3, "
+            "No external context available. Use your knowledge of what is resonating in the web3, "
             "metaverse, and digital architecture space right now — XR, on-chain ownership, virtual studios, "
             "3D web, spatial computing. Pick the tension that is most charged today and write from inside it."
         )
