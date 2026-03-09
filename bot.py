@@ -39,6 +39,29 @@ TYPE_LABELS = {
 # Sabah tweeti için sadece direkt upload edilebilen tipler
 MEDIA_TYPES = {'image', 'video'}
 
+# Follow-up questions posted as thread reply to evening/controversial tweets
+FOLLOW_UP_QUESTIONS = [
+    "is your studio already building here?",
+    "how long before the physical feels limited?",
+    "what changes when your workspace has no walls?",
+    "when does virtual become the default?",
+    "are you designing for the world that exists or the one coming?",
+    "who decides what's real when everything can be copied?",
+    "how do you build permanence in a virtual space?",
+    "is your next project physical or digital first?",
+    "what does community look like without a physical address?",
+    "how long before this is unavoidable?",
+]
+
+def trim_for_format(text, limit=135):
+    """Word-boundary trim before format_tweet() — keeps total tweet ≤ 140 chars."""
+    if len(text) <= limit:
+        return text
+    trimmed = text[:limit]
+    last_space = trimmed.rfind(' ')
+    return trimmed[:last_space] if last_space > limit // 2 else trimmed
+
+
 def is_youtube(url):
     return 'youtube.com' in url or 'youtu.be' in url
 
@@ -207,9 +230,10 @@ def post_morning_tweet():
         sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', desc) if 30 < len(s.strip()) <= 137]
         display_text = sentences[0] if sentences else (desc[:134] + "..." if len(desc) > 137 else desc)
 
-    tweet_text = format_tweet(f"{type_label} {name}\n\n{display_text}")
+    inner = trim_for_format(f"{type_label} {name}\n\n{display_text}")
+    tweet_text = format_tweet(inner)
 
-    print(f"Attempting morning tweet:\n{tweet_text}")
+    print(f"Attempting morning tweet ({len(tweet_text)} chars):\n{tweet_text}")
     try:
         if media_ids:
             client.create_tweet(text=tweet_text, media_ids=media_ids)
@@ -233,7 +257,7 @@ def post_morning_tweet():
                     pass
             if not caption2:
                 caption2 = desc2[:134] + "..." if len(desc2) > 137 else desc2
-            retry_text = format_tweet(f"{type_label2} {name2}\n\n{caption2}")
+            retry_text = format_tweet(trim_for_format(f"{type_label2} {name2}\n\n{caption2}"))
             client.create_tweet(text=retry_text)
             print(f"Morning broadcast complete (retry): {name2}")
         else:
@@ -246,14 +270,14 @@ def distill_to_tweet(chunk, source_name):
     groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
     prompt = (
         "You write for a digital design studio (Decentralize Design) that builds virtual worlds and manifestos.\n"
-        "From the text below, extract or rephrase ONE powerful, self-contained thought as a tweet (max 240 chars).\n"
+        "From the text below, extract or rephrase ONE powerful, self-contained thought as a tweet (max 130 chars).\n"
         "Rules: no quotes around it, no 'we believe / this manifesto / our studio', reads as a standalone statement.\n"
         f"Output only the tweet text.\n\nSource: {source_name}\nText:\n{chunk}"
     )
     resp = groq_client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=80,
+        max_tokens=60,
         temperature=0.8,
     )
     return resp.choices[0].message.content.strip()
@@ -305,7 +329,7 @@ def generate_viral_tweet(chunk, source_name, context_tweets):
         "B. Contrast (physical world vs virtual)\n"
         "C. Prediction + implication\n"
         "D. Hot take + one supporting line + call to see differently\n\n"
-        "Rules: NO hashtags. Max 240 chars. First line must hook. "
+        "Rules: NO hashtags. Max 130 chars. First line must hook. "
         "Sound like someone who has seen the future, not a marketer.\n\n"
         f"{context_str}"
         f"Our philosophy (source: {source_name}):\n{chunk}\n\n"
@@ -340,7 +364,7 @@ def generate_controversial_tweet(chunk, source_name, context_tweets):
         "B. A prediction that makes the mainstream uncomfortable\n"
         "C. Expose the contradiction in how people think about virtual vs physical space\n"
         "D. Something that sounds provocative but is actually just ahead of its time\n\n"
-        "Rules: NO hashtags. Max 240 chars. First line is the hook — make it sting a little. "
+        "Rules: NO hashtags. Max 130 chars. First line is the hook — make it sting a little. "
         "Ragebait-adjacent but philosophically grounded. Anger that makes you think, not rage for its own sake.\n\n"
         f"{context_str}"
         f"Source philosophy ({source_name}):\n{chunk}\n\n"
@@ -403,25 +427,49 @@ def generate_artwork_tweet(name, description, categories):
 
 
 def generate_news_tweet(title, article_text, source):
-    """LLM: viral controversial take on a full news article. ≤ 130 chars."""
+    """LLM: 3-5 word sharp fragment as news commentary for thread reply."""
     groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
     prompt = (
         "You are @decentralize___, building 3D virtual worlds on-chain. Voice: punk architect, prophetic outsider.\n"
-        "Read the article below and write ONE viral tweet with a sharp, controversial take on it.\n"
-        "Formats: bold prediction, uncomfortable truth, expose a contradiction, or 'everyone is missing the point'.\n"
-        "Rules: Max 130 chars. No hashtags. No @mentions. Hook in the first line — make it sting.\n\n"
+        "Read the article below and write a SINGLE sharp commentary fragment.\n"
+        "Rules: EXACTLY 3 to 5 words. No sentence structure needed. No hashtags. No @mentions. "
+        "A punchy gut-punch fragment that makes people think. Max 30 chars.\n\n"
         f"Source: {source}\n"
         f"Title: {title}\n"
-        f"Article:\n{article_text[:2000]}\n\n"
-        "Output ONLY the tweet text."
+        f"Article:\n{article_text[:1500]}\n\n"
+        "Output ONLY the 3-5 word fragment."
     )
     resp = groq_client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=60,
+        max_tokens=20,
         temperature=0.95,
     )
-    return resp.choices[0].message.content.strip()
+    return resp.choices[0].message.content.strip().strip('"\'')
+
+
+def generate_news_headline(title, article_text, source):
+    """LLM: 1-sentence factual headline summary. Max 115 chars (leaves room for 'NEWS: ')."""
+    groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
+    prompt = (
+        "Summarize this news article in ONE factual sentence. Max 115 characters.\n"
+        "Rules: state what happened, no opinion, no hashtags, no 'this article...'. Just the fact.\n\n"
+        f"Source: {source}\nTitle: {title}\nArticle:\n{article_text[:1500]}\n\n"
+        "Output ONLY the summary sentence."
+    )
+    resp = groq_client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=50,
+        temperature=0.3,
+    )
+    return resp.choices[0].message.content.strip().strip('"\'')
+
+
+def _get_hashtags_for_source(source_name):
+    if "decrypt" in source_name:
+        return "#web3 #crypto"
+    return "#metaverse #web3"
 
 
 # --- EVENING: VIRAL MANIFESTO TWEET ---
@@ -469,12 +517,15 @@ def post_evening_tweet():
         ]
         tweet_text = random.choice(sentences) if sentences else content[:240]
 
-    tweet_text = format_tweet(tweet_text)
+    tweet_text = format_tweet(trim_for_format(tweet_text))
 
-    print(f"Attempting evening tweet:\n{tweet_text}")
+    print(f"Attempting evening tweet ({len(tweet_text)} chars):\n{tweet_text}")
     try:
-        client.create_tweet(text=tweet_text)
-        print(f"Evening broadcast complete:\n{tweet_text}")
+        resp = client.create_tweet(text=tweet_text)
+        tweet_id = resp.data['id']
+        question = random.choice(FOLLOW_UP_QUESTIONS)
+        client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
+        print(f"Evening broadcast complete with thread:\n{tweet_text}\n→ {question}")
     except tweepy.errors.Forbidden as e:
         api_codes = getattr(e, 'api_codes', [])
         api_messages = getattr(e, 'api_messages', [])
@@ -484,10 +535,13 @@ def post_evening_tweet():
             words = content.split()
             start = random.randint(0, max(0, len(words) - 150))
             new_chunk = ' '.join(words[start:start + 150])
-            tweet_text = format_tweet(distill_to_tweet(new_chunk, name))
+            tweet_text = format_tweet(trim_for_format(distill_to_tweet(new_chunk, name)))
             print(f"Retry tweet:\n{tweet_text}")
-            client.create_tweet(text=tweet_text)
-            print(f"Evening broadcast complete (retry):\n{tweet_text}")
+            resp = client.create_tweet(text=tweet_text)
+            tweet_id = resp.data['id']
+            question = random.choice(FOLLOW_UP_QUESTIONS)
+            client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
+            print(f"Evening broadcast complete (retry) with thread:\n{tweet_text}\n→ {question}")
         else:
             raise
 
@@ -556,9 +610,9 @@ def post_artwork_tweet():
 
     tweet_id = resp.data['id']
 
-    # Thread: second tweet with site link
+    # Thread: second tweet with site link + hashtags
     client.create_tweet(
-        text="visit here to explore: de-centralize.com",
+        text="explore the collection: de-centralize.com #digitalart #metaverse",
         in_reply_to_tweet_id=tweet_id
     )
     print(f"Artwork thread posted: {name}")
@@ -612,12 +666,15 @@ def post_controversial_evening_tweet():
         ]
         tweet_text = random.choice(sentences) if sentences else content[:240]
 
-    tweet_text = format_tweet(tweet_text)
+    tweet_text = format_tweet(trim_for_format(tweet_text))
 
-    print(f"Attempting controversial evening tweet:\n{tweet_text}")
+    print(f"Attempting controversial evening tweet ({len(tweet_text)} chars):\n{tweet_text}")
     try:
-        client.create_tweet(text=tweet_text)
-        print(f"Controversial evening tweet complete:\n{tweet_text}")
+        resp = client.create_tweet(text=tweet_text)
+        tweet_id = resp.data['id']
+        question = random.choice(FOLLOW_UP_QUESTIONS)
+        client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
+        print(f"Controversial evening tweet complete with thread:\n{tweet_text}\n→ {question}")
     except tweepy.errors.Forbidden as e:
         api_codes = getattr(e, 'api_codes', [])
         if 187 in api_codes and GROQ_API_KEY:
@@ -625,9 +682,12 @@ def post_controversial_evening_tweet():
             words = content.split()
             start = random.randint(0, max(0, len(words) - 150))
             new_chunk = ' '.join(words[start:start + 150])
-            tweet_text = format_tweet(distill_to_tweet(new_chunk, name))
-            client.create_tweet(text=tweet_text)
-            print(f"Controversial evening tweet complete (retry):\n{tweet_text}")
+            tweet_text = format_tweet(trim_for_format(distill_to_tweet(new_chunk, name)))
+            resp = client.create_tweet(text=tweet_text)
+            tweet_id = resp.data['id']
+            question = random.choice(FOLLOW_UP_QUESTIONS)
+            client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
+            print(f"Controversial evening tweet complete (retry) with thread:\n{tweet_text}\n→ {question}")
         else:
             raise
 
@@ -844,27 +904,44 @@ def _post_news_tweet(site_url, source_name):
         return
     title, article_text = result
     print(f"{source_name} title: {title}")
+
+    # Tweet 1: factual headline summary
     try:
-        tweet_text = generate_news_tweet(title, article_text, source_name)
+        headline = generate_news_headline(title, article_text, source_name)
     except Exception as e:
-        print(f"News tweet generation error: {e}")
+        print(f"Headline generation error: {e}")
+        headline = title[:115] if title else "breaking news in the space"
+
+    tweet1 = f"NEWS: {headline}"
+    if len(tweet1) > 140:
+        tweet1 = tweet1[:137].rsplit(' ', 1)[0] + "..."
+
+    print(f"Posting {source_name} tweet 1 ({len(tweet1)} chars): {tweet1}")
+    try:
+        resp = client.create_tweet(text=tweet1)
+        tweet1_id = resp.data['id']
+    except Exception as e:
+        print(f"{source_name} tweet 1 post error: {e}")
         return
-    # Safety: word-boundary trim to 137 chars, no ellipsis
-    if len(tweet_text) > 137:
-        words = tweet_text.split()
-        tweet_text = ""
-        for w in words:
-            candidate = (tweet_text + " " + w).strip()
-            if len(candidate) > 137:
-                break
-            tweet_text = candidate
-    tweet_text = format_tweet(tweet_text)
-    print(f"Posting {source_name} tweet ({len(tweet_text)} chars): {tweet_text}")
+
+    # Tweet 2: 3-5 word commentary as reply + hashtags
     try:
-        client.create_tweet(text=tweet_text)
-        print(f"{source_name} tweet posted.")
+        commentary = generate_news_tweet(title, article_text, source_name)
     except Exception as e:
-        print(f"{source_name} tweet post error: {e}")
+        print(f"Commentary generation error: {e}")
+        commentary = "nobody saw this coming"
+
+    hashtags = _get_hashtags_for_source(source_name)
+    tweet2 = f"{commentary} {hashtags}".strip()
+    if len(tweet2) > 140:
+        tweet2 = commentary[:140]
+
+    print(f"Posting {source_name} tweet 2 ({len(tweet2)} chars): {tweet2}")
+    try:
+        client.create_tweet(text=tweet2, in_reply_to_tweet_id=tweet1_id)
+        print(f"{source_name} thread posted.")
+    except Exception as e:
+        print(f"{source_name} tweet 2 post error: {e}")
 
 
 def post_decrypt_tweet():
@@ -893,17 +970,17 @@ if __name__ == "__main__":
     else:
         # Time-based fallback (for backward-compatible manual/test runs)
         current_utc_hour = datetime.now(timezone.utc).hour
-        if current_utc_hour == 0:
+        if current_utc_hour == 7:
             post_morning_tweet()
-        elif current_utc_hour == 3:
-            post_decrypt_tweet()
-        elif current_utc_hour == 6:
-            post_artwork_tweet()
         elif current_utc_hour == 9:
+            post_decrypt_tweet()
+        elif current_utc_hour == 11:
+            post_artwork_tweet()
+        elif current_utc_hour == 13:
             post_venturebeat_tweet()
-        elif current_utc_hour in [12, 18]:
+        elif current_utc_hour in [15, 18]:
             post_evening_tweet()
-        elif current_utc_hour in [15, 21]:
+        elif current_utc_hour in [16, 20]:
             post_controversial_evening_tweet()
         else:
             print(f"Test Mode (Hour: {current_utc_hour} UTC). Running Evening routine...")
