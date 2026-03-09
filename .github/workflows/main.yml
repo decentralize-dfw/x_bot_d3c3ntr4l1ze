@@ -108,9 +108,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin ${{ github.ref_name }}
           git add tweet_archive.json
-          git diff --cached --quiet || git commit -m "archive: update tweet history $(date -u +%Y-%m-%d)"
-          git push origin ${{ github.ref_name }}
+          git diff --cached --quiet && echo "No archive changes to commit." && exit 0
+          git commit -m "archive: update tweet history $(date -u +%Y-%m-%d)"
+          git push origin ${{ github.ref_name }} || (
+            git pull --rebase origin ${{ github.ref_name }} &&
+            git push origin ${{ github.ref_name }}
+          )
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
