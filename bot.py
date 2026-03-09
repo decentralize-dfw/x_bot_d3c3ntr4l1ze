@@ -538,8 +538,9 @@ def post_evening_tweet():
         resp = client.create_tweet(text=tweet_text)
         tweet_id = resp.data['id']
         tweet_archive.record_post(selected['id'], content_type="evening_text")
-        question = random.choice(FOLLOW_UP_QUESTIONS)
-        client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
+        question = generate_thread_reply(tweet_text)
+        if question:
+            client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
         print(f"Evening broadcast complete with thread:\n{tweet_text}\n→ {question}")
     except tweepy.errors.Forbidden as e:
         api_codes = getattr(e, 'api_codes', [])
@@ -697,8 +698,9 @@ def post_controversial_evening_tweet():
         resp = client.create_tweet(text=tweet_text)
         tweet_id = resp.data['id']
         tweet_archive.record_post(selected['id'], content_type="evening_controversial")
-        question = random.choice(FOLLOW_UP_QUESTIONS)
-        client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
+        question = generate_thread_reply(tweet_text)
+        if question:
+            client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
         print(f"Controversial evening tweet complete with thread:\n{tweet_text}\n→ {question}")
     except tweepy.errors.Forbidden as e:
         api_codes = getattr(e, 'api_codes', [])
@@ -1150,6 +1152,33 @@ def fetch_target_tweets(n_targets=10, max_results=20):
     return fetch_viral_context()
 
 
+def generate_thread_reply(main_tweet):
+    """Generate a reply that directly extends the main tweet's argument.
+    NOT a generic question — must connect to exactly what was just said."""
+    if not GROQ_API_KEY:
+        return None
+    groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
+    prompt = (
+        "You just posted this tweet:\n"
+        f'"{main_tweet}"\n\n'
+        "Write ONE reply to yourself that deepens the argument — the 'because', the implication, or the real stakes.\n"
+        "The reply must connect DIRECTLY to what the tweet said. Not a generic question. Not a new topic.\n\n"
+        "BAD REPLY: 'what changes when your workspace has no walls?' — has nothing to do with the tweet above\n"
+        "BAD REPLY: 'Rethink trust models.' — vague, disconnected\n"
+        "GOOD REPLY (if tweet was about wallets protecting dependency): 'the interface is the leash. always has been.'\n"
+        "GOOD REPLY (if tweet was about VR retention): 'people don't return to experiences. they return to places.'\n\n"
+        "40-120 characters. No hashtags. No 'we'. Reads like a natural follow-through thought.\n"
+        "Output ONLY the reply text."
+    )
+    resp = groq_client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=60,
+        temperature=0.88,
+    )
+    return resp.choices[0].message.content.strip().strip('"\'')
+
+
 def generate_viral_mix_tweet(target_tweets, manifesto_chunk, source_name):
     """LLM: mix top target content with Decentralize Design mindset into one viral tweet."""
     groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
@@ -1172,13 +1201,21 @@ def generate_viral_mix_tweet(target_tweets, manifesto_chunk, source_name):
 
     prompt = (
         "You are the voice of @decentralize___, a studio building 3D virtual worlds on-chain.\n"
-        "Voice: visionary, punk architect. No corporate speak.\n\n"
+        "Voice: punk architect. Thinks in systems, speaks in provocations. Not a reporter, not a brand.\n\n"
         f"{context_block}\n\n"
+        "WHAT MAKES A BAD TWEET VS GOOD TWEET:\n"
+        "BAD: 'NEWS: New wallet research aims to preserve core features.' — just restates headline, zero opinion\n"
+        "BAD: 'Rethink trust models.' — vague slogan, says nothing\n"
+        "BAD: 'VR gaming's gravy train has stopped.' — repeating what the article already said\n"
+        "GOOD: 'Every wallet that tries to preserve UX is protecting the part that keeps users dependent.' — takes a side, reveals something\n"
+        "GOOD: 'The browser was supposed to decentralize publishing. Wallets are making the same mistake.' — connects dots, has a point of view\n"
+        "GOOD: 'VR retention collapsed because studios kept building tourist attractions instead of places people live in.' — specific diagnosis, not a headline\n\n"
         "Rules:\n"
-        "- 80-130 characters. MUST be at least 80 chars — a complete, specific thought.\n"
-        "- Start with a concrete image, claim, or contrast. Not a generic slogan.\n"
-        "- Extract a real idea from the manifesto below — quote or rephrase a specific tension.\n"
-        "- No 'we', no hashtags, no links. Sounds like a person, not a brand.\n\n"
+        "- 100-220 characters. A complete thought with a specific claim or observation.\n"
+        "- Take a side. Say what the news or trend actually means beneath the surface.\n"
+        "- DO NOT restate the headline. React to what it MEANS — who's wrong, what they're missing, what the real shift is.\n"
+        "- No 'NEWS:' prefix. No 'we'. No hashtags. No links. Sounds like a person thinking out loud.\n"
+        "- Draw from the manifesto below — not to quote it, but to think FROM it.\n\n"
         f"Our manifesto (source: {source_name}):\n{manifesto_chunk}\n\n"
         "Output ONLY the tweet text."
     )
@@ -1186,7 +1223,7 @@ def generate_viral_mix_tweet(target_tweets, manifesto_chunk, source_name):
     resp = groq_client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=70,
+        max_tokens=120,
         temperature=0.92,
     )
     return resp.choices[0].message.content.strip().strip('"\'')
@@ -1267,8 +1304,9 @@ def post_viral_mix_tweet():
         archive_id = "viral_" + hashlib.md5(tweet_text.encode()).hexdigest()[:12]
         tweet_archive.record_post(archive_id, content_type="viral_mix")
         tweet_archive.record_post(manifesto_item['id'] + '_viral', content_type="viral_mix_source")
-        question = random.choice(FOLLOW_UP_QUESTIONS)
-        client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
+        question = generate_thread_reply(tweet_text)
+        if question:
+            client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
         print(f"Viral mix tweet posted:\n{tweet_text}\n→ {question}")
     except tweepy.errors.Forbidden as e:
         api_codes = getattr(e, 'api_codes', [])
