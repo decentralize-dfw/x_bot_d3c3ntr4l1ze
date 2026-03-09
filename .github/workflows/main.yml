@@ -18,6 +18,8 @@ on:
     - cron: '0 18 * * *'
     # TR 23:00 -> UTC 20:00  — Controversial manifesto
     - cron: '0 20 * * *'
+    # TR 15:00 -> UTC 12:00  — Viral mix (target audience fusion)
+    - cron: '0 12 * * *'
   workflow_dispatch:
     inputs:
       mode:
@@ -33,6 +35,7 @@ on:
           - evening_controversial
           - artwork
           - morning
+          - viral_mix
 
 jobs:
   transmit:
@@ -93,6 +96,9 @@ jobs:
           elif [ "$SCHEDULE" = "0 20 * * *" ]; then
             echo "Mode: evening_controversial"
             python bot.py evening_controversial
+          elif [ "$SCHEDULE" = "0 12 * * *" ]; then
+            echo "Mode: viral_mix (target audience fusion)"
+            python bot.py viral_mix
           else
             echo "Mode: manual dispatch — running evening"
             python bot.py evening

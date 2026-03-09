@@ -984,6 +984,164 @@ def post_venturebeat_tweet():
     _post_news_tweet("https://venturebeat.com", "venturebeat.com")
 
 
+# --- VIRAL MIX: TARGET AUDIENCE + MANIFESTO FUSION ---
+
+def fetch_target_tweets(n_targets=10, max_results=20):
+    """Fetch recent high-engagement tweets from discovered target accounts."""
+    try:
+        with open('targets.json', 'r') as f:
+            targets = json.load(f)
+    except Exception as e:
+        print(f"targets.json load error: {e}")
+        return []
+
+    top_targets = sorted(targets, key=lambda t: t.get('engagement_score', 0), reverse=True)[:n_targets]
+    usernames = [t['username'] for t in top_targets if t.get('username')]
+    if not usernames:
+        return []
+
+    client, _ = get_twitter_clients()
+    from_clause = " OR ".join(f"from:{u}" for u in usernames)
+    query = f"({from_clause}) -is:retweet -is:reply lang:en"
+
+    try:
+        resp = client.search_recent_tweets(
+            query=query,
+            max_results=max_results,
+            tweet_fields=["public_metrics", "text"],
+            sort_order="relevancy",
+        )
+        if not resp.data:
+            print("No target tweets found from API.")
+            return []
+        tweets = sorted(
+            resp.data,
+            key=lambda t: (
+                t.public_metrics.get("like_count", 0)
+                + t.public_metrics.get("retweet_count", 0) * 3
+            ),
+            reverse=True,
+        )
+        results = [t.text for t in tweets[:5]]
+        print(f"Fetched {len(results)} target tweets (top {n_targets} accounts).")
+        return results
+    except Exception as e:
+        print(f"Target tweet fetch error: {e}")
+        return []
+
+
+def generate_viral_mix_tweet(target_tweets, manifesto_chunk, source_name):
+    """LLM: mix top target content with Decentralize Design mindset into one viral tweet."""
+    groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
+
+    context = (
+        "\n---\n".join(target_tweets[:5])
+        if target_tweets
+        else "(no trending context available)"
+    )
+
+    prompt = (
+        "You are the voice of @decentralize___, a studio building 3D virtual worlds on-chain.\n"
+        "Voice: visionary, punk architect. No corporate speak.\n\n"
+        "Study these viral tweets from thought leaders in our niche — they are getting massive engagement RIGHT NOW.\n"
+        "Understand their hook format, energy, and what made them resonate.\n"
+        "Then write ONE tweet that rides the same wave but speaks from our perspective.\n\n"
+        "Rules:\n"
+        "- Max 130 characters\n"
+        "- First word must hook. No 'we', no hashtags, no links.\n"
+        "- Sounds like a provocateur, not a brand post.\n"
+        "- Pull from our manifesto thinking below.\n\n"
+        f"Viral tweets in our niche right now:\n{context}\n\n"
+        f"Our manifesto thinking (source: {source_name}):\n{manifesto_chunk}\n\n"
+        "Output ONLY the tweet text."
+    )
+
+    resp = groq_client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=60,
+        temperature=0.92,
+    )
+    return resp.choices[0].message.content.strip().strip('"\'')
+
+
+def post_viral_mix_tweet():
+    """Fetch top target tweets, mix with manifesto chunk, post one viral tweet + archive."""
+    client, _ = get_twitter_clients()
+    db = load_db()
+
+    text_items = [
+        item
+        for category, items in db.items()
+        if isinstance(items, list)
+        for item in items
+        if item.get('type') == 'text' and len(item.get('content', '')) > 500
+    ]
+
+    if not text_items:
+        print("No text items in database, skipping viral mix.")
+        return
+
+    fresh_texts = [i for i in text_items if not tweet_archive.is_posted_recently(i['id'] + '_viral')]
+    if not fresh_texts:
+        print("Archive: all text items used for viral mix recently, picking random anyway.")
+        fresh_texts = text_items
+    manifesto_item = random.choice(fresh_texts)
+    content = manifesto_item.get('content', '')
+    name = manifesto_item.get('name', '')
+
+    words = content.split()
+    if len(words) > 100:
+        start = random.randint(0, len(words) - 100)
+        chunk = ' '.join(words[start:start + 100])
+    else:
+        chunk = content
+
+    print("Fetching top target tweets for viral mix...")
+    target_tweets = fetch_target_tweets()
+    if not target_tweets:
+        print("Falling back to keyword context tweets...")
+        target_tweets = fetch_context_tweets(SEARCH_KEYWORDS)
+
+    tweet_text = None
+    if GROQ_API_KEY:
+        try:
+            tweet_text = generate_viral_mix_tweet(target_tweets, chunk, name)
+        except Exception as e:
+            print(f"Viral mix generation error: {e}, falling back to distill...")
+            try:
+                tweet_text = distill_to_tweet(chunk, name)
+            except Exception as e2:
+                print(f"Distill fallback error: {e2}")
+
+    if not tweet_text:
+        sentences = [
+            s.strip() for s in re.split(r'(?<=[.!?])\s+', content)
+            if 70 < len(s.strip()) < 240
+            and not s.strip().isupper()
+        ]
+        tweet_text = random.choice(sentences) if sentences else content[:240]
+
+    tweet_text = format_tweet(trim_for_format(tweet_text))
+
+    print(f"Posting viral mix tweet ({len(tweet_text)} chars):\n{tweet_text}")
+    try:
+        resp = client.create_tweet(text=tweet_text)
+        tweet_id = resp.data['id']
+        archive_id = "viral_" + hashlib.md5(tweet_text.encode()).hexdigest()[:12]
+        tweet_archive.record_post(archive_id, content_type="viral_mix")
+        tweet_archive.record_post(manifesto_item['id'] + '_viral', content_type="viral_mix_source")
+        question = random.choice(FOLLOW_UP_QUESTIONS)
+        client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
+        print(f"Viral mix tweet posted:\n{tweet_text}\n→ {question}")
+    except tweepy.errors.Forbidden as e:
+        api_codes = getattr(e, 'api_codes', [])
+        if 187 in api_codes:
+            print("Duplicate viral mix tweet, skipping.")
+        else:
+            raise
+
+
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else None
 
@@ -999,6 +1157,8 @@ if __name__ == "__main__":
         post_decrypt_tweet()
     elif mode == "venturebeat":
         post_venturebeat_tweet()
+    elif mode == "viral_mix":
+        post_viral_mix_tweet()
     else:
         # Time-based fallback (for backward-compatible manual/test runs)
         current_utc_hour = datetime.now(timezone.utc).hour
