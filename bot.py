@@ -986,8 +986,17 @@ def post_venturebeat_tweet():
 
 # --- VIRAL MIX: TARGET AUDIENCE + MANIFESTO FUSION ---
 
-def fetch_target_tweets(n_targets=10, max_results=20):
-    """Fetch recent high-engagement tweets from discovered target accounts."""
+# Nitter public instances — tried in order until one responds
+_NITTER_INSTANCES = [
+    "nitter.privacydev.net",
+    "nitter.poast.org",
+    "nitter.cz",
+    "nitter.1d4.us",
+]
+
+
+def fetch_target_tweets_nitter(n_targets=8, tweets_per_user=3):
+    """Fetch recent tweets from top target accounts via Nitter RSS (no API key needed)."""
     try:
         with open('targets.json', 'r') as f:
             targets = json.load(f)
@@ -996,9 +1005,72 @@ def fetch_target_tweets(n_targets=10, max_results=20):
         return []
 
     top_targets = sorted(targets, key=lambda t: t.get('engagement_score', 0), reverse=True)[:n_targets]
+    headers = {'User-Agent': 'Mozilla/5.0 (compatible; RSS reader)'}
+    all_tweets = []
+
+    for target in top_targets:
+        username = target.get('username', '')
+        if not username:
+            continue
+
+        fetched = False
+        for instance in _NITTER_INSTANCES:
+            try:
+                rss_url = f"https://{instance}/{username}/rss"
+                resp = requests.get(rss_url, headers=headers, timeout=8)
+                if resp.status_code != 200:
+                    continue
+
+                root = ET.fromstring(resp.content)
+                count = 0
+                for item in root.findall('.//item'):
+                    if count >= tweets_per_user:
+                        break
+                    title = item.findtext('title', '').strip()
+                    # Skip retweets
+                    if 'RT @' in title:
+                        continue
+                    # Nitter titles are "Name: tweet text" — strip the name prefix
+                    if ': ' in title:
+                        title = title.split(': ', 1)[1]
+                    # Fallback to description stripped of HTML
+                    if not title:
+                        desc = item.findtext('description', '')
+                        title = BeautifulSoup(desc, 'html.parser').get_text(separator=' ', strip=True)
+                    if len(title) > 30:
+                        all_tweets.append(title)
+                        count += 1
+
+                if count > 0:
+                    print(f"Nitter ({instance}): {count} tweets from @{username}")
+                    fetched = True
+                    break
+
+            except Exception as e:
+                print(f"Nitter {instance} @{username}: {e}")
+                continue
+
+        if not fetched:
+            print(f"Nitter: could not fetch @{username} from any instance")
+
+    print(f"Nitter total: {len(all_tweets)} tweets from {n_targets} target accounts")
+    return all_tweets[:15]
+
+
+def fetch_target_tweets(n_targets=10, max_results=20):
+    """Fetch recent high-engagement tweets from discovered target accounts.
+    Tries Twitter API first, falls back to Nitter RSS if API returns 401/403."""
+    try:
+        with open('targets.json', 'r') as f:
+            targets = json.load(f)
+    except Exception as e:
+        print(f"targets.json load error: {e}")
+        return fetch_target_tweets_nitter(n_targets)
+
+    top_targets = sorted(targets, key=lambda t: t.get('engagement_score', 0), reverse=True)[:n_targets]
     usernames = [t['username'] for t in top_targets if t.get('username')]
     if not usernames:
-        return []
+        return fetch_target_tweets_nitter(n_targets)
 
     client, _ = get_twitter_clients()
     from_clause = " OR ".join(f"from:{u}" for u in usernames)
@@ -1012,8 +1084,8 @@ def fetch_target_tweets(n_targets=10, max_results=20):
             sort_order="relevancy",
         )
         if not resp.data:
-            print("No target tweets found from API.")
-            return []
+            print("Twitter API: no results, falling back to Nitter...")
+            return fetch_target_tweets_nitter(n_targets)
         tweets = sorted(
             resp.data,
             key=lambda t: (
@@ -1023,11 +1095,11 @@ def fetch_target_tweets(n_targets=10, max_results=20):
             reverse=True,
         )
         results = [t.text for t in tweets[:5]]
-        print(f"Fetched {len(results)} target tweets (top {n_targets} accounts).")
+        print(f"Twitter API: fetched {len(results)} tweets from top {n_targets} accounts.")
         return results
     except Exception as e:
-        print(f"Target tweet fetch error: {e}")
-        return []
+        print(f"Twitter API error ({type(e).__name__}), falling back to Nitter RSS...")
+        return fetch_target_tweets_nitter(n_targets)
 
 
 def generate_viral_mix_tweet(target_tweets, manifesto_chunk, source_name):
@@ -1106,8 +1178,7 @@ def post_viral_mix_tweet():
     print("Fetching top target tweets for viral mix...")
     target_tweets = fetch_target_tweets()
     if not target_tweets:
-        print("Falling back to keyword context tweets...")
-        target_tweets = fetch_context_tweets(SEARCH_KEYWORDS)
+        print("No target tweets available (all sources failed), generating from manifesto only...")
 
     tweet_text = None
     if GROQ_API_KEY:

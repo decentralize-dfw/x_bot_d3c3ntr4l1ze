@@ -40,6 +40,8 @@ on:
 jobs:
   transmit:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Git Checkout
