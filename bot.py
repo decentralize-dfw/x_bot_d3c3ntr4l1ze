@@ -1034,32 +1034,38 @@ def generate_viral_mix_tweet(target_tweets, manifesto_chunk, source_name):
     """LLM: mix top target content with Decentralize Design mindset into one viral tweet."""
     groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
 
-    context = (
-        "\n---\n".join(target_tweets[:5])
-        if target_tweets
-        else "(no trending context available)"
-    )
+    if target_tweets:
+        context_block = (
+            "Study these viral tweets from thought leaders in our niche — they are getting massive engagement RIGHT NOW.\n"
+            "Understand their hook format, energy, and what made them land.\n"
+            "Then write ONE tweet that rides the same current but speaks from our perspective.\n\n"
+            "Viral tweets right now:\n"
+            + "\n---\n".join(target_tweets[:5])
+        )
+    else:
+        context_block = (
+            "No external tweets available. Use your knowledge of what is resonating in the web3, "
+            "metaverse, and digital architecture space right now — XR, on-chain ownership, virtual studios, "
+            "3D web, spatial computing. Pick the tension that is most charged today and write from inside it."
+        )
 
     prompt = (
         "You are the voice of @decentralize___, a studio building 3D virtual worlds on-chain.\n"
         "Voice: visionary, punk architect. No corporate speak.\n\n"
-        "Study these viral tweets from thought leaders in our niche — they are getting massive engagement RIGHT NOW.\n"
-        "Understand their hook format, energy, and what made them resonate.\n"
-        "Then write ONE tweet that rides the same wave but speaks from our perspective.\n\n"
+        f"{context_block}\n\n"
         "Rules:\n"
-        "- Max 130 characters\n"
-        "- First word must hook. No 'we', no hashtags, no links.\n"
-        "- Sounds like a provocateur, not a brand post.\n"
-        "- Pull from our manifesto thinking below.\n\n"
-        f"Viral tweets in our niche right now:\n{context}\n\n"
-        f"Our manifesto thinking (source: {source_name}):\n{manifesto_chunk}\n\n"
+        "- 80-130 characters. MUST be at least 80 chars — a complete, specific thought.\n"
+        "- Start with a concrete image, claim, or contrast. Not a generic slogan.\n"
+        "- Extract a real idea from the manifesto below — quote or rephrase a specific tension.\n"
+        "- No 'we', no hashtags, no links. Sounds like a person, not a brand.\n\n"
+        f"Our manifesto (source: {source_name}):\n{manifesto_chunk}\n\n"
         "Output ONLY the tweet text."
     )
 
     resp = groq_client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=60,
+        max_tokens=70,
         temperature=0.92,
     )
     return resp.choices[0].message.content.strip().strip('"\'')
@@ -1105,14 +1111,24 @@ def post_viral_mix_tweet():
 
     tweet_text = None
     if GROQ_API_KEY:
-        try:
-            tweet_text = generate_viral_mix_tweet(target_tweets, chunk, name)
-        except Exception as e:
-            print(f"Viral mix generation error: {e}, falling back to distill...")
+        for attempt in range(2):
             try:
-                tweet_text = distill_to_tweet(chunk, name)
+                candidate = generate_viral_mix_tweet(target_tweets, chunk, name)
+                if len(candidate) >= 50:
+                    tweet_text = candidate
+                    break
+                print(f"Attempt {attempt+1}: tweet too short ({len(candidate)} chars), retrying with new chunk...")
+                if len(words) > 100:
+                    start = random.randint(0, len(words) - 100)
+                    chunk = ' '.join(words[start:start + 100])
+            except Exception as e:
+                print(f"Viral mix generation error (attempt {attempt+1}): {e}")
+        if not tweet_text:
+            print("Falling back to generate_viral_tweet...")
+            try:
+                tweet_text = generate_viral_tweet(chunk, name, [])
             except Exception as e2:
-                print(f"Distill fallback error: {e2}")
+                print(f"generate_viral_tweet fallback error: {e2}")
 
     if not tweet_text:
         sentences = [
