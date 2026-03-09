@@ -41,6 +41,8 @@ jobs:
     steps:
       - name: Git Checkout
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Init Python
         uses: actions/setup-python@v4
@@ -95,3 +97,14 @@ jobs:
             echo "Mode: manual dispatch — running evening"
             python bot.py evening
           fi
+
+      - name: Commit Archive Update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin ${{ github.ref_name }}
+          git add tweet_archive.json
+          git diff --cached --quiet || git commit -m "archive: update tweet history $(date -u +%Y-%m-%d)"
+          git push origin ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
