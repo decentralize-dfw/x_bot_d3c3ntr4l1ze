@@ -3,6 +3,7 @@ import sys
 import json
 import random
 import re
+import hashlib
 import tweepy
 import requests
 import xml.etree.ElementTree as ET
@@ -10,6 +11,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime, timezone
 import time
 import groq as groq_sdk
+import tweet_archive
 
 # --- 1. API KEYS ---
 TWITTER_API_KEY = os.environ.get("TWITTER_API_KEY")
@@ -172,6 +174,8 @@ def post_morning_tweet():
     client, api = get_twitter_clients()
     db = load_db()
 
+    tweet_archive.cleanup_old_entries()
+
     media_items = []
     for category, items in db.items():
         if isinstance(items, list):
@@ -179,7 +183,11 @@ def post_morning_tweet():
                 if item.get('type') in MEDIA_TYPES:
                     media_items.append(item)
 
-    selected = random.choice(media_items)
+    fresh_items = [i for i in media_items if not tweet_archive.is_posted_recently(i['id'])]
+    if not fresh_items:
+        print("Archive: all media items posted recently, picking random anyway.")
+        fresh_items = media_items
+    selected = random.choice(fresh_items)
     name = selected.get('name', 'ARCHIVE_ITEM')
     item_type = selected.get('type', 'image')
     type_label = TYPE_LABELS.get(item_type, '[Archive]')
@@ -239,6 +247,7 @@ def post_morning_tweet():
             client.create_tweet(text=tweet_text, media_ids=media_ids)
         else:
             client.create_tweet(text=tweet_text)
+        tweet_archive.record_post(selected['id'], content_type="morning_media")
         print(f"Morning broadcast complete: {name}")
     except tweepy.errors.Forbidden as e:
         api_codes = getattr(e, 'api_codes', [])
@@ -259,6 +268,7 @@ def post_morning_tweet():
                 caption2 = desc2[:134] + "..." if len(desc2) > 137 else desc2
             retry_text = format_tweet(trim_for_format(f"{type_label2} {name2}\n\n{caption2}"))
             client.create_tweet(text=retry_text)
+            tweet_archive.record_post(selected2['id'], content_type="morning_media")
             print(f"Morning broadcast complete (retry): {name2}")
         else:
             raise
@@ -485,7 +495,11 @@ def post_evening_tweet():
         if item.get('type') == 'text' and len(item.get('content', '')) > 500
     ]
 
-    selected = random.choice(text_items)
+    fresh_texts = [i for i in text_items if not tweet_archive.is_posted_recently(i['id'])]
+    if not fresh_texts:
+        print("Archive: all text items posted recently, picking random anyway.")
+        fresh_texts = text_items
+    selected = random.choice(fresh_texts)
     content = selected.get('content', '')
     name = selected.get('name', '')
 
@@ -523,6 +537,7 @@ def post_evening_tweet():
     try:
         resp = client.create_tweet(text=tweet_text)
         tweet_id = resp.data['id']
+        tweet_archive.record_post(selected['id'], content_type="evening_text")
         question = random.choice(FOLLOW_UP_QUESTIONS)
         client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
         print(f"Evening broadcast complete with thread:\n{tweet_text}\n→ {question}")
@@ -558,7 +573,11 @@ def post_artwork_tweet():
         print("No artworks found in artworks.json.")
         return
 
-    artwork = random.choice(artworks)
+    fresh_artworks = [a for a in artworks if not tweet_archive.is_posted_recently(a['id'])]
+    if not fresh_artworks:
+        print("Archive: all artworks posted recently, picking random anyway.")
+        fresh_artworks = artworks
+    artwork = random.choice(fresh_artworks)
     name = artwork.get('name', '')
     description = artwork.get('description', '')
     cats = artwork.get('categories', {})
@@ -610,6 +629,7 @@ def post_artwork_tweet():
 
     tweet_id = resp.data['id']
 
+    tweet_archive.record_post(artwork['id'], content_type="artwork")
     # Thread: second tweet with site link + hashtags
     client.create_tweet(
         text="explore the collection: de-centralize.com #digitalart #metaverse",
@@ -634,7 +654,11 @@ def post_controversial_evening_tweet():
         if item.get('type') == 'text' and len(item.get('content', '')) > 500
     ]
 
-    selected = random.choice(text_items)
+    fresh_texts = [i for i in text_items if not tweet_archive.is_posted_recently(i['id'])]
+    if not fresh_texts:
+        print("Archive: all text items posted recently, picking random anyway.")
+        fresh_texts = text_items
+    selected = random.choice(fresh_texts)
     content = selected.get('content', '')
     name = selected.get('name', '')
 
@@ -672,6 +696,7 @@ def post_controversial_evening_tweet():
     try:
         resp = client.create_tweet(text=tweet_text)
         tweet_id = resp.data['id']
+        tweet_archive.record_post(selected['id'], content_type="evening_controversial")
         question = random.choice(FOLLOW_UP_QUESTIONS)
         client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
         print(f"Controversial evening tweet complete with thread:\n{tweet_text}\n→ {question}")
@@ -905,6 +930,12 @@ def _post_news_tweet(site_url, source_name):
     title, article_text = result
     print(f"{source_name} title: {title}")
 
+    # Archive check: skip if this article was already posted in last 60 days
+    article_id = "news_" + hashlib.md5(title.encode()).hexdigest()[:12]
+    if tweet_archive.is_posted_recently(article_id):
+        print(f"Archive: article '{title[:60]}' already posted in last 60 days, skipping.")
+        return
+
     # Tweet 1: factual headline summary
     try:
         headline = generate_news_headline(title, article_text, source_name)
@@ -920,6 +951,7 @@ def _post_news_tweet(site_url, source_name):
     try:
         resp = client.create_tweet(text=tweet1)
         tweet1_id = resp.data['id']
+        tweet_archive.record_post(article_id, content_type="news")
     except Exception as e:
         print(f"{source_name} tweet 1 post error: {e}")
         return
