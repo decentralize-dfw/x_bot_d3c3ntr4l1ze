@@ -986,17 +986,22 @@ def post_venturebeat_tweet():
 
 # --- VIRAL MIX: TARGET AUDIENCE + MANIFESTO FUSION ---
 
-# Niche subreddits — daily top posts as trending signal
-_TREND_SUBREDDITS = [
-    "metaverse",
-    "web3",
-    "virtualreality",
-    "NFT",
-    "digitalart",
-    "XRtech",
+# Tech news RSS feeds — confirmed 200 from GitHub Actions (CDN-served, no datacenter block)
+_RSS_SOURCES = [
+    ("The Verge",  "https://www.theverge.com/rss/index.xml"),
+    ("TechCrunch", "https://techcrunch.com/feed/"),
+    ("Decrypt",    "https://decrypt.co/feed"),
+    ("Road to VR", "https://www.roadtovr.com/feed/"),
 ]
 
-# Nitter public instances (kept as secondary attempt before Reddit)
+# Keywords to filter headlines relevant to our niche
+_NICHE_KEYWORDS = [
+    "metaverse", "virtual reality", "augmented reality", " xr", "vr ", " ar ",
+    "web3", "nft", "blockchain", "spatial", "3d", "avatar", "digital twin",
+    "on-chain", "decentralized", "immersive", "mixed reality",
+]
+
+# Nitter public instances (tried first — rarely works from CI)
 _NITTER_INSTANCES = [
     "nitter.privacydev.net",
     "nitter.poast.org",
@@ -1067,31 +1072,39 @@ def fetch_target_tweets_nitter(n_targets=8, tweets_per_user=3):
     return all_tweets[:15]
 
 
-def fetch_reddit_trending(posts_per_sub=4):
-    """Fetch daily top posts from niche subreddits — reliable public API, no auth needed."""
-    headers = {'User-Agent': 'Mozilla/5.0 (compatible; bot/1.0; +https://de-centralize.com)'}
-    all_posts = []
+def fetch_viral_context():
+    """Fetch trending news headlines from tech RSS feeds.
+    Sources confirmed 200 from GitHub Actions: The Verge, TechCrunch, Decrypt, Road to VR.
+    Filters by niche keywords so LLM gets content actually relevant to our space."""
+    headers = {'User-Agent': 'Mozilla/5.0 (compatible; RSS reader/1.0)'}
+    headlines = []
 
-    for sub in _TREND_SUBREDDITS:
+    for source_name, url in _RSS_SOURCES:
         try:
-            url = f"https://www.reddit.com/r/{sub}/top.json?t=day&limit={posts_per_sub}"
             resp = requests.get(url, headers=headers, timeout=10)
             if resp.status_code != 200:
-                print(f"Reddit r/{sub}: HTTP {resp.status_code}")
+                print(f"RSS {source_name}: HTTP {resp.status_code}")
                 continue
-            posts = resp.json().get('data', {}).get('children', [])
-            titles = [
-                p['data']['title']
-                for p in posts
-                if len(p.get('data', {}).get('title', '')) > 20
-            ][:posts_per_sub]
-            all_posts.extend(titles)
-            print(f"Reddit r/{sub}: {len(titles)} posts")
-        except Exception as e:
-            print(f"Reddit r/{sub} error: {e}")
 
-    print(f"Reddit total: {len(all_posts)} trending posts")
-    return all_posts[:15]
+            root = ET.fromstring(resp.content)
+            matched = 0
+            for item in root.findall('.//item'):
+                title_el = item.find('title')
+                if title_el is None or not title_el.text:
+                    continue
+                title = title_el.text.strip()
+                if len(title) > 15 and any(kw in title.lower() for kw in _NICHE_KEYWORDS):
+                    headlines.append(f"[{source_name}] {title}")
+                    matched += 1
+                    if matched >= 5:
+                        break
+
+            print(f"RSS {source_name}: {matched} relevant headlines")
+        except Exception as e:
+            print(f"RSS {source_name} error: {e}")
+
+    print(f"Viral context total: {len(headlines)} headlines")
+    return headlines[:15]
 
 
 def fetch_target_tweets(n_targets=10, max_results=20):
@@ -1132,9 +1145,9 @@ def fetch_target_tweets(n_targets=10, max_results=20):
     if nitter_results:
         return nitter_results
 
-    # 3. Reddit — daily top posts from niche subreddits
-    print("Nitter failed, fetching Reddit trending posts...")
-    return fetch_reddit_trending()
+    # 3. Tech news RSS (The Verge, TechCrunch, Decrypt, Road to VR)
+    print("Nitter failed, fetching viral context from tech news RSS...")
+    return fetch_viral_context()
 
 
 def generate_viral_mix_tweet(target_tweets, manifesto_chunk, source_name):
@@ -1143,10 +1156,11 @@ def generate_viral_mix_tweet(target_tweets, manifesto_chunk, source_name):
 
     if target_tweets:
         context_block = (
-            "These are trending discussions in our niche RIGHT NOW (from Twitter thought leaders and community forums).\n"
-            "Study what topic is generating heat, what tensions are surfacing, what language people are using.\n"
-            "Then write ONE tweet that enters the same conversation but from our perspective.\n\n"
-            "Trending now:\n"
+            "These are REAL headlines trending in tech media RIGHT NOW (The Verge, TechCrunch, Decrypt, Road to VR).\n"
+            "They tell you what is hot in the metaverse, XR, web3, and spatial computing space TODAY.\n"
+            "Pick the most charged topic from these headlines. Find the tension, the shift, the thing people feel but can't say.\n"
+            "Then write ONE tweet that enters that conversation from our perspective — sharper, more opinionated than the headline.\n\n"
+            "Today's trending headlines:\n"
             + "\n---\n".join(target_tweets[:8])
         )
     else:
