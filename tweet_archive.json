@@ -23,5 +23,15 @@
     "content_id": "news_e44d72a88cad",
     "content_type": "news",
     "posted_at": "2026-03-09T09:25:21.104650"
+  },
+  {
+    "content_id": "viral_75ff2751867d",
+    "content_type": "viral_mix",
+    "posted_at": "2026-03-09T09:56:56.697373"
+  },
+  {
+    "content_id": "retail-0_viral",
+    "content_type": "viral_mix_source",
+    "posted_at": "2026-03-09T09:56:56.697606"
   }
 ]
