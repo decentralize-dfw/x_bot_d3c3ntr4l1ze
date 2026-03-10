@@ -113,5 +113,10 @@
     "content_id": "retail-0",
     "content_type": "evening_text",
     "posted_at": "2026-03-10T15:20:52.315623"
+  },
+  {
+    "content_id": "c2w2-00",
+    "content_type": "evening_controversial",
+    "posted_at": "2026-03-10T16:23:35.012700"
   }
 ]
