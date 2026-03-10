@@ -93,5 +93,15 @@
     "content_id": "ske-18",
     "content_type": "artwork",
     "posted_at": "2026-03-10T11:13:47.973031"
+  },
+  {
+    "content_id": "viral_71cfab96babe",
+    "content_type": "viral_mix",
+    "posted_at": "2026-03-10T12:15:38.667332"
+  },
+  {
+    "content_id": "gallery_viral",
+    "content_type": "viral_mix_source",
+    "posted_at": "2026-03-10T12:15:38.667748"
   }
 ]
