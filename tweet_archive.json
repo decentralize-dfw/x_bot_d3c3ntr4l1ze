@@ -183,5 +183,15 @@
     "content_id": "stu-19",
     "content_type": "artwork",
     "posted_at": "2026-03-12T11:13:53.888101"
+  },
+  {
+    "content_id": "viral_639fe25e7d04",
+    "content_type": "viral_mix",
+    "posted_at": "2026-03-12T12:15:07.374256"
+  },
+  {
+    "content_id": "balloon-0_viral",
+    "content_type": "viral_mix_source",
+    "posted_at": "2026-03-12T12:15:07.374674"
   }
 ]
