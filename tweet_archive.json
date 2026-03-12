@@ -208,5 +208,10 @@
     "content_id": "forge-0",
     "content_type": "evening_controversial",
     "posted_at": "2026-03-12T16:24:35.365416"
+  },
+  {
+    "content_id": "item-text",
+    "content_type": "evening_text",
+    "posted_at": "2026-03-12T18:24:03.298280"
   }
 ]
