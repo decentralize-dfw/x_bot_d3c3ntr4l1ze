@@ -308,5 +308,10 @@
     "content_id": "wwe-0",
     "content_type": "evening_text",
     "posted_at": "2026-03-14T18:14:22.589533"
+  },
+  {
+    "content_id": "scaffold-0",
+    "content_type": "evening_controversial",
+    "posted_at": "2026-03-14T20:10:32.918934"
   }
 ]
