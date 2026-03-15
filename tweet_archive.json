@@ -333,5 +333,11 @@
     "content_id": "expp_viral",
     "content_type": "viral_mix_source",
     "posted_at": "2026-03-15T12:13:15.156281"
+  },
+  {
+    "content_id": "test_sim_1",
+    "content_type": "test",
+    "posted_at": "2026-03-15T13:59:36.235495",
+    "tweet_text": "virtual worlds need inhabitants not spectacles"
   }
 ]
