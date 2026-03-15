@@ -23,8 +23,9 @@ TWITTER_API_SECRET          = os.environ.get("TWITTER_API_SECRET")
 TWITTER_ACCESS_TOKEN        = os.environ.get("TWITTER_ACCESS_TOKEN")
 TWITTER_ACCESS_TOKEN_SECRET = os.environ.get("TWITTER_ACCESS_TOKEN_SECRET")
 
-MAX_TARGETS  = 60
-MIN_FOLLOWERS = 200  # düşürüldü, daha fazla aday geçsin
+MAX_TARGETS   = 60
+MIN_FOLLOWERS = 500   # Minimum niche relevance için yükseltildi
+MAX_FOLLOWERS = 600_000  # Mega-account'ları filtrele (niche değil)
 
 # min_faves kaldırıldı — basic/free tier'da desteklenmiyor
 # max_results 10 yapıldı — basic tier limiti
@@ -123,7 +124,7 @@ def discover():
         pm = user.public_metrics or {}
         followers = pm.get("followers_count", pm.get("follower_count", 0))
         print(f"  candidate @{uname}: {followers} followers")
-        if followers < MIN_FOLLOWERS:
+        if followers < MIN_FOLLOWERS or followers > MAX_FOLLOWERS:
             continue
         candidates.append({
             "username": uname,
@@ -135,12 +136,24 @@ def discover():
             "discovered": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         })
 
+    # Engagement rate (orana dayalı, mutlak değere değil) bazlı sıralama
+    # engagement_rate = tweet başına ortalama etkileşim / takipçi sayısı
+    for c in candidates:
+        followers = max(c["followers"], 1)
+        per_tweet = c["engagement_score"] / max(c["tweet_samples"], 1)
+        c["engagement_rate"] = per_tweet / followers  # normalize edilmiş oran
+        # Niche relevance: bio'da niche keyword varsa bonus
+        niche_terms = ["xr", "webxr", "metaverse", "spatial", "3d", "virtual", "web3",
+                       "nft", "on-chain", "onchain", "digital art", "generative", "glb"]
+        bio_lower = c["bio"].lower()
+        c["niche_score"] = sum(1 for t in niche_terms if t in bio_lower) / len(niche_terms)
+
     candidates.sort(
-        key=lambda x: (x["engagement_score"] * 0.7 + x["followers"] * 0.001),
+        key=lambda x: (x["engagement_rate"] * 0.6 + x["niche_score"] * 0.4),
         reverse=True
     )
     top_new = candidates[:MAX_TARGETS]
-    print(f"{len(top_new)} candidates passed MIN_FOLLOWERS={MIN_FOLLOWERS} filter.")
+    print(f"{len(top_new)} candidates passed filters (MIN={MIN_FOLLOWERS}, MAX={MAX_FOLLOWERS} followers).")
 
     # Merge with existing targets.json
     existing = []
@@ -161,7 +174,7 @@ def discover():
 
     merged = sorted(
         existing_map.values(),
-        key=lambda x: (x.get("engagement_score", 0) * 0.7 + x.get("followers", 0) * 0.001),
+        key=lambda x: (x.get("engagement_rate", 0) * 0.6 + x.get("niche_score", 0) * 0.4),
         reverse=True
     )[:MAX_TARGETS]
 

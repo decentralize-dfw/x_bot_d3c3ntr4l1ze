@@ -23,8 +23,126 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 # Keyword search query used for viral context.
 SEARCH_KEYWORDS = (
     '(metaverse OR "virtual world" OR "AI agent" OR "on-chain" OR '
-    '"spatial computing" OR "web3" OR "3D NFT")'
+    '"spatial computing" OR "web3" OR "3D NFT" OR "WebXR" OR "spatial computing")'
 )
+
+# ── Multi-model rotation ───────────────────────────────────────────────────────
+# Her gün farklı model kullanılır — ses çeşitliliği + klişeye düşmeme
+_LLM_MODELS = [
+    "llama-3.3-70b-versatile",   # Ana model — en güçlü
+    "llama-3.3-70b-versatile",   # Ağırlık 2x — en güvenilir
+    "mixtral-8x7b-32768",        # Alternatif — farklı ses
+    "llama-3.3-70b-versatile",   # Ana model
+    "gemma2-9b-it",              # Hafif, daha direkt üslup
+    "llama-3.3-70b-versatile",   # Ana model
+    "mixtral-8x7b-32768",        # Alternatif
+]
+
+def _get_model() -> str:
+    """Haftanın gününe göre model seç — tutarlı ama çeşitli."""
+    day = datetime.now(timezone.utc).weekday()  # 0=Pazartesi … 6=Pazar
+    return _LLM_MODELS[day % len(_LLM_MODELS)]
+
+def _call_llm(prompt: str, max_tokens: int = 120, temperature: float = 0.9) -> str:
+    """Groq çağrısı — model rotasyonu + fallback zinciri."""
+    primary = _get_model()
+    fallback_chain = ["llama-3.3-70b-versatile", "mixtral-8x7b-32768", "gemma2-9b-it"]
+    models_to_try = [primary] + [m for m in fallback_chain if m != primary]
+
+    client = groq_sdk.Groq(api_key=GROQ_API_KEY)
+    last_err = None
+    for model in models_to_try:
+        try:
+            resp = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
+            return resp.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"LLM [{model}] failed: {e} — trying next...")
+            last_err = e
+    raise RuntimeError(f"All LLM providers failed. Last error: {last_err}")
+
+# ── Beliefs (fikir haritası) ───────────────────────────────────────────────────
+def _load_beliefs() -> dict:
+    beliefs_path = os.path.join(os.path.dirname(__file__), "beliefs.json")
+    try:
+        with open(beliefs_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def _random_belief() -> str:
+    """Rastgele bir core belief veya contested claim döndür."""
+    b = _load_beliefs()
+    pool = b.get("core_beliefs", []) + b.get("contested_claims", [])
+    return random.choice(pool) if pool else ""
+
+# ── Bot hafızası (rolling context window) ─────────────────────────────────────
+def get_voice_context(n: int = 5) -> str:
+    """Son n tweet'i al — ses tutarlılığı ve tekrar önleme için LLM'e ver."""
+    recent = tweet_archive.get_recent_tweet_texts(days=30)
+    if not recent:
+        return ""
+    sample = recent[-n:] if len(recent) >= n else recent
+    lines = "\n".join(f"- {t}" for t in sample)
+    return (
+        f"Your {len(sample)} most recent tweets (DO NOT repeat these ideas, maintain this voice):\n"
+        f"{lines}\n\n"
+    )
+
+# ── Haftalık tema sistemi ──────────────────────────────────────────────────────
+WEEKLY_THEMES = [
+    "the permanence problem in virtual spaces — why most digital experiences feel disposable",
+    "why WebXR hasn't replaced native apps yet — and the exact moment it will",
+    "on-chain ownership as a design constraint — what it forces you to get right",
+    "the UX debt of the metaverse — what spectacle-first design cost us",
+    "spatial computing vs virtual reality — the terminology war that delayed both",
+    "browser as spatial platform — the most underestimated surface in 3D design",
+    "virtual identity and permanence — what it means to exist in a space you don't own",
+    "AI-generated 3D and the coming commoditization of visual novelty",
+    "decentralized worlds and the architecture of trustless space",
+    "ambient presence vs active engagement — designing for the former",
+    "the studio that builds in public — visibility as competitive advantage",
+    "virtual space has gravity — ignoring it is why most digital experiences fail",
+]
+
+def get_this_weeks_theme() -> str:
+    week_number = datetime.now(timezone.utc).isocalendar()[1]
+    return WEEKLY_THEMES[week_number % len(WEEKLY_THEMES)]
+
+# ── Self-critique kalite kapısı ────────────────────────────────────────────────
+def score_tweet_quality(tweet_text: str) -> float:
+    """Tweet'i LLM'e puanlat (1-10 × 3 eksen). Ortalama 6 altıysa reddet."""
+    if not GROQ_API_KEY:
+        return 7.0  # API yoksa geç
+    prompt = (
+        "Rate this tweet on exactly 3 axes, each 1-10:\n"
+        "1. ORIGINALITY: Does it say something the reader hasn't thought before?\n"
+        "2. SPECIFICITY: Does it make a precise, non-generic claim?\n"
+        "3. PROVOCATION: Does it leave an unanswerable question in the reader's mind?\n\n"
+        f'Tweet: "{tweet_text}"\n\n'
+        'Respond ONLY with JSON: {"originality": N, "specificity": N, "provocation": N}'
+    )
+    try:
+        raw = _call_llm(prompt, max_tokens=40, temperature=0.2)
+        # JSON parse
+        match = re.search(r'\{[^}]+\}', raw)
+        if not match:
+            return 7.0
+        scores = json.loads(match.group())
+        avg = sum([
+            scores.get("originality", 7),
+            scores.get("specificity", 7),
+            scores.get("provocation", 7),
+        ]) / 3
+        print(f"Quality score: {avg:.1f}/10 — O:{scores.get('originality')} S:{scores.get('specificity')} P:{scores.get('provocation')}")
+        return avg
+    except Exception as e:
+        print(f"Quality scoring failed: {e}")
+        return 7.0  # Hata durumunda geç
 
 # --- TYPE LABELS ---
 TYPE_LABELS = {
@@ -256,10 +374,11 @@ def post_morning_tweet():
     print(f"Attempting morning tweet ({len(tweet_text)} chars):\n{tweet_text}")
     try:
         if media_ids:
-            client.create_tweet(text=tweet_text, media_ids=media_ids)
+            resp = client.create_tweet(text=tweet_text, media_ids=media_ids)
         else:
-            client.create_tweet(text=tweet_text)
-        tweet_archive.record_post(selected['id'], content_type="morning_media")
+            resp = client.create_tweet(text=tweet_text)
+        tweet_archive.record_post(selected['id'], content_type="morning_media",
+                                  tweet_text=tweet_text, tweet_id=resp.data['id'])
         print(f"Morning broadcast complete: {name}")
     except tweepy.errors.Forbidden as e:
         api_codes = getattr(e, 'api_codes', [])
@@ -290,11 +409,13 @@ def post_morning_tweet():
 
 def distill_to_tweet(chunk, source_name):
     groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
+    voice_ctx = get_voice_context(n=3)
     prompt = (
         "You write for a digital design studio (Decentralize Design) that builds virtual worlds and manifestos.\n"
         "From the text below, extract or rephrase ONE powerful, self-contained thought as a tweet (max 130 chars).\n"
-        "Rules: no quotes around it, no 'we believe / this manifesto / our studio', reads as a standalone statement.\n"
+        "Rules: no quotes, no 'we believe / this manifesto / our studio', reads as a standalone statement.\n"
         f"{TONE_BLOCK}"
+        f"{voice_ctx}"
         f"Output only the tweet text.\n\nSource: {source_name}\nText:\n{chunk}"
     )
     resp = groq_client.chat.completions.create(
@@ -333,9 +454,7 @@ def fetch_context_tweets(query, max_results=10):
 
 
 def generate_viral_tweet(chunk, source_name, context_tweets):
-    """LLM: viral-format tweet from manifesto content + trending context."""
-    groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
-
+    """LLM: chain-of-thought viral tweet — manifesto + context + bot memory + weekly theme."""
     context_str = ""
     if context_tweets:
         context_str = (
@@ -344,32 +463,36 @@ def generate_viral_tweet(chunk, source_name, context_tweets):
             + "\n\n"
         )
 
+    belief = _random_belief()
+    belief_line = f'One of our core beliefs: "{belief}"\n\n' if belief else ""
+    voice_ctx   = get_voice_context(n=4)
+    weekly      = get_this_weeks_theme()
+
     prompt = (
         "You are the voice of @decentralize___, a studio building 3D virtual worlds on-chain.\n\n"
         f"{TONE_BLOCK}\n"
-        "Write ONE sharp tweet. Pick the most intellectually honest format for the content below:\n"
+        f"{voice_ctx}"
+        f"{belief_line}"
+        f"This week's exploration theme: {weekly}\n\n"
+        "THINK STEP BY STEP before writing:\n"
+        "Step 1 — What is the most counterintuitive thing the source material reveals?\n"
+        "Step 2 — What does the mainstream assume that is wrong?\n"
+        "Step 3 — Write ONE tweet that surfaces Step 2 through the lens of Step 1.\n\n"
+        "Tweet format (pick the sharpest fit):\n"
         "A. Precise observation + unexpected implication\n"
-        "B. Contrast (physical world vs virtual) with a non-obvious takeaway\n"
+        "B. Physical vs virtual contrast with a non-obvious takeaway\n"
         "C. Prediction grounded in a specific mechanism, not vibes\n"
-        "D. A point of view that reframes how someone thinks about virtual space\n\n"
-        "Max 130 chars. First line must earn attention through insight, not shock.\n\n"
+        "D. Reframe that makes a familiar idea suddenly strange\n\n"
+        "Max 130 chars. First line earns attention through insight, not shock.\n\n"
         f"{context_str}"
-        f"Our philosophy (source: {source_name}):\n{chunk}\n\n"
-        "Output ONLY the tweet text."
+        f"Source philosophy ({source_name}):\n{chunk}\n\n"
+        "Output ONLY the final tweet text — not the steps."
     )
-    resp = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=120,
-        temperature=0.9,
-    )
-    return resp.choices[0].message.content.strip()
+    return _call_llm(prompt, max_tokens=120, temperature=0.9)
 
 
 def generate_controversial_tweet(chunk, source_name, context_tweets):
-    """LLM: deliberately contrarian viral tweet — ragebait grounded in philosophy."""
-    groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
-
+    """LLM: chain-of-thought contrarian tweet — intellectually provocative, not rage-bait."""
     context_str = ""
     if context_tweets:
         context_str = (
@@ -378,31 +501,36 @@ def generate_controversial_tweet(chunk, source_name, context_tweets):
             + "\n\n"
         )
 
+    belief    = _random_belief()
+    belief_line = f'One of our contested beliefs: "{belief}"\n\n' if belief else ""
+    voice_ctx = get_voice_context(n=4)
+    weekly    = get_this_weeks_theme()
+
     prompt = (
         "You are the voice of @decentralize___, a studio building 3D virtual worlds on-chain.\n\n"
         f"{TONE_BLOCK}\n"
-        "Write ONE intellectually contrarian tweet. Choose ONE format:\n"
-        "A. A widely held assumption about virtual/physical space that is demonstrably wrong + the actual truth\n"
-        "B. A specific prediction that exposes what the mainstream is missing\n"
-        "C. An uncomfortable contradiction in how people think about virtual vs physical space\n"
-        "D. A reframe that makes a familiar idea suddenly strange\n\n"
-        "Max 130 chars. The hook earns attention through insight. Intellectually provocative, not rage-bait.\n\n"
+        f"{voice_ctx}"
+        f"{belief_line}"
+        f"This week's exploration theme: {weekly}\n\n"
+        "THINK STEP BY STEP before writing:\n"
+        "Step 1 — What widely held assumption about virtual/physical space is demonstrably wrong?\n"
+        "Step 2 — What is the actual truth, and why does it make people uncomfortable?\n"
+        "Step 3 — Write ONE tweet that delivers Step 2 with precision, not rage.\n\n"
+        "Format options:\n"
+        "A. Wrong assumption + actual truth\n"
+        "B. Prediction that exposes what mainstream is missing\n"
+        "C. Uncomfortable contradiction in how people think about virtual vs physical space\n"
+        "D. Reframe that makes a familiar idea suddenly strange\n\n"
+        "Max 130 chars. Intellectually provocative, not rage-bait.\n\n"
         f"{context_str}"
         f"Source philosophy ({source_name}):\n{chunk}\n\n"
-        "Output ONLY the tweet text."
+        "Output ONLY the final tweet text — not the steps."
     )
-    resp = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=120,
-        temperature=0.95,
-    )
-    return resp.choices[0].message.content.strip()
+    return _call_llm(prompt, max_tokens=120, temperature=0.92)
 
 
 def generate_media_caption(name, description, type_label):
     """LLM: one complete, self-contained caption for a media item. ≤120 chars."""
-    groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
     prompt = (
         "You write captions for @decentralize___ (a studio building 3D virtual worlds on-chain).\n"
         "Write ONE complete sentence caption for this media item. Max 120 characters.\n"
@@ -413,18 +541,11 @@ def generate_media_caption(name, description, type_label):
         f"Description: {description}\n\n"
         "Output ONLY the caption."
     )
-    resp = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=50,
-        temperature=0.7,
-    )
-    return resp.choices[0].message.content.strip()
+    return _call_llm(prompt, max_tokens=50, temperature=0.7)
 
 
 def generate_artwork_tweet(name, description, categories):
     """LLM: short punchy tweet for an artwork drop. ≤ 130 chars."""
-    groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
     meta = ", ".join(
         f"{k}: {v}" for k, v in categories.items()
         if v and k in ('year', 'type', 'medium', 'collection')
@@ -440,53 +561,34 @@ def generate_artwork_tweet(name, description, categories):
         f"Details: {meta}\n\n"
         "Output ONLY the tweet text."
     )
-    resp = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=55,
-        temperature=0.75,
-    )
-    return resp.choices[0].message.content.strip()
+    return _call_llm(prompt, max_tokens=55, temperature=0.75)
 
 
 def generate_news_tweet(title, article_text, source):
     """LLM: 3-5 word sharp fragment as news commentary for thread reply."""
-    groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
     prompt = (
-        "You are @decentralize___, building 3D virtual worlds on-chain. Voice: punk architect, prophetic outsider.\n"
+        "You are @decentralize___, building 3D virtual worlds on-chain.\n"
+        f"{TONE_BLOCK}"
         "Read the article below and write a SINGLE sharp commentary fragment.\n"
-        "Rules: EXACTLY 3 to 5 words. No sentence structure needed. No hashtags. No @mentions. "
-        "A punchy gut-punch fragment that makes people think. Max 30 chars.\n\n"
+        "Rules: EXACTLY 3 to 5 words. No sentence structure needed. No @mentions. "
+        "A precise gut-punch fragment that reveals something the headline missed. Max 30 chars.\n\n"
         f"Source: {source}\n"
         f"Title: {title}\n"
         f"Article:\n{article_text[:1500]}\n\n"
         "Output ONLY the 3-5 word fragment."
     )
-    resp = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=20,
-        temperature=0.95,
-    )
-    return resp.choices[0].message.content.strip().strip('"\'')
+    return _call_llm(prompt, max_tokens=20, temperature=0.92).strip('"\'')
 
 
 def generate_news_headline(title, article_text, source):
-    """LLM: 1-sentence factual headline summary. Max 115 chars (leaves room for 'NEWS: ')."""
-    groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
+    """LLM: 1-sentence factual headline summary. Max 115 chars."""
     prompt = (
         "Summarize this news article in ONE factual sentence. Max 115 characters.\n"
         "Rules: state what happened, no opinion, no hashtags, no 'this article...'. Just the fact.\n\n"
         f"Source: {source}\nTitle: {title}\nArticle:\n{article_text[:1500]}\n\n"
         "Output ONLY the summary sentence."
     )
-    resp = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=50,
-        temperature=0.3,
-    )
-    return resp.choices[0].message.content.strip().strip('"\'')
+    return _call_llm(prompt, max_tokens=50, temperature=0.3).strip('"\'')
 
 
 def _get_hashtags_for_source(source_name):
@@ -534,7 +636,20 @@ def post_evening_tweet():
             try:
                 candidate = generate_viral_tweet(chunk, name, context_tweets)
                 if tweet_archive.is_too_similar(candidate):
-                    print(f"Evening attempt {attempt+1}: too similar to recent tweet, retrying...")
+                    print(f"Evening attempt {attempt+1}: too similar, retrying...")
+                    if len(words) > 150:
+                        start = random.randint(0, len(words) - 150)
+                        chunk = ' '.join(words[start:start + 150])
+                    continue
+                if tweet_archive.is_theme_in_cooldown(candidate):
+                    print(f"Evening attempt {attempt+1}: theme in cooldown, retrying...")
+                    if len(words) > 150:
+                        start = random.randint(0, len(words) - 150)
+                        chunk = ' '.join(words[start:start + 150])
+                    continue
+                quality = score_tweet_quality(candidate)
+                if quality < 6.0:
+                    print(f"Evening attempt {attempt+1}: quality {quality:.1f}/10 < 6.0, retrying...")
                     if len(words) > 150:
                         start = random.randint(0, len(words) - 150)
                         chunk = ' '.join(words[start:start + 150])
@@ -564,7 +679,8 @@ def post_evening_tweet():
     try:
         resp = client.create_tweet(text=tweet_text)
         tweet_id = resp.data['id']
-        tweet_archive.record_post(selected['id'], content_type="evening_text", tweet_text=tweet_text)
+        tweet_archive.record_post(selected['id'], content_type="evening_text",
+                                  tweet_text=tweet_text, tweet_id=tweet_id)
         question = generate_thread_reply(tweet_text)
         if question:
             client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
@@ -657,7 +773,8 @@ def post_artwork_tweet():
 
     tweet_id = resp.data['id']
 
-    tweet_archive.record_post(artwork['id'], content_type="artwork")
+    tweet_archive.record_post(artwork['id'], content_type="artwork",
+                              tweet_text=tweet_text, tweet_id=tweet_id)
     # Thread: second tweet with site link + hashtags
     client.create_tweet(
         text="explore the collection: de-centralize.com #digitalart #metaverse",
@@ -708,7 +825,20 @@ def post_controversial_evening_tweet():
             try:
                 candidate = generate_controversial_tweet(chunk, name, context_tweets)
                 if tweet_archive.is_too_similar(candidate):
-                    print(f"Controversial attempt {attempt+1}: too similar to recent tweet, retrying...")
+                    print(f"Controversial attempt {attempt+1}: too similar, retrying...")
+                    if len(words) > 150:
+                        start = random.randint(0, len(words) - 150)
+                        chunk = ' '.join(words[start:start + 150])
+                    continue
+                if tweet_archive.is_theme_in_cooldown(candidate):
+                    print(f"Controversial attempt {attempt+1}: theme in cooldown, retrying...")
+                    if len(words) > 150:
+                        start = random.randint(0, len(words) - 150)
+                        chunk = ' '.join(words[start:start + 150])
+                    continue
+                quality = score_tweet_quality(candidate)
+                if quality < 6.0:
+                    print(f"Controversial attempt {attempt+1}: quality {quality:.1f}/10 < 6.0, retrying...")
                     if len(words) > 150:
                         start = random.randint(0, len(words) - 150)
                         chunk = ' '.join(words[start:start + 150])
@@ -738,7 +868,8 @@ def post_controversial_evening_tweet():
     try:
         resp = client.create_tweet(text=tweet_text)
         tweet_id = resp.data['id']
-        tweet_archive.record_post(selected['id'], content_type="evening_controversial", tweet_text=tweet_text)
+        tweet_archive.record_post(selected['id'], content_type="evening_controversial",
+                                  tweet_text=tweet_text, tweet_id=tweet_id)
         question = generate_thread_reply(tweet_text)
         if question:
             client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
@@ -764,10 +895,20 @@ def post_controversial_evening_tweet():
 
 # --- NEWS TWEETS: DECRYPT.CO & VENTUREBEAT ---
 
-# RSS feed URLs — more reliable than homepage scraping
+# RSS feed URLs — genişletilmiş niche ekosistem
 _RSS_FEEDS = {
-    "decrypt.co": "https://decrypt.co/feed/",
-    "venturebeat.com": "https://venturebeat.com/feed/",
+    "decrypt.co":       "https://decrypt.co/feed/",
+    "venturebeat.com":  "https://venturebeat.com/feed/",
+    "roadtovr.com":     "https://www.roadtovr.com/feed/",
+    "awwwards.com":     "https://www.awwwards.com/blog/rss",
+}
+
+# Viral context için ek RSS kaynakları (viral_mix + context çekmede kullanılır)
+_CONTEXT_RSS_FEEDS = {
+    "roadtovr.com":    "https://www.roadtovr.com/feed/",
+    "awwwards.com":    "https://www.awwwards.com/blog/rss",
+    "techcrunch.com":  "https://techcrunch.com/feed/",
+    "theverge.com":    "https://www.theverge.com/rss/index.xml",
 }
 
 def _scrape_article_body(article_url, source_name):
@@ -1194,81 +1335,156 @@ def fetch_target_tweets(n_targets=10, max_results=20):
 
 
 def generate_thread_reply(main_tweet):
-    """Generate a reply that directly extends the main tweet's argument.
-    NOT a generic question — must connect to exactly what was just said."""
+    """Generate a reply that directly extends the main tweet's argument."""
     if not GROQ_API_KEY:
         return None
-    groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
     prompt = (
         "You just posted this tweet:\n"
         f'"{main_tweet}"\n\n'
         "Write ONE reply to yourself that deepens the argument — the 'because', the implication, or the real stakes.\n"
         "The reply must connect DIRECTLY to what the tweet said. Not a generic question. Not a new topic.\n\n"
-        "BAD REPLY: 'what changes when your workspace has no walls?' — has nothing to do with the tweet above\n"
-        "BAD REPLY: 'Rethink trust models.' — vague, disconnected\n"
-        "GOOD REPLY (if tweet was about wallets protecting dependency): 'the interface is the leash. always has been.'\n"
-        "GOOD REPLY (if tweet was about VR retention): 'people don't return to experiences. they return to places.'\n\n"
+        "BAD REPLY: 'what changes when your workspace has no walls?' — disconnected\n"
+        "BAD REPLY: 'Rethink trust models.' — vague\n"
+        "GOOD REPLY (wallets/dependency tweet): 'the interface is the leash. always has been.'\n"
+        "GOOD REPLY (VR retention tweet): 'people don't return to experiences. they return to places.'\n\n"
         f"{TONE_BLOCK}"
-        "40-120 characters. No 'we'. Reads like a natural follow-through thought.\n"
+        "40-120 characters. No 'we'. Natural follow-through thought.\n"
         "Output ONLY the reply text."
     )
-    resp = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=60,
-        temperature=0.88,
-    )
-    return resp.choices[0].message.content.strip().strip('"\'')
+    return _call_llm(prompt, max_tokens=60, temperature=0.88).strip('"\'')
 
 
 def generate_viral_mix_tweet(target_tweets, manifesto_chunk, source_name):
-    """LLM: mix top target content with Decentralize Design mindset into one viral tweet."""
-    groq_client = groq_sdk.Groq(api_key=GROQ_API_KEY)
+    """LLM: chain-of-thought viral mix — trending headlines + manifesto + bot memory + weekly theme."""
+    voice_ctx = get_voice_context(n=4)
+    weekly    = get_this_weeks_theme()
+    belief    = _random_belief()
 
     if target_tweets:
         context_block = (
-            "These are REAL headlines trending in tech media RIGHT NOW (The Verge, TechCrunch, Decrypt, Road to VR).\n"
-            "They tell you what is hot in the metaverse, XR, web3, and spatial computing space TODAY.\n"
-            "Pick the most charged topic from these headlines. Find the tension, the shift, the thing people feel but can't say.\n"
-            "Then write ONE tweet that enters that conversation from our perspective — sharper, more opinionated than the headline.\n\n"
-            "Today's trending headlines:\n"
+            "REAL headlines trending in the metaverse, XR, web3, spatial computing space RIGHT NOW:\n"
             + "\n---\n".join(target_tweets[:8])
+            + "\n\nPick the most charged topic. Find the tension beneath the surface."
         )
     else:
         context_block = (
-            "No external context available. Use your knowledge of what is resonating in the web3, "
-            "metaverse, and digital architecture space right now — XR, on-chain ownership, virtual studios, "
-            "3D web, spatial computing. Pick the tension that is most charged today and write from inside it."
+            "No external headlines available. Draw from your knowledge of what's most contested "
+            "in WebXR, on-chain ownership, virtual studio design, and spatial computing right now."
         )
 
     prompt = (
         "You are the voice of @decentralize___, a studio building 3D virtual worlds on-chain.\n\n"
         f"{TONE_BLOCK}\n"
+        f"{voice_ctx}"
+        f'One of our core beliefs: "{belief}"\n\n'
+        f"This week's exploration theme: {weekly}\n\n"
         f"{context_block}\n\n"
-        "WHAT MAKES A BAD TWEET VS GOOD TWEET:\n"
-        "BAD: 'NEWS: New wallet research aims to preserve core features.' — restates headline, zero insight\n"
-        "BAD: 'Rethink trust models.' — vague slogan, says nothing specific\n"
-        "BAD: 'VR gaming's gravy train has stopped.' — just repeating what the article said\n"
-        "GOOD: 'Every wallet that tries to preserve UX is protecting the part that keeps users dependent.' — reveals a hidden mechanism\n"
-        "GOOD: 'The browser was supposed to decentralize publishing. Wallets are making the same mistake.' — connects non-obvious dots\n"
-        "GOOD: 'VR retention collapsed because studios kept building tourist attractions instead of places to inhabit.' — specific diagnosis, IQ-dense observation\n\n"
-        "Rules:\n"
-        "- 100-220 characters. A complete thought with a specific claim or observation.\n"
-        "- Take a side. Surface what the news or trend actually means beneath the headline.\n"
-        "- DO NOT restate the headline. React to what it MEANS — who's wrong, what they're missing, what the real shift is.\n"
-        "- No 'NEWS:' prefix. No 'we'. No links. Sounds like a person with expertise thinking out loud.\n"
-        "- Draw from the manifesto below — not to quote it, but to think FROM it.\n\n"
-        f"Our manifesto (source: {source_name}):\n{manifesto_chunk}\n\n"
-        "Output ONLY the tweet text."
+        "THINK STEP BY STEP:\n"
+        "Step 1 — Which headline reveals the deepest tension or the biggest misunderstanding?\n"
+        "Step 2 — What does the mainstream believe about this? Where are they wrong?\n"
+        "Step 3 — Write ONE tweet from our perspective that corrects Step 2 with precision.\n\n"
+        "BAD: 'NEWS: New wallet research...' — restates headline, zero insight\n"
+        "BAD: 'Rethink trust models.' — vague slogan\n"
+        "GOOD: 'Every wallet preserving UX is protecting the part that keeps users dependent.' — reveals a mechanism\n"
+        "GOOD: 'VR retention collapsed because studios kept building tourist attractions, not places to inhabit.' — diagnosis\n\n"
+        "100-220 characters. No 'NEWS:' prefix. No 'we'. No links. Expert thinking out loud.\n"
+        f"Our manifesto ({source_name}):\n{manifesto_chunk}\n\n"
+        "Output ONLY the final tweet text — not the steps."
     )
+    return _call_llm(prompt, max_tokens=130, temperature=0.92).strip('"\'')
 
-    resp = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=120,
-        temperature=0.92,
+
+# ── QUOTE-TWEET MOTORU ────────────────────────────────────────────────────────
+
+def generate_quote_commentary(original_tweet: str) -> str:
+    """LLM: target tweet'e quote commentary yaz — kendi sesimizden, keskin görüş."""
+    voice_ctx = get_voice_context(n=3)
+    belief    = _random_belief()
+    prompt = (
+        "You are @decentralize___, a studio building 3D virtual worlds on-chain.\n\n"
+        f"{TONE_BLOCK}\n"
+        f"{voice_ctx}"
+        f'One of our beliefs: "{belief}"\n\n'
+        "Someone just said this:\n"
+        f'"{original_tweet}"\n\n'
+        "Write a quote-tweet commentary from our perspective. Options:\n"
+        "A. Sharpen their point with a more precise version\n"
+        "B. Find the gap in their logic and name it\n"
+        "C. Add the dimension they completely missed\n"
+        "D. Respectfully disagree with the specific assumption they're making\n\n"
+        "Max 200 characters. No 'RT @'. No 'great point'. No sycophancy. Your own voice.\n"
+        "Output ONLY the commentary text."
     )
-    return resp.choices[0].message.content.strip().strip('"\'')
+    return _call_llm(prompt, max_tokens=90, temperature=0.88).strip('"\'')
+
+
+def fetch_target_tweets_with_ids(n_targets: int = 3) -> list[dict]:
+    """Target tweet'leri id + text ile birlikte döndür (quote-tweet için)."""
+    client, _ = get_twitter_clients()
+    try:
+        with open('targets.json', 'r', encoding='utf-8') as f:
+            targets = json.load(f)
+    except Exception:
+        return []
+
+    tier1 = [t for t in targets if t.get('followers', 0) < 50_000]
+    sample = random.sample(tier1, min(n_targets, len(tier1))) if tier1 else random.sample(targets, min(n_targets, len(targets)))
+
+    results = []
+    for target in sample:
+        try:
+            resp = client.search_recent_tweets(
+                query=f"from:{target['username']} -is:retweet -is:reply lang:en",
+                max_results=5,
+                tweet_fields=["public_metrics", "text"],
+                sort_order="relevancy",
+            )
+            if resp.data:
+                best = max(resp.data,
+                           key=lambda t: t.public_metrics.get("like_count", 0) + t.public_metrics.get("retweet_count", 0) * 2)
+                results.append({"id": str(best.id), "text": best.text, "author": target['username']})
+        except Exception as e:
+            print(f"fetch_target_tweets_with_ids error for @{target['username']}: {e}")
+        time.sleep(1)
+
+    return results
+
+
+def post_quote_tweet():
+    """Günde 1-2 kez: niche thought leader'ın tweet'ini quote-tweet ile yorumla."""
+    client, _ = get_twitter_clients()
+
+    print("Fetching target tweets for quote-tweet...")
+    candidates = fetch_target_tweets_with_ids(n_targets=5)
+    if not candidates:
+        print("No candidates for quote-tweet, skipping.")
+        return
+
+    # En az archived olmayan birini seç
+    selected = None
+    for c in candidates:
+        archive_id = "qt_" + hashlib.md5(c['text'].encode()).hexdigest()[:12]
+        if not tweet_archive.is_posted_recently(archive_id, days=14):
+            selected = c
+            break
+    if not selected:
+        selected = random.choice(candidates)
+
+    commentary = generate_quote_commentary(selected['text'])
+    quality = score_tweet_quality(commentary)
+    if quality < 5.5:
+        print(f"Quote-tweet quality {quality:.1f}/10 too low, skipping.")
+        return
+
+    print(f"Posting quote-tweet of @{selected['author']}:\n{commentary}")
+    try:
+        resp = client.create_tweet(text=commentary, quote_tweet_id=selected['id'])
+        archive_id = "qt_" + hashlib.md5(selected['text'].encode()).hexdigest()[:12]
+        tweet_archive.record_post(archive_id, content_type="quote_tweet",
+                                  tweet_text=commentary, tweet_id=resp.data['id'])
+        print(f"Quote-tweet posted: {resp.data['id']}")
+    except Exception as e:
+        print(f"Quote-tweet failed: {e}")
 
 
 def post_viral_mix_tweet():
@@ -1320,7 +1536,20 @@ def post_viral_mix_tweet():
                         chunk = ' '.join(words[start:start + 100])
                     continue
                 if tweet_archive.is_too_similar(candidate):
-                    print(f"Viral mix attempt {attempt+1}: too similar to recent tweet, retrying...")
+                    print(f"Viral mix attempt {attempt+1}: too similar, retrying...")
+                    if len(words) > 100:
+                        start = random.randint(0, len(words) - 100)
+                        chunk = ' '.join(words[start:start + 100])
+                    continue
+                if tweet_archive.is_theme_in_cooldown(candidate):
+                    print(f"Viral mix attempt {attempt+1}: theme in cooldown, retrying...")
+                    if len(words) > 100:
+                        start = random.randint(0, len(words) - 100)
+                        chunk = ' '.join(words[start:start + 100])
+                    continue
+                quality = score_tweet_quality(candidate)
+                if quality < 6.0:
+                    print(f"Viral mix attempt {attempt+1}: quality {quality:.1f}/10 < 6.0, retrying...")
                     if len(words) > 100:
                         start = random.randint(0, len(words) - 100)
                         chunk = ' '.join(words[start:start + 100])
@@ -1351,7 +1580,8 @@ def post_viral_mix_tweet():
         resp = client.create_tweet(text=tweet_text)
         tweet_id = resp.data['id']
         archive_id = "viral_" + hashlib.md5(tweet_text.encode()).hexdigest()[:12]
-        tweet_archive.record_post(archive_id, content_type="viral_mix", tweet_text=tweet_text)
+        tweet_archive.record_post(archive_id, content_type="viral_mix",
+                                  tweet_text=tweet_text, tweet_id=tweet_id)
         tweet_archive.record_post(manifesto_item['id'] + '_viral', content_type="viral_mix_source")
         question = generate_thread_reply(tweet_text)
         if question:
@@ -1382,6 +1612,8 @@ if __name__ == "__main__":
         post_venturebeat_tweet()
     elif mode == "viral_mix":
         post_viral_mix_tweet()
+    elif mode == "quote_tweet":
+        post_quote_tweet()
     else:
         # Time-based fallback (for backward-compatible manual/test runs)
         current_utc_hour = datetime.now(timezone.utc).hour

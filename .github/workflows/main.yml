@@ -20,6 +20,8 @@ on:
     - cron: '0 20 * * *'
     # TR 15:00 -> UTC 12:00  — Viral mix (target audience fusion)
     - cron: '0 12 * * *'
+    # TR 14:30 -> UTC 11:30 — Quote-tweet (niche thought leader engagement)
+    - cron: '30 11 * * *'
   workflow_dispatch:
     inputs:
       mode:
@@ -36,6 +38,7 @@ on:
           - artwork
           - morning
           - viral_mix
+          - quote_tweet
 
 jobs:
   transmit:
@@ -101,6 +104,9 @@ jobs:
           elif [ "$SCHEDULE" = "0 12 * * *" ]; then
             echo "Mode: viral_mix (target audience fusion)"
             python bot.py viral_mix
+          elif [ "$SCHEDULE" = "30 11 * * *" ]; then
+            echo "Mode: quote_tweet (niche engagement)"
+            python bot.py quote_tweet
           else
             echo "Mode: manual dispatch — running evening"
             python bot.py evening
