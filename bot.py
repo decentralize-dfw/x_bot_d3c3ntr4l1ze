@@ -55,6 +55,19 @@ FOLLOW_UP_QUESTIONS = [
     "how long before this is unavoidable?",
 ]
 
+# Shared voice/quality rules injected into every LLM prompt
+TONE_BLOCK = (
+    "Voice rules (non-negotiable):\n"
+    "- Write in natural sentence case. Never all-caps.\n"
+    "- IQ 150+ thinking: carry a specific insight the reader hasn't encountered before.\n"
+    "- Leave the reader with a question they can't immediately answer — make them stop and think.\n"
+    "- Position as a thought leader in virtual design, metaverse, WebXR, spatial computing, on-chain worlds.\n"
+    "- No buzzword salads. No clichés. No 'the future is here.' Say something true and surprising.\n"
+    "- You may include 1-2 relevant hashtags (#virtualdesign #WebXR #metaverse #spatialcomputing #onchain) "
+    "at the end if they add context. Optional.\n"
+)
+
+
 def trim_for_format(text, limit=135):
     """Word-boundary trim before format_tweet() — keeps total tweet ≤ 140 chars."""
     if len(text) <= limit:
@@ -84,10 +97,9 @@ def get_twitter_clients():
 
 
 def format_tweet(text):
-    """Strip surrounding quotes, uppercase, add 🥶 prefix and ꩜ suffix."""
+    """Strip surrounding quotes and add ꩜ brand suffix."""
     text = text.strip().strip('"\'')
-    text = text.upper()
-    return f"🥶 {text} ꩜"
+    return f"{text} ꩜"
 
 
 def load_db():
@@ -282,6 +294,7 @@ def distill_to_tweet(chunk, source_name):
         "You write for a digital design studio (Decentralize Design) that builds virtual worlds and manifestos.\n"
         "From the text below, extract or rephrase ONE powerful, self-contained thought as a tweet (max 130 chars).\n"
         "Rules: no quotes around it, no 'we believe / this manifesto / our studio', reads as a standalone statement.\n"
+        f"{TONE_BLOCK}"
         f"Output only the tweet text.\n\nSource: {source_name}\nText:\n{chunk}"
     )
     resp = groq_client.chat.completions.create(
@@ -332,15 +345,14 @@ def generate_viral_tweet(chunk, source_name, context_tweets):
         )
 
     prompt = (
-        "You are the voice of @decentralize___, a studio building 3D virtual worlds on-chain.\n"
-        "Voice: visionary, punk architect, no corporate speak.\n\n"
-        "Write ONE viral tweet. Pick the sharpest format for the content below:\n"
-        "A. Bold claim + short proof + declaration\n"
-        "B. Contrast (physical world vs virtual)\n"
-        "C. Prediction + implication\n"
-        "D. Hot take + one supporting line + call to see differently\n\n"
-        "Rules: NO hashtags. Max 130 chars. First line must hook. "
-        "Sound like someone who has seen the future, not a marketer.\n\n"
+        "You are the voice of @decentralize___, a studio building 3D virtual worlds on-chain.\n\n"
+        f"{TONE_BLOCK}\n"
+        "Write ONE sharp tweet. Pick the most intellectually honest format for the content below:\n"
+        "A. Precise observation + unexpected implication\n"
+        "B. Contrast (physical world vs virtual) with a non-obvious takeaway\n"
+        "C. Prediction grounded in a specific mechanism, not vibes\n"
+        "D. A point of view that reframes how someone thinks about virtual space\n\n"
+        "Max 130 chars. First line must earn attention through insight, not shock.\n\n"
         f"{context_str}"
         f"Our philosophy (source: {source_name}):\n{chunk}\n\n"
         "Output ONLY the tweet text."
@@ -367,15 +379,14 @@ def generate_controversial_tweet(chunk, source_name, context_tweets):
         )
 
     prompt = (
-        "You are the voice of @decentralize___, a studio building 3D virtual worlds on-chain.\n"
-        "Voice: punk architect, prophetic outsider, zero corporate speak.\n\n"
-        "Write ONE controversial tweet. Choose ONE format:\n"
-        "A. 'Everyone believes X. They're wrong.' + your counter-truth\n"
-        "B. A prediction that makes the mainstream uncomfortable\n"
-        "C. Expose the contradiction in how people think about virtual vs physical space\n"
-        "D. Something that sounds provocative but is actually just ahead of its time\n\n"
-        "Rules: NO hashtags. Max 130 chars. First line is the hook — make it sting a little. "
-        "Ragebait-adjacent but philosophically grounded. Anger that makes you think, not rage for its own sake.\n\n"
+        "You are the voice of @decentralize___, a studio building 3D virtual worlds on-chain.\n\n"
+        f"{TONE_BLOCK}\n"
+        "Write ONE intellectually contrarian tweet. Choose ONE format:\n"
+        "A. A widely held assumption about virtual/physical space that is demonstrably wrong + the actual truth\n"
+        "B. A specific prediction that exposes what the mainstream is missing\n"
+        "C. An uncomfortable contradiction in how people think about virtual vs physical space\n"
+        "D. A reframe that makes a familiar idea suddenly strange\n\n"
+        "Max 130 chars. The hook earns attention through insight. Intellectually provocative, not rage-bait.\n\n"
         f"{context_str}"
         f"Source philosophy ({source_name}):\n{chunk}\n\n"
         "Output ONLY the tweet text."
@@ -396,7 +407,8 @@ def generate_media_caption(name, description, type_label):
         "You write captions for @decentralize___ (a studio building 3D virtual worlds on-chain).\n"
         "Write ONE complete sentence caption for this media item. Max 120 characters.\n"
         "Rules: complete sentence, makes sense to someone who has never heard of this project, "
-        "no hashtags, no studio name, no 'this is...'. State what it IS or what it MEANS.\n\n"
+        "no studio name, no 'this is...'. State what it IS or what it MEANS with precision.\n"
+        f"{TONE_BLOCK}"
         f"Item: {type_label} — {name}\n"
         f"Description: {description}\n\n"
         "Output ONLY the caption."
@@ -420,8 +432,9 @@ def generate_artwork_tweet(name, description, categories):
     prompt = (
         "You write for @decentralize___, a studio building 3D virtual worlds on-chain.\n"
         "Write ONE tweet announcing this artwork drop. Max 130 characters.\n"
-        "Rules: complete sentence, no hashtags, no studio name, no quotes, no 'this is...'.\n"
-        "State what it IS or what makes it special. Punchy and visual.\n\n"
+        "Rules: complete sentence, no studio name, no quotes, no 'this is...'.\n"
+        "State what it IS or what makes it conceptually significant. Visual and precise.\n"
+        f"{TONE_BLOCK}"
         f"Artwork: {name}\n"
         f"Description: {description}\n"
         f"Details: {meta}\n\n"
@@ -512,15 +525,29 @@ def post_evening_tweet():
 
     tweet_text = None
     if GROQ_API_KEY:
+        context_tweets = []
         try:
             context_tweets = fetch_context_tweets(SEARCH_KEYWORDS)
-            tweet_text = generate_viral_tweet(chunk, name, context_tweets)
         except Exception as e:
-            print(f"Viral generation error: {e}, falling back to distill...")
+            print(f"Context fetch error: {e}")
+        for attempt in range(3):
             try:
-                tweet_text = distill_to_tweet(chunk, name)
-            except Exception as e2:
-                print(f"Groq error: {e2}")
+                candidate = generate_viral_tweet(chunk, name, context_tweets)
+                if tweet_archive.is_too_similar(candidate):
+                    print(f"Evening attempt {attempt+1}: too similar to recent tweet, retrying...")
+                    if len(words) > 150:
+                        start = random.randint(0, len(words) - 150)
+                        chunk = ' '.join(words[start:start + 150])
+                    continue
+                tweet_text = candidate
+                break
+            except Exception as e:
+                print(f"Viral generation error (attempt {attempt+1}): {e}")
+                try:
+                    tweet_text = distill_to_tweet(chunk, name)
+                    break
+                except Exception as e2:
+                    print(f"Groq error: {e2}")
 
     if not tweet_text:
         sentences = [
@@ -537,7 +564,7 @@ def post_evening_tweet():
     try:
         resp = client.create_tweet(text=tweet_text)
         tweet_id = resp.data['id']
-        tweet_archive.record_post(selected['id'], content_type="evening_text")
+        tweet_archive.record_post(selected['id'], content_type="evening_text", tweet_text=tweet_text)
         question = generate_thread_reply(tweet_text)
         if question:
             client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
@@ -672,15 +699,29 @@ def post_controversial_evening_tweet():
 
     tweet_text = None
     if GROQ_API_KEY:
+        context_tweets = []
         try:
             context_tweets = fetch_context_tweets(SEARCH_KEYWORDS)
-            tweet_text = generate_controversial_tweet(chunk, name, context_tweets)
         except Exception as e:
-            print(f"Controversial generation error: {e}, falling back to distill...")
+            print(f"Context fetch error: {e}")
+        for attempt in range(3):
             try:
-                tweet_text = distill_to_tweet(chunk, name)
-            except Exception as e2:
-                print(f"Groq error: {e2}")
+                candidate = generate_controversial_tweet(chunk, name, context_tweets)
+                if tweet_archive.is_too_similar(candidate):
+                    print(f"Controversial attempt {attempt+1}: too similar to recent tweet, retrying...")
+                    if len(words) > 150:
+                        start = random.randint(0, len(words) - 150)
+                        chunk = ' '.join(words[start:start + 150])
+                    continue
+                tweet_text = candidate
+                break
+            except Exception as e:
+                print(f"Controversial generation error (attempt {attempt+1}): {e}")
+                try:
+                    tweet_text = distill_to_tweet(chunk, name)
+                    break
+                except Exception as e2:
+                    print(f"Groq error: {e2}")
 
     if not tweet_text:
         sentences = [
@@ -697,7 +738,7 @@ def post_controversial_evening_tweet():
     try:
         resp = client.create_tweet(text=tweet_text)
         tweet_id = resp.data['id']
-        tweet_archive.record_post(selected['id'], content_type="evening_controversial")
+        tweet_archive.record_post(selected['id'], content_type="evening_controversial", tweet_text=tweet_text)
         question = generate_thread_reply(tweet_text)
         if question:
             client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
@@ -1167,7 +1208,8 @@ def generate_thread_reply(main_tweet):
         "BAD REPLY: 'Rethink trust models.' — vague, disconnected\n"
         "GOOD REPLY (if tweet was about wallets protecting dependency): 'the interface is the leash. always has been.'\n"
         "GOOD REPLY (if tweet was about VR retention): 'people don't return to experiences. they return to places.'\n\n"
-        "40-120 characters. No hashtags. No 'we'. Reads like a natural follow-through thought.\n"
+        f"{TONE_BLOCK}"
+        "40-120 characters. No 'we'. Reads like a natural follow-through thought.\n"
         "Output ONLY the reply text."
     )
     resp = groq_client.chat.completions.create(
@@ -1200,21 +1242,21 @@ def generate_viral_mix_tweet(target_tweets, manifesto_chunk, source_name):
         )
 
     prompt = (
-        "You are the voice of @decentralize___, a studio building 3D virtual worlds on-chain.\n"
-        "Voice: punk architect. Thinks in systems, speaks in provocations. Not a reporter, not a brand.\n\n"
+        "You are the voice of @decentralize___, a studio building 3D virtual worlds on-chain.\n\n"
+        f"{TONE_BLOCK}\n"
         f"{context_block}\n\n"
         "WHAT MAKES A BAD TWEET VS GOOD TWEET:\n"
-        "BAD: 'NEWS: New wallet research aims to preserve core features.' — just restates headline, zero opinion\n"
-        "BAD: 'Rethink trust models.' — vague slogan, says nothing\n"
-        "BAD: 'VR gaming's gravy train has stopped.' — repeating what the article already said\n"
-        "GOOD: 'Every wallet that tries to preserve UX is protecting the part that keeps users dependent.' — takes a side, reveals something\n"
-        "GOOD: 'The browser was supposed to decentralize publishing. Wallets are making the same mistake.' — connects dots, has a point of view\n"
-        "GOOD: 'VR retention collapsed because studios kept building tourist attractions instead of places people live in.' — specific diagnosis, not a headline\n\n"
+        "BAD: 'NEWS: New wallet research aims to preserve core features.' — restates headline, zero insight\n"
+        "BAD: 'Rethink trust models.' — vague slogan, says nothing specific\n"
+        "BAD: 'VR gaming's gravy train has stopped.' — just repeating what the article said\n"
+        "GOOD: 'Every wallet that tries to preserve UX is protecting the part that keeps users dependent.' — reveals a hidden mechanism\n"
+        "GOOD: 'The browser was supposed to decentralize publishing. Wallets are making the same mistake.' — connects non-obvious dots\n"
+        "GOOD: 'VR retention collapsed because studios kept building tourist attractions instead of places to inhabit.' — specific diagnosis, IQ-dense observation\n\n"
         "Rules:\n"
         "- 100-220 characters. A complete thought with a specific claim or observation.\n"
-        "- Take a side. Say what the news or trend actually means beneath the surface.\n"
+        "- Take a side. Surface what the news or trend actually means beneath the headline.\n"
         "- DO NOT restate the headline. React to what it MEANS — who's wrong, what they're missing, what the real shift is.\n"
-        "- No 'NEWS:' prefix. No 'we'. No hashtags. No links. Sounds like a person thinking out loud.\n"
+        "- No 'NEWS:' prefix. No 'we'. No links. Sounds like a person with expertise thinking out loud.\n"
         "- Draw from the manifesto below — not to quote it, but to think FROM it.\n\n"
         f"Our manifesto (source: {source_name}):\n{manifesto_chunk}\n\n"
         "Output ONLY the tweet text."
@@ -1268,16 +1310,23 @@ def post_viral_mix_tweet():
 
     tweet_text = None
     if GROQ_API_KEY:
-        for attempt in range(2):
+        for attempt in range(3):
             try:
                 candidate = generate_viral_mix_tweet(target_tweets, chunk, name)
-                if len(candidate) >= 50:
-                    tweet_text = candidate
-                    break
-                print(f"Attempt {attempt+1}: tweet too short ({len(candidate)} chars), retrying with new chunk...")
-                if len(words) > 100:
-                    start = random.randint(0, len(words) - 100)
-                    chunk = ' '.join(words[start:start + 100])
+                if len(candidate) < 50:
+                    print(f"Attempt {attempt+1}: tweet too short ({len(candidate)} chars), retrying...")
+                    if len(words) > 100:
+                        start = random.randint(0, len(words) - 100)
+                        chunk = ' '.join(words[start:start + 100])
+                    continue
+                if tweet_archive.is_too_similar(candidate):
+                    print(f"Viral mix attempt {attempt+1}: too similar to recent tweet, retrying...")
+                    if len(words) > 100:
+                        start = random.randint(0, len(words) - 100)
+                        chunk = ' '.join(words[start:start + 100])
+                    continue
+                tweet_text = candidate
+                break
             except Exception as e:
                 print(f"Viral mix generation error (attempt {attempt+1}): {e}")
         if not tweet_text:
@@ -1302,7 +1351,7 @@ def post_viral_mix_tweet():
         resp = client.create_tweet(text=tweet_text)
         tweet_id = resp.data['id']
         archive_id = "viral_" + hashlib.md5(tweet_text.encode()).hexdigest()[:12]
-        tweet_archive.record_post(archive_id, content_type="viral_mix")
+        tweet_archive.record_post(archive_id, content_type="viral_mix", tweet_text=tweet_text)
         tweet_archive.record_post(manifesto_item['id'] + '_viral', content_type="viral_mix_source")
         question = generate_thread_reply(tweet_text)
         if question:
