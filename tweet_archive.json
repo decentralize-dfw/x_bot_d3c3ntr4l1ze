@@ -120,11 +120,6 @@
     "posted_at": "2026-03-10T16:23:35.012700"
   },
   {
-    "content_id": "elements-0",
-    "content_type": "evening_text",
-    "posted_at": "2026-03-10T18:23:11.678073"
-  },
-  {
     "content_id": "rd-info",
     "content_type": "evening_controversial",
     "posted_at": "2026-03-10T20:13:54.536264"
@@ -333,5 +328,10 @@
     "content_id": "expp_viral",
     "content_type": "viral_mix_source",
     "posted_at": "2026-03-15T12:13:15.156281"
+  },
+  {
+    "content_id": "elements-0",
+    "content_type": "evening_text",
+    "posted_at": "2026-03-15T15:08:47.990752"
   }
 ]
