@@ -160,11 +160,6 @@
     "posted_at": "2026-03-11T15:18:26.214595"
   },
   {
-    "content_id": "dfw-1",
-    "content_type": "evening_controversial",
-    "posted_at": "2026-03-11T16:19:24.515558"
-  },
-  {
     "content_id": "dfw-12",
     "content_type": "evening_controversial",
     "posted_at": "2026-03-11T20:14:40.468675"
@@ -333,5 +328,10 @@
     "content_id": "works-5",
     "content_type": "evening_controversial",
     "posted_at": "2026-03-15T16:08:07.717904"
+  },
+  {
+    "content_id": "dfw-1",
+    "content_type": "evening_text",
+    "posted_at": "2026-03-15T18:14:37.542443"
   }
 ]
