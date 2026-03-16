@@ -1,0 +1,35 @@
+# config.toml
+# -----------
+# Tüm eşik değerleri ve limitler burada.
+# Kaynak kodu okumadan değiştirilebilir. (Faz 2.2 — rapor2.txt §2.3)
+
+[quality]
+min_score         = 6.0   # Ana tweet kalite eşiği (1-10)
+min_reply_score   = 5.0   # Thread reply ve comment kalite eşiği
+max_attempts      = 3     # LLM deneme sayısı (quality gate geçemezse)
+jaccard_threshold = 0.35  # Benzerlik tespiti için Jaccard eşiği
+
+[content]
+morning_caption_max = 120  # Sabah medya caption maks karakter
+news_headline_max   = 115  # Haber özeti maks karakter
+artwork_tweet_max   = 130  # Artwork tweet maks karakter
+evening_tweet_max   = 130  # Akşam manifesto tweet maks karakter
+viral_mix_max       = 220  # Viral mix tweet maks karakter
+
+[archive]
+cooldown_days       = 60    # İçerik tekrar edilmeden önce beklenecek gün
+cleanup_on_startup  = true  # Her çalışmada eski kayıtları temizle
+
+[media]
+max_download_mb       = 100  # Medya indirme boyut limiti (MB)
+video_max_duration_sec = 120  # Twitter video süresi sınırı (saniye)
+
+[schedule]
+quiet_day = 6  # 0=Pazartesi, 6=Pazar — düşük aktivite günü
+
+[engagement]
+# Strateji hedefleri (d3c3ntr4l1z3_strategy.docx — Mart 2026)
+daily_reply_target = 10  # Günlük reply hedefi (150x algoritmik değer)
+daily_rt_target    = 7   # Günlük retweet hedefi (20x değer)
+daily_quote_target = 5   # Günlük quote tweet hedefi (yayılım)
+daily_like_target  = 3   # Günlük like hedefi (karşılıklılık zinciri)

@@ -2,6 +2,7 @@ import json
 import os
 import re
 from datetime import datetime, timedelta, timezone
+# Faz 1.2 — atomic write import
 
 
 def _utcnow():
@@ -102,9 +103,12 @@ def load_archive() -> list:
 
 
 def save_archive(entries: list) -> None:
+    """Atomic write — ya tümü ya hiç. JSON bozulmasını önler (Faz 1.2)."""
     global _ARCHIVE_CACHE
-    with open(ARCHIVE_PATH, "w") as f:
-        json.dump(entries, f, indent=2)
+    tmp_path = ARCHIVE_PATH + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        json.dump(entries, f, indent=2, ensure_ascii=False)
+    os.replace(tmp_path, ARCHIVE_PATH)  # atomic rename
     _ARCHIVE_CACHE = entries
 
 
@@ -240,3 +244,14 @@ def cleanup_old_entries(days=COOLDOWN_DAYS):
         save_archive(fresh)
         print(f"Archive: removed {len(entries) - len(fresh)} expired entries.")
     return fresh
+
+
+def get_unscored_tweets(days: int = 7) -> list:
+    """Son N günün tweet ID'leri — ileride engagement backfill için. (Faz 3.4)"""
+    cutoff = _utcnow() - timedelta(days=days)
+    return [
+        e for e in load_archive()
+        if e.get("tweet_id")
+        and _parse_dt(e["posted_at"]) > cutoff
+        and not e.get("engagement_score")
+    ]
