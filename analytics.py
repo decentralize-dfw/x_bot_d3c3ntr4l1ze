@@ -1,40 +1,26 @@
 """
 analytics.py
 ------------
-Tweet metriklerini çeker, en iyi içerik tipini ve posting saatini hesaplar.
-GitHub Actions analytics.yml tarafından haftada bir çalıştırılır.
+Tweet arşivindeki lokal veriden analiz üretir — Twitter API gerektirmez.
+Free tier ile tam uyumlu: tweet_archive.json okunur, yapısal analiz yapılır.
 
 Kullanım:
-  python analytics.py          → metrikleri güncelle + rapor yaz
-  python analytics.py report   → sadece mevcut raporu yazdır
+  python analytics.py          → arşivi sync et + rapor yaz
+  python analytics.py report   → sadece mevcut kaydı yazdır
+  python analytics.py sync     → archive → analytics.json sync et
 """
 
 import os
 import sys
 import json
+from collections import defaultdict
 from datetime import datetime, timedelta, timezone
-
-import tweepy
 
 ANALYTICS_PATH = os.path.join(os.path.dirname(__file__), "tweet_analytics.json")
 ARCHIVE_PATH   = os.path.join(os.path.dirname(__file__), "tweet_archive.json")
 
-TWITTER_API_KEY             = os.environ.get("TWITTER_API_KEY")
-TWITTER_API_SECRET          = os.environ.get("TWITTER_API_SECRET")
-TWITTER_ACCESS_TOKEN        = os.environ.get("TWITTER_ACCESS_TOKEN")
-TWITTER_ACCESS_TOKEN_SECRET = os.environ.get("TWITTER_ACCESS_TOKEN_SECRET")
 
-
-# ── Yardımcılar ───────────────────────────────────────────────────────────────
-
-def get_client():
-    return tweepy.Client(
-        consumer_key=TWITTER_API_KEY,
-        consumer_secret=TWITTER_API_SECRET,
-        access_token=TWITTER_ACCESS_TOKEN,
-        access_token_secret=TWITTER_ACCESS_TOKEN_SECRET,
-    )
-
+# ── I/O ───────────────────────────────────────────────────────────────────────
 
 def load_analytics() -> list[dict]:
     if not os.path.exists(ANALYTICS_PATH):
@@ -55,79 +41,59 @@ def load_archive() -> list[dict]:
         return json.load(f)
 
 
-# ── Metrik çekme ──────────────────────────────────────────────────────────────
+# ── Sync: archive → analytics ──────────────────────────────────────────────
 
-def fetch_metrics_for_tweet(client, tweet_id: str) -> dict | None:
-    """Tek bir tweet'in engagement metriklerini Twitter API'dan çek."""
-    try:
-        resp = client.get_tweet(
-            tweet_id,
-            tweet_fields=["public_metrics", "created_at"],
-        )
-        if not resp.data:
-            return None
-        m = resp.data.public_metrics or {}
-        return {
-            "likes":       m.get("like_count", 0),
-            "retweets":    m.get("retweet_count", 0),
-            "replies":     m.get("reply_count", 0),
-            "impressions": m.get("impression_count", 0),
-            "fetched_at":  datetime.now(timezone.utc).isoformat(),
-        }
-    except tweepy.errors.NotFound:
-        print(f"  Tweet {tweet_id} not found (deleted?).")
-        return None
-    except Exception as e:
-        print(f"  Error fetching {tweet_id}: {e}")
-        return None
+def sync_from_archive() -> list[dict]:
+    """
+    tweet_archive.json → tweet_analytics.json
 
-
-def update_analytics():
-    """Archive'daki tweet_id'leri çek, metriklerini güncelle, kaydet."""
-    client  = get_client()
+    Twitter API kullanılmaz. Engagement metrikleri (likes/retweets/replies)
+    API olmadan bilinemez, 0 olarak kaydedilir. Yapısal analiz (içerik tipi,
+    tema, saat, metin) tam olarak çalışır.
+    """
     archive = load_archive()
-    records = {r["tweet_id"]: r for r in load_analytics() if "tweet_id" in r}
+    existing = {r["tweet_id"]: r for r in load_analytics() if r.get("tweet_id")}
 
-    # Son 30 gün içinde atılmış ve tweet_id'si olan entry'ler
-    cutoff = datetime.utcnow() - timedelta(days=30)
-    to_fetch = [
-        e for e in archive
-        if e.get("tweet_id")
-        and datetime.fromisoformat(e["posted_at"]) > cutoff
-    ]
-
-    print(f"Fetching metrics for {len(to_fetch)} tweets...")
-
-    for entry in to_fetch:
-        tid = entry["tweet_id"]
-        metrics = fetch_metrics_for_tweet(client, tid)
-        if metrics is None:
+    added = 0
+    for entry in archive:
+        tid = entry.get("tweet_id")
+        if not tid or tid in existing:
             continue
 
-        posted_dt = datetime.fromisoformat(entry["posted_at"])
+        posted_at = entry.get("posted_at", "")
+        try:
+            posted_dt = datetime.fromisoformat(posted_at)
+        except (ValueError, TypeError):
+            posted_dt = datetime.now(timezone.utc)
+
         record = {
             "tweet_id":     tid,
             "content_id":   entry.get("content_id", ""),
             "content_type": entry.get("content_type", "unknown"),
             "tweet_text":   entry.get("tweet_text", ""),
             "theme":        entry.get("theme", ""),
-            "posted_at":    entry["posted_at"],
+            "posted_at":    posted_at,
             "posted_hour":  posted_dt.hour,
-            "posted_day":   posted_dt.weekday(),   # 0=Pazartesi
-            **metrics,
+            "posted_day":   posted_dt.weekday(),  # 0=Pazartesi
+            # Engagement: API olmadan bilinmiyor; 0 bırakıyoruz
+            "likes":        0,
+            "retweets":     0,
+            "replies":      0,
+            "impressions":  0,
         }
-        records[tid] = record
-        print(f"  [{entry.get('content_type','?'):25}] ❤️ {metrics['likes']:>4}  🔁 {metrics['retweets']:>3}  💬 {metrics['replies']:>3}")
+        existing[tid] = record
+        added += 1
 
-    save_analytics(list(records.values()))
-    print(f"\nAnalytics saved: {len(records)} total records.")
-    return list(records.values())
+    records = list(existing.values())
+    save_analytics(records)
+    print(f"Sync tamamlandı: +{added} yeni kayıt, toplam {len(records)}.")
+    return records
 
 
 # ── Analiz fonksiyonları ──────────────────────────────────────────────────────
 
 def engagement_score(record: dict) -> float:
-    """likes + retweets*3 + replies*2 — ağırlıklı etkileşim skoru."""
+    """likes + retweets*3 + replies*2"""
     return (
         record.get("likes", 0)
         + record.get("retweets", 0) * 3
@@ -135,102 +101,141 @@ def engagement_score(record: dict) -> float:
     )
 
 
-def get_best_performing_content_type(records: list[dict]) -> str:
-    """Ortalama engagement'a göre en iyi content_type'ı döndür."""
-    from collections import defaultdict
-    totals = defaultdict(list)
+def get_content_type_distribution(records: list[dict]) -> dict:
+    """Her content_type kaç kez kullanılmış."""
+    counts: dict = defaultdict(int)
     for r in records:
-        ct = r.get("content_type", "unknown")
-        totals[ct].append(engagement_score(r))
+        counts[r.get("content_type", "unknown")] += 1
+    return dict(counts)
+
+
+def get_posting_hour_distribution(records: list[dict]) -> dict:
+    """Saate göre tweet sayısı."""
+    counts: dict = defaultdict(int)
+    for r in records:
+        counts[r.get("posted_hour", 0)] += 1
+    return dict(counts)
+
+
+def get_posting_day_distribution(records: list[dict]) -> dict:
+    """Güne göre tweet sayısı (0=Pazartesi)."""
+    days = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"]
+    counts: dict = defaultdict(int)
+    for r in records:
+        counts[r.get("posted_day", 0)] += 1
+    return {days[k]: v for k, v in sorted(counts.items())}
+
+
+def get_theme_distribution(records: list[dict]) -> dict:
+    """Tema bazında tweet sayısı."""
+    counts: dict = defaultdict(int)
+    for r in records:
+        theme = r.get("theme")
+        if theme:
+            counts[theme] += 1
+    return dict(counts)
+
+
+def get_best_performing_content_type(records: list[dict]) -> str:
+    """Ortalama engagement'a göre en iyi content_type (API verisi yoksa count'a göre)."""
+    totals: dict = defaultdict(list)
+    for r in records:
+        totals[r.get("content_type", "unknown")].append(engagement_score(r))
     if not totals:
         return "unknown"
+    # Eğer tüm engagement 0 ise (API yok), en çok kullanılan tipi döndür
+    all_zero = all(sum(v) == 0 for v in totals.values())
+    if all_zero:
+        return max(totals, key=lambda k: len(totals[k]))
     averages = {ct: sum(v) / len(v) for ct, v in totals.items()}
     return max(averages, key=averages.get)
 
 
-def get_optimal_posting_hour(records: list[dict], content_type: str = None) -> int:
-    """Engagement'a göre en iyi UTC saatini döndür."""
-    from collections import defaultdict
-    filtered = records
-    if content_type:
-        filtered = [r for r in records if r.get("content_type") == content_type]
-    if not filtered:
-        return 15  # default UTC
-
-    hourly = defaultdict(list)
-    for r in filtered:
-        hourly[r.get("posted_hour", 15)].append(engagement_score(r))
-
-    averages = {h: sum(v) / len(v) for h, v in hourly.items()}
-    return max(averages, key=averages.get)
-
-
 def get_top_tweets(records: list[dict], n: int = 5) -> list[dict]:
-    return sorted(records, key=engagement_score, reverse=True)[:n]
+    """En çok engagement alan N tweet (API verisi varsa)."""
+    has_engagement = [r for r in records if engagement_score(r) > 0]
+    if has_engagement:
+        return sorted(has_engagement, key=engagement_score, reverse=True)[:n]
+    # API verisi yoksa en son N tweet
+    sorted_by_date = sorted(
+        records,
+        key=lambda r: r.get("posted_at", ""),
+        reverse=True,
+    )
+    return sorted_by_date[:n]
 
 
-def get_worst_tweets(records: list[dict], n: int = 5) -> list[dict]:
-    return sorted(records, key=engagement_score)[:n]
-
-
-def get_theme_performance(records: list[dict]) -> dict:
-    """Tema bazında ortalama engagement."""
-    from collections import defaultdict
-    theme_scores = defaultdict(list)
+def get_recent_tweets(records: list[dict], days: int = 30) -> list[dict]:
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    result = []
     for r in records:
-        theme = r.get("theme")
-        if theme:
-            theme_scores[theme].append(engagement_score(r))
-    return {t: round(sum(v) / len(v), 1) for t, v in theme_scores.items()}
+        try:
+            dt = datetime.fromisoformat(r["posted_at"])
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            if dt >= cutoff:
+                result.append(r)
+        except (ValueError, KeyError):
+            pass
+    return result
 
 
-# ── Rapor ────────────────────────────────────────────────────────────────────
+# ── Rapor ─────────────────────────────────────────────────────────────────────
 
 def print_report(records: list[dict]):
     if not records:
-        print("No analytics data yet.")
+        print("Henüz analitik veri yok. Önce 'python analytics.py sync' çalıştır.")
         return
 
+    now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    recent  = get_recent_tweets(records, days=30)
+
     print("\n" + "═" * 60)
-    print("  @decentralize___ — ANALYTICS RAPORU")
-    print(f"  {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}")
+    print("  @decentralize___ — ANALİTİK RAPORU")
+    print(f"  {now_str}")
     print("═" * 60)
 
-    print(f"\n📊 Toplam kayıt: {len(records)}")
-
-    best_ct = get_best_performing_content_type(records)
-    print(f"🏆 En iyi content type: {best_ct}")
-
-    best_hour = get_optimal_posting_hour(records)
-    print(f"⏰ En iyi posting saati (UTC): {best_hour:02d}:00")
-
-    print("\n🔥 En iyi 5 tweet:")
-    for r in get_top_tweets(records):
-        score = engagement_score(r)
-        text  = (r.get("tweet_text") or "")[:60]
-        print(f"  [{score:>5.0f}] {text}...")
-
-    print("\n❄️  En kötü 5 tweet:")
-    for r in get_worst_tweets(records):
-        score = engagement_score(r)
-        text  = (r.get("tweet_text") or "")[:60]
-        print(f"  [{score:>5.0f}] {text}...")
-
-    theme_perf = get_theme_performance(records)
-    if theme_perf:
-        print("\n🎯 Tema performansı:")
-        for theme, avg in sorted(theme_perf.items(), key=lambda x: -x[1]):
-            print(f"  {theme:<22} → avg {avg:.1f}")
+    print(f"\n📊 Toplam kayıt: {len(records)}  |  Son 30 gün: {len(recent)}")
+    print("ℹ️  Not: Free tier — engagement metrikleri API'den alınamıyor.")
+    print("   Analizler tweet arşivindeki yapısal veriye dayanıyor.\n")
 
     # Content type dağılımı
-    from collections import defaultdict
-    ct_avg = defaultdict(list)
-    for r in records:
-        ct_avg[r.get("content_type", "?")].append(engagement_score(r))
-    print("\n📋 Content type ortalamaları:")
-    for ct, scores in sorted(ct_avg.items(), key=lambda x: -sum(x[1]) / len(x[1])):
-        avg = sum(scores) / len(scores)
-        print(f"  {ct:<28} → avg {avg:.1f}  (n={len(scores)})")
+    ct_dist = get_content_type_distribution(records)
+    print("📋 Content type dağılımı:")
+    for ct, count in sorted(ct_dist.items(), key=lambda x: -x[1]):
+        bar = "█" * min(count, 40)
+        print(f"  {ct:<28} {bar} {count}")
+
+    # Saatlik dağılım
+    hour_dist = get_posting_hour_distribution(records)
+    print("\n⏰ Saatlik dağılım (UTC):")
+    for hour in sorted(hour_dist):
+        count = hour_dist[hour]
+        bar = "█" * min(count, 30)
+        print(f"  {hour:02d}:00  {bar} {count}")
+
+    # Günlük dağılım
+    day_dist = get_posting_day_distribution(records)
+    print("\n📅 Günlük dağılım:")
+    for day, count in day_dist.items():
+        bar = "█" * min(count, 30)
+        print(f"  {day}  {bar} {count}")
+
+    # Tema dağılımı
+    theme_dist = get_theme_distribution(records)
+    if theme_dist:
+        print("\n🎯 Tema dağılımı:")
+        for theme, count in sorted(theme_dist.items(), key=lambda x: -x[1]):
+            bar = "█" * min(count, 30)
+            print(f"  {theme:<22} {bar} {count}")
+
+    # Son tweetler
+    print(f"\n🕐 Son 5 tweet:")
+    for r in get_top_tweets(records, n=5):
+        text = (r.get("tweet_text") or "")[:70]
+        ts   = r.get("posted_at", "")[:10]
+        ct   = r.get("content_type", "?")
+        print(f"  [{ts}] [{ct:20}] {text}...")
 
     print("\n" + "═" * 60)
 
@@ -238,10 +243,10 @@ def print_report(records: list[dict]):
 # ── Entrypoint ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    mode = sys.argv[1] if len(sys.argv) > 1 else "update"
+    mode = sys.argv[1] if len(sys.argv) > 1 else "sync"
 
     if mode == "report":
         print_report(load_analytics())
-    else:
-        records = update_analytics()
+    else:  # "sync" veya default
+        records = sync_from_archive()
         print_report(records)

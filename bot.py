@@ -1451,8 +1451,11 @@ def fetch_target_tweets_with_ids(n_targets: int = 3) -> list[dict]:
 
 
 def post_quote_tweet():
-    """Günde 1-2 kez: niche thought leader'ın tweet'ini quote-tweet ile yorumla."""
-    client, _ = get_twitter_clients()
+    """Free tier'da desteklenmiyor — search_recent_tweets API erişimi gerektirir."""
+    print("post_quote_tweet: free tier'da kullanılamaz (search API gerekli). Atlanıyor.")
+    return
+
+    client, _ = get_twitter_clients()  # noqa: unreachable
 
     print("Fetching target tweets for quote-tweet...")
     candidates = fetch_target_tweets_with_ids(n_targets=5)
