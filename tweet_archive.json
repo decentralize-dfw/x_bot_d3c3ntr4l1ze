@@ -220,11 +220,6 @@
     "posted_at": "2026-03-13T13:32:36.201131"
   },
   {
-    "content_id": "dfw-studio-2026",
-    "content_type": "evening_text",
-    "posted_at": "2026-03-13T15:17:11.307093"
-  },
-  {
     "content_id": "cd-6",
     "content_type": "evening_controversial",
     "posted_at": "2026-03-13T16:12:34.328357"
@@ -428,6 +423,14 @@
     "posted_at": "2026-03-16T18:27:59.698166+00:00",
     "tweet_text": "Different zones trigger distinct DJ sets, creating a multi-sensory retail loop. ꩜",
     "tweet_id": "2033611250987339810",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "dfw-studio-2026",
+    "content_type": "evening_controversial",
+    "posted_at": "2026-03-16T20:17:15.538578+00:00",
+    "tweet_text": "It's like they've figured out how to bottle contemplation and serve it in rooms. ꩜",
+    "tweet_id": "2033638748324347914",
     "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
   }
 ]
