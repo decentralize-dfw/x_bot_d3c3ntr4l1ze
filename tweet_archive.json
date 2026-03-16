@@ -360,5 +360,22 @@
     "tweet_id": "2033457291517685958",
     "weekly_theme": "the permanence problem in virtual spaces \u2014 why most digital experiences feel disposable",
     "media_url": "https://arweave.net/Rzjp209HuMMA5dRlQ1DA6MSJg1i59-lHtGavB1v3pHM"
+  },
+  {
+    "content_id": "news_aa8e1a767aab",
+    "content_type": "news",
+    "posted_at": "2026-03-16T09:33:05.063681+00:00",
+    "tweet_text": "NEWS: Australia Senate panel backs crypto regulation framework.",
+    "tweet_id": "2033476636461412386",
+    "weekly_theme": "the permanence problem in virtual spaces \u2014 why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "news_aa8e1a767aab_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-16T09:33:05.533702+00:00",
+    "tweet_text": "trustless systems still vulnerable #web3 #crypto",
+    "theme": "decentralization",
+    "tweet_id": "2033476638411759788",
+    "weekly_theme": "the permanence problem in virtual spaces \u2014 why most digital experiences feel disposable"
   }
 ]
