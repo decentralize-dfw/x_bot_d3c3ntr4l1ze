@@ -333,5 +333,23 @@
     "content_id": "forge-0",
     "content_type": "evening_controversial",
     "posted_at": "2026-03-15T20:10:52.041266"
+  },
+  {
+    "content_id": "news_b6f268811a28",
+    "content_type": "news",
+    "posted_at": "2026-03-16T08:03:25.132354+00:00",
+    "tweet_text": "NEWS: AI project failure rates have raised questions for organizations investing in AI.",
+    "theme": "ai_design",
+    "tweet_id": "2033454071470862750",
+    "weekly_theme": "the permanence problem in virtual spaces \u2014 why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "news_b6f268811a28_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-16T08:03:25.506408+00:00",
+    "tweet_text": "human context is key #metaverse #web3",
+    "theme": "metaverse",
+    "tweet_id": "2033454073035268535",
+    "weekly_theme": "the permanence problem in virtual spaces \u2014 why most digital experiences feel disposable"
   }
 ]
