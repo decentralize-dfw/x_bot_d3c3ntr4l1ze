@@ -120,11 +120,6 @@
     "posted_at": "2026-03-10T16:23:35.012700"
   },
   {
-    "content_id": "rd-info",
-    "content_type": "evening_controversial",
-    "posted_at": "2026-03-10T20:13:54.536264"
-  },
-  {
     "content_id": "blackcity-vid-3",
     "content_type": "morning_media",
     "posted_at": "2026-03-11T07:17:34.291484"
@@ -419,6 +414,14 @@
     "tweet_text": "as ai agents blur the lines between human and automated activity, can we still trust the metrics that drive our digital economies #SpatialCo",
     "theme": "ai_design",
     "tweet_id": "2033538863113597212",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "rd-info",
+    "content_type": "evening_text",
+    "posted_at": "2026-03-16T15:26:35.218925+00:00",
+    "tweet_text": "• Item: A collection of individual 3D pieces like furniture, sculptures, and avatars. ꩜",
+    "tweet_id": "2033565598320623675",
     "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
   }
 ]
