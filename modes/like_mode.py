@@ -32,14 +32,6 @@ def post_like_tweets():
         logger.warning("No candidates for like mode, skipping.")
         return
 
-    # Kendi user ID'sini al
-    try:
-        me = client.get_me()
-        my_id = me.data.id
-    except Exception as e:
-        logger.error(f"get_me() failed: {e}")
-        return
-
     liked = 0
     for c in candidates:
         if liked >= _LIKE_TARGET:
@@ -52,7 +44,7 @@ def post_like_tweets():
             continue
 
         try:
-            client.like(my_id, c["id"])
+            client.like(c["id"])
             tweet_archive.record_post(
                 archive_id, content_type="like",
                 tweet_text=c["text"][:100], tweet_id=c["id"],
