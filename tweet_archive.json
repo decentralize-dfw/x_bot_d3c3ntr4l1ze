@@ -190,11 +190,6 @@
     "posted_at": "2026-03-12T15:21:02.158708"
   },
   {
-    "content_id": "item-text",
-    "content_type": "evening_text",
-    "posted_at": "2026-03-12T18:24:03.298280"
-  },
-  {
     "content_id": "neue-0",
     "content_type": "evening_controversial",
     "posted_at": "2026-03-12T20:14:37.840631"
@@ -422,6 +417,14 @@
     "posted_at": "2026-03-16T15:26:35.218925+00:00",
     "tweet_text": "• Item: A collection of individual 3D pieces like furniture, sculptures, and avatars. ꩜",
     "tweet_id": "2033565598320623675",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "item-text",
+    "content_type": "evening_controversial",
+    "posted_at": "2026-03-16T16:25:13.082037+00:00",
+    "tweet_text": "By liberating elements from physical utility, we enter an aesthetic where Zen minimalism meets high-tech futurism. ꩜",
+    "tweet_id": "2033580353202577861",
     "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
   }
 ]
