@@ -144,6 +144,33 @@ def score_tweet_quality(tweet_text: str) -> float:
         print(f"Quality scoring failed: {e}")
         return 7.0  # Hata durumunda geç
 
+
+def is_semantically_duplicate(candidate: str) -> bool:
+    """
+    Jaccard'ı tamamlayan LLM tabanlı semantic benzerlik kontrolü.
+    'virtual spaces need inhabitants' ile 'digital environments require residents'
+    gibi kelimesi farklı ama fikri aynı tweet'leri yakalar.
+    """
+    recent = tweet_archive.get_recent_tweet_texts(days=60)
+    if not recent:
+        return False
+    sample = recent[-20:]
+    sample_block = "\n".join(f"- {t}" for t in sample)
+    prompt = (
+        "Does this new tweet express the same core idea as ANY tweet in the list below?\n"
+        "Focus on the underlying argument, not surface wording. "
+        "Answer 'yes' only if the core claim would feel repetitive to a reader.\n\n"
+        f'New tweet: "{candidate}"\n\n'
+        f"Recent tweets:\n{sample_block}\n\n"
+        "Answer ONLY with 'yes' or 'no'."
+    )
+    try:
+        result = _call_llm(prompt, max_tokens=5, temperature=0.1)
+        return result.strip().lower().startswith("yes")
+    except Exception:
+        return False  # hata durumunda izin ver
+
+
 # --- TYPE LABELS ---
 TYPE_LABELS = {
     'glb': '[3D Asset]',
@@ -564,11 +591,22 @@ def generate_artwork_tweet(name, description, categories):
     return _call_llm(prompt, max_tokens=55, temperature=0.75)
 
 
-def generate_news_tweet(title, article_text, source):
-    """LLM: 3-5 word sharp fragment as news commentary for thread reply."""
+def generate_news_tweet(title, article_text, source, prior_opinions=None):
+    """LLM: 3-5 word sharp fragment as news commentary for thread reply.
+
+    prior_opinions: list of past tweet texts on same topic — enables opinion evolution.
+    """
+    prior_block = ""
+    if prior_opinions:
+        prior_lines = "\n".join(f"- {o}" for o in prior_opinions[:3])
+        prior_block = (
+            f"You previously commented on similar topics:\n{prior_lines}\n"
+            "Build on this perspective — evolve the idea, don't repeat it.\n\n"
+        )
     prompt = (
         "You are @decentralize___, building 3D virtual worlds on-chain.\n"
         f"{TONE_BLOCK}"
+        f"{prior_block}"
         "Read the article below and write a SINGLE sharp commentary fragment.\n"
         "Rules: EXACTLY 3 to 5 words. No sentence structure needed. No @mentions. "
         "A precise gut-punch fragment that reveals something the headline missed. Max 30 chars.\n\n"
@@ -578,6 +616,20 @@ def generate_news_tweet(title, article_text, source):
         "Output ONLY the 3-5 word fragment."
     )
     return _call_llm(prompt, max_tokens=20, temperature=0.92).strip('"\'')
+
+
+def _get_prior_opinions_for_topic(title: str, n: int = 3) -> list:
+    """Arşivden bu konuyla ilgili eski yorumları çek — opinion evolution için."""
+    topic_words = set(w.lower() for w in title.split() if len(w) > 4)
+    recent = tweet_archive.get_recent_tweet_texts(days=30)
+    matches = []
+    for t in reversed(recent):
+        tweet_words = set(w.lower() for w in t.split())
+        if len(topic_words & tweet_words) >= 2:
+            matches.append(t)
+        if len(matches) >= n:
+            break
+    return matches
 
 
 def generate_news_headline(title, article_text, source):
@@ -636,7 +688,13 @@ def post_evening_tweet():
             try:
                 candidate = generate_viral_tweet(chunk, name, context_tweets)
                 if tweet_archive.is_too_similar(candidate):
-                    print(f"Evening attempt {attempt+1}: too similar, retrying...")
+                    print(f"Evening attempt {attempt+1}: too similar (Jaccard), retrying...")
+                    if len(words) > 150:
+                        start = random.randint(0, len(words) - 150)
+                        chunk = ' '.join(words[start:start + 150])
+                    continue
+                if is_semantically_duplicate(candidate):
+                    print(f"Evening attempt {attempt+1}: too similar (semantic), retrying...")
                     if len(words) > 150:
                         start = random.randint(0, len(words) - 150)
                         chunk = ' '.join(words[start:start + 150])
@@ -825,7 +883,13 @@ def post_controversial_evening_tweet():
             try:
                 candidate = generate_controversial_tweet(chunk, name, context_tweets)
                 if tweet_archive.is_too_similar(candidate):
-                    print(f"Controversial attempt {attempt+1}: too similar, retrying...")
+                    print(f"Controversial attempt {attempt+1}: too similar (Jaccard), retrying...")
+                    if len(words) > 150:
+                        start = random.randint(0, len(words) - 150)
+                        chunk = ' '.join(words[start:start + 150])
+                    continue
+                if is_semantically_duplicate(candidate):
+                    print(f"Controversial attempt {attempt+1}: too similar (semantic), retrying...")
                     if len(words) > 150:
                         start = random.randint(0, len(words) - 150)
                         chunk = ' '.join(words[start:start + 150])
@@ -901,14 +965,18 @@ _RSS_FEEDS = {
     "venturebeat.com":  "https://venturebeat.com/feed/",
     "roadtovr.com":     "https://www.roadtovr.com/feed/",
     "awwwards.com":     "https://www.awwwards.com/blog/rss",
+    "webxr.news":       "https://webxr.news/rss",
+    "sketchfab.com":    "https://sketchfab.com/blogs/community/feed",
 }
 
-# Viral context için ek RSS kaynakları (viral_mix + context çekmede kullanılır)
+# Viral context + community pulse için ek niche RSS kaynakları
 _CONTEXT_RSS_FEEDS = {
-    "roadtovr.com":    "https://www.roadtovr.com/feed/",
-    "awwwards.com":    "https://www.awwwards.com/blog/rss",
-    "techcrunch.com":  "https://techcrunch.com/feed/",
-    "theverge.com":    "https://www.theverge.com/rss/index.xml",
+    "roadtovr.com":     "https://www.roadtovr.com/feed/",
+    "awwwards.com":     "https://www.awwwards.com/blog/rss",
+    "techcrunch.com":   "https://techcrunch.com/feed/",
+    "theverge.com":     "https://www.theverge.com/rss/index.xml",
+    "a16z.com":         "https://a16z.com/feed/",
+    "ieee_spectrum_vr": "https://spectrum.ieee.org/feeds/topic/virtual-reality.rss",
 }
 
 def _scrape_article_body(article_url, source_name):
@@ -1141,8 +1209,12 @@ def _post_news_tweet(site_url, source_name):
         return
 
     # Tweet 2: 3-5 word commentary as reply + hashtags
+    # Opinion evolution: geçmişteki benzer konulardaki yorumları çek
+    prior_opinions = _get_prior_opinions_for_topic(title)
+    if prior_opinions:
+        print(f"  Opinion evolution: {len(prior_opinions)} prior opinion(s) found.")
     try:
-        commentary = generate_news_tweet(title, article_text, source_name)
+        commentary = generate_news_tweet(title, article_text, source_name, prior_opinions=prior_opinions)
     except Exception as e:
         print(f"Commentary generation error: {e}")
         commentary = "nobody saw this coming"
@@ -1598,8 +1670,207 @@ def post_viral_mix_tweet():
             raise
 
 
+# --- COMMUNITY PULSE THREAD: Haftalık RSS özeti ---
+
+def post_community_pulse_thread():
+    """Her Pazartesi: niche RSS'ten bu haftanın önemli gelişmelerini thread olarak özetle."""
+    client, _ = get_twitter_clients()
+
+    pulse_id = "pulse_" + datetime.now(timezone.utc).strftime("%Y_W%V")
+    if tweet_archive.is_posted_recently(pulse_id, days=6):
+        print("Community pulse already posted this week, skipping.")
+        return
+
+    # Tüm niche RSS kaynaklarından başlıkları topla
+    all_headlines = []
+    niche_kw = ["vr", "xr", "ar", "virtual", "spatial", "metaverse", "webxr", "3d", "immersive",
+                "decentrali", "on-chain", "blockchain", "web3", "avatar", "digital twin"]
+    feeds = {**_RSS_FEEDS, **_CONTEXT_RSS_FEEDS}
+
+    for source, feed_url in feeds.items():
+        try:
+            articles = _parse_rss(feed_url, source)
+            for a in articles[:6]:
+                title_lower = a['title'].lower()
+                if any(kw in title_lower for kw in niche_kw):
+                    all_headlines.append(f"[{source}] {a['title']}")
+        except Exception as e:
+            print(f"RSS fetch error {source}: {e}")
+
+    if not all_headlines:
+        print("No niche headlines for community pulse, skipping.")
+        return
+
+    print(f"Community pulse: {len(all_headlines)} niche headlines found.")
+    headlines_block = "\n".join(all_headlines[:25])
+
+    prompt = (
+        "You are @decentralize___, thought leader in WebXR, virtual design, and spatial computing.\n"
+        f"{TONE_BLOCK}"
+        f"Here are this week's niche headlines:\n{headlines_block}\n\n"
+        "Write EXACTLY 4 tweet-sized insights for a weekly pulse thread.\n"
+        "Rules:\n"
+        "- Each insight is a standalone synthesis, NOT a headline summary\n"
+        "- Find the pattern nobody else is naming\n"
+        "- Use first-person perspective\n"
+        "- Max 200 chars each, no hashtags\n"
+        "- Each on its own line\n"
+        "Output: 4 lines only."
+    )
+    try:
+        raw = _call_llm(prompt, max_tokens=400, temperature=0.88)
+        insights = [l.strip() for l in raw.strip().split('\n') if l.strip()][:4]
+    except Exception as e:
+        print(f"Pulse LLM error: {e}")
+        return
+
+    if not insights:
+        print("No pulse insights generated, skipping.")
+        return
+
+    header = "this week in virtual design & spatial computing ꩜"
+    print(f"Posting community pulse thread ({len(insights)} insights)...")
+
+    try:
+        resp = client.create_tweet(text=header)
+        parent_id = resp.data['id']
+        tweet_archive.record_post(pulse_id, content_type="community_pulse",
+                                  tweet_text=header, tweet_id=parent_id)
+    except Exception as e:
+        print(f"Pulse header error: {e}")
+        return
+
+    for i, insight in enumerate(insights):
+        tweet_text = format_tweet(insight)
+        if len(tweet_text) > 280:
+            tweet_text = insight[:274] + "... ꩜"
+        try:
+            resp = client.create_tweet(text=tweet_text, in_reply_to_tweet_id=parent_id)
+            parent_id = resp.data['id']
+            print(f"  Insight {i+1}: {tweet_text[:70]}...")
+        except Exception as e:
+            print(f"  Insight {i+1} error: {e}")
+
+    print("Community pulse thread done.")
+
+
+# --- DATA VIZ TWEET: Haftalık niche keyword frekans grafiği ---
+
+def post_data_viz_tweet():
+    """Haftada 1: niche konuların RSS'deki frekansını bar chart ile görselleştir ve tweet'le."""
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    import tempfile as _tempfile
+    import os as _os
+
+    client, api = get_twitter_clients()
+
+    viz_id = "dataviz_" + datetime.now(timezone.utc).strftime("%Y_W%V")
+    if tweet_archive.is_posted_recently(viz_id, days=6):
+        print("Data viz already posted this week, skipping.")
+        return
+
+    # Keyword → eşleşme sayısı
+    keyword_map = {
+        "WebXR":            ["webxr", "web xr"],
+        "Metaverse":        ["metaverse"],
+        "Spatial Computing":["spatial computing", "spatial"],
+        "Virtual Reality":  ["virtual reality", "vr "],
+        "Decentralized":    ["decentrali", "on-chain", "web3"],
+        "AI + 3D":          ["generative 3d", "ai design", "ai 3d", "3d ai"],
+    }
+    counts = {k: 0 for k in keyword_map}
+
+    for source, feed_url in {**_RSS_FEEDS, **_CONTEXT_RSS_FEEDS}.items():
+        try:
+            articles = _parse_rss(feed_url, source)
+            for a in articles[:10]:
+                combined = (a['title'] + " " + a.get('summary', '')).lower()
+                for label, kws in keyword_map.items():
+                    if any(kw in combined for kw in kws):
+                        counts[label] += 1
+        except Exception:
+            pass
+
+    if sum(counts.values()) == 0:
+        print("All zero counts, skipping data viz.")
+        return
+
+    sorted_items = sorted(counts.items(), key=lambda x: x[1], reverse=True)
+    labels = [k for k, v in sorted_items if v > 0]
+    values = [v for k, v in sorted_items if v > 0]
+    if not labels:
+        print("No positive counts, skipping data viz.")
+        return
+
+    # Dark-theme bar chart
+    fig, ax = plt.subplots(figsize=(9, 4.5))
+    fig.patch.set_facecolor('#0d1117')
+    ax.set_facecolor('#0d1117')
+    bars = ax.barh(labels, values, color='#FF3B6F', height=0.55)
+    ax.set_xlabel('mentions in tech media this week', color='#8b949e', fontsize=10)
+    ax.tick_params(colors='#e6edf3', labelsize=10)
+    for spine in ['top', 'right']:
+        ax.spines[spine].set_visible(False)
+    for spine in ['bottom', 'left']:
+        ax.spines[spine].set_color('#30363d')
+    ax.xaxis.label.set_color('#8b949e')
+    for bar, val in zip(bars, values):
+        ax.text(bar.get_width() + 0.08, bar.get_y() + bar.get_height() / 2,
+                str(val), va='center', color='#e6edf3', fontsize=9)
+    ax.set_title('what tech media is covering this week', color='#e6edf3', fontsize=12, pad=10)
+    plt.tight_layout()
+
+    tmp_path = None
+    try:
+        with _tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+            tmp_path = tmp.name
+        plt.savefig(tmp_path, dpi=150, bbox_inches='tight', facecolor='#0d1117')
+        plt.close()
+
+        # LLM caption
+        top_topic = labels[0]
+        caption_prompt = (
+            f"You are @decentralize___.\n{TONE_BLOCK}"
+            f"Write a 1-sentence tweet for a data chart showing '{top_topic}' dominates tech media coverage this week. "
+            f"Be provocative — not just descriptive. What does this signal? Max 150 chars."
+        )
+        try:
+            caption = _call_llm(caption_prompt, max_tokens=50, temperature=0.9).strip('"\'')
+        except Exception:
+            caption = f"{top_topic} is dominating the conversation. the question is whether the industry is building or just talking."
+
+        tweet_text = format_tweet(caption)
+        if len(tweet_text) > 280:
+            tweet_text = caption[:274] + "... ꩜"
+
+        media = api.media_upload(tmp_path)
+        resp = client.create_tweet(text=tweet_text, media_ids=[media.media_id_string])
+        tweet_archive.record_post(viz_id, content_type="data_viz",
+                                  tweet_text=tweet_text, tweet_id=resp.data['id'])
+        print(f"Data viz tweet posted: {resp.data['id']}\n{tweet_text}")
+    except Exception as e:
+        print(f"Data viz error: {e}")
+    finally:
+        if tmp_path:
+            try:
+                _os.unlink(tmp_path)
+            except Exception:
+                pass
+
+
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else None
+
+    # ── Dinlenme günü (Pazar = 6): sadece morning/pulse/viz çalışır ────────────
+    _QUIET_DAY = 6  # Sunday
+    _today = datetime.now(timezone.utc).weekday()
+    _quiet_exempt = {"morning", "community_pulse", "data_viz", "drift_check", "quote_tweet", None}
+    if _today == _QUIET_DAY and mode not in _quiet_exempt:
+        print(f"Quiet day (Sunday) — skipping '{mode}' to maintain selectivity. Only morning/pulse/viz run today.")
+        import sys as _sys
+        _sys.exit(0)
 
     if mode == "morning":
         post_morning_tweet()
@@ -1615,6 +1886,10 @@ if __name__ == "__main__":
         post_venturebeat_tweet()
     elif mode == "viral_mix":
         post_viral_mix_tweet()
+    elif mode == "community_pulse":
+        post_community_pulse_thread()
+    elif mode == "data_viz":
+        post_data_viz_tweet()
     elif mode == "quote_tweet":
         post_quote_tweet()
     else:

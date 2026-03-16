@@ -1,0 +1,30 @@
+name: Weekly Voice Drift Check
+
+on:
+  schedule:
+    # Her Pazar 08:00 UTC — haftalık ses tutarlılığı kontrolü
+    - cron: '0 8 * * 0'
+  workflow_dispatch:
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: pip install groq requests
+
+      - name: Run Voice Drift Check
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python voice_drift_check.py
+        # exit(1) = drift detected — GitHub Actions will mark the run as failed
+        # Check the run log to see which issues were flagged
