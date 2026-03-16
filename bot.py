@@ -456,6 +456,20 @@ def post_morning_tweet():
                                       tweet_text=retry_text, tweet_id=resp2.data['id'],
                                       weekly_theme=get_this_weeks_theme())
             print(f"Morning broadcast complete (retry): {name2}")
+        elif "2 minutes" in str(e) or "longer than 2" in str(e).lower():
+            # Video >2 dakika — medya yüklenemez, link tweet olarak paylaş
+            print(f"Video >2min upload rejected — falling back to link tweet: {name}")
+            prefix = format_tweet(trim_for_format(f"[Video >2min] {name}\n\n{display_text}"))
+            # Twitter URL'leri ~23 karakter olarak sayar; prefix 255'te bırak
+            if len(prefix) > 255:
+                prefix = prefix[:252] + "..."
+            link_text = f"{prefix}\n\n{url}"
+            resp_link = client.create_tweet(text=link_text)
+            tweet_archive.record_post(selected['id'], content_type="morning_media_long_video",
+                                      tweet_text=link_text, tweet_id=resp_link.data['id'],
+                                      weekly_theme=get_this_weeks_theme(),
+                                      media_url=media_url_to_download)
+            print(f"Morning broadcast complete (link fallback >2min): {name}")
         else:
             raise
 
