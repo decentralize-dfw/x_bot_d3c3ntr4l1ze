@@ -1,7 +1,20 @@
 import json
 import os
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+
+def _utcnow():
+    """Timezone-aware UTC şimdiki zaman. Naive timestamp legacy'i de handle eder."""
+    return datetime.now(timezone.utc)
+
+
+def _parse_dt(s):
+    """ISO string'i timezone-aware datetime'a çevirir. Naive string ise UTC kabul eder."""
+    dt = datetime.fromisoformat(s)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt
 
 ARCHIVE_PATH = os.path.join(os.path.dirname(__file__), "tweet_archive.json")
 COOLDOWN_DAYS = 60
@@ -80,10 +93,10 @@ def save_archive(entries):
 
 def is_posted_recently(content_id, days=COOLDOWN_DAYS):
     entries = load_archive()
-    cutoff = datetime.utcnow() - timedelta(days=days)
+    cutoff = _utcnow() - timedelta(days=days)
     for entry in entries:
         if entry["content_id"] == content_id:
-            posted_at = datetime.fromisoformat(entry["posted_at"])
+            posted_at = _parse_dt(entry["posted_at"])
             if posted_at > cutoff:
                 return True
     return False
@@ -96,10 +109,10 @@ def is_theme_in_cooldown(tweet_text: str) -> bool:
         return False
     cooldown_days = THEME_COOLDOWN.get(theme, 7)
     entries = load_archive()
-    cutoff = datetime.utcnow() - timedelta(days=cooldown_days)
+    cutoff = _utcnow() - timedelta(days=cooldown_days)
     for entry in entries:
         if entry.get("theme") == theme:
-            posted_at = datetime.fromisoformat(entry["posted_at"])
+            posted_at = _parse_dt(entry["posted_at"])
             if posted_at > cutoff:
                 print(f"Theme cooldown: '{theme}' posted within last {cooldown_days} days.")
                 return True
@@ -112,7 +125,7 @@ def record_post(content_id, content_type="unknown", tweet_text=None, tweet_id=No
     entry = {
         "content_id":   content_id,
         "content_type": content_type,
-        "posted_at":    datetime.utcnow().isoformat(),
+        "posted_at":    _utcnow().isoformat(),
     }
     if tweet_text:
         entry["tweet_text"] = tweet_text
@@ -127,22 +140,22 @@ def record_post(content_id, content_type="unknown", tweet_text=None, tweet_id=No
 
 def get_recent_tweet_texts(days=COOLDOWN_DAYS):
     entries = load_archive()
-    cutoff = datetime.utcnow() - timedelta(days=days)
+    cutoff = _utcnow() - timedelta(days=days)
     return [
         e["tweet_text"]
         for e in entries
-        if datetime.fromisoformat(e["posted_at"]) > cutoff and e.get("tweet_text")
+        if _parse_dt(e["posted_at"]) > cutoff and e.get("tweet_text")
     ]
 
 
 def get_recent_tweet_ids(hours=48):
     """Son N saatte atılan tweet'lerin Twitter ID'lerini döndür (analytics için)."""
     entries = load_archive()
-    cutoff = datetime.utcnow() - timedelta(hours=hours)
+    cutoff = _utcnow() - timedelta(hours=hours)
     return [
         e["tweet_id"]
         for e in entries
-        if datetime.fromisoformat(e["posted_at"]) > cutoff and e.get("tweet_id")
+        if _parse_dt(e["posted_at"]) > cutoff and e.get("tweet_id")
     ]
 
 
@@ -166,8 +179,8 @@ def is_too_similar(candidate, days=COOLDOWN_DAYS, threshold=0.35):
 
 def cleanup_old_entries(days=COOLDOWN_DAYS):
     entries = load_archive()
-    cutoff = datetime.utcnow() - timedelta(days=days)
-    fresh = [e for e in entries if datetime.fromisoformat(e["posted_at"]) > cutoff]
+    cutoff = _utcnow() - timedelta(days=days)
+    fresh = [e for e in entries if _parse_dt(e["posted_at"]) > cutoff]
     if len(fresh) < len(entries):
         save_archive(fresh)
         print(f"Archive: removed {len(entries) - len(fresh)} expired entries.")

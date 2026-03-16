@@ -425,8 +425,9 @@ def post_morning_tweet():
             if not caption2:
                 caption2 = desc2[:134] + "..." if len(desc2) > 137 else desc2
             retry_text = format_tweet(trim_for_format(f"{type_label2} {name2}\n\n{caption2}"))
-            client.create_tweet(text=retry_text)
-            tweet_archive.record_post(selected2['id'], content_type="morning_media")
+            resp2 = client.create_tweet(text=retry_text)
+            tweet_archive.record_post(selected2['id'], content_type="morning_media",
+                                      tweet_text=retry_text, tweet_id=resp2.data['id'])
             print(f"Morning broadcast complete (retry): {name2}")
         else:
             raise
@@ -1077,6 +1078,51 @@ def _parse_rss(rss_url, source_name):
         return None
 
 
+def _parse_rss_all(rss_url, source_name, max_items=20):
+    """Fetch ALL items from an RSS feed.
+    Returns list of {"title": str, "url": str, "summary": str} dicts, or [].
+    Used by community_pulse and data_viz which need multiple items.
+    """
+    headers = {
+        'User-Agent': (
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+            'AppleWebKit/537.36 (KHTML, like Gecko) '
+            'Chrome/120.0.0.0 Safari/537.36'
+        )
+    }
+    try:
+        resp = requests.get(rss_url, headers=headers, timeout=15)
+        if resp.status_code != 200:
+            print(f"{source_name} RSS fetch HTTP {resp.status_code}")
+            return []
+        root = ET.fromstring(resp.content)
+        channel = root.find('channel')
+        if channel is None:
+            return []
+        CONTENT_NS = 'http://purl.org/rss/1.0/modules/content/'
+        items = []
+        for item in channel.findall('item')[:max_items]:
+            title = (item.findtext('title') or '').strip()
+            url = (item.findtext('link') or '').strip()
+            raw_body = (
+                item.findtext(f'{{{CONTENT_NS}}}encoded')
+                or item.findtext('description')
+                or ''
+            )
+            summary = ''
+            if raw_body:
+                summary = BeautifulSoup(raw_body, 'html.parser').get_text(separator=' ', strip=True)
+            if title:
+                items.append({"title": title, "url": url, "summary": summary})
+        return items
+    except ET.ParseError as e:
+        print(f"{source_name} RSS XML parse error: {e}")
+        return []
+    except Exception as e:
+        print(f"{source_name} RSS error: {e}")
+        return []
+
+
 def _fetch_article_content(site_url, source_name):
     """Fetch the top article via RSS feed and return (title, full_text).
 
@@ -1689,7 +1735,7 @@ def post_community_pulse_thread():
 
     for source, feed_url in feeds.items():
         try:
-            articles = _parse_rss(feed_url, source)
+            articles = _parse_rss_all(feed_url, source)
             for a in articles[:6]:
                 title_lower = a['title'].lower()
                 if any(kw in title_lower for kw in niche_kw):
@@ -1784,7 +1830,7 @@ def post_data_viz_tweet():
 
     for source, feed_url in {**_RSS_FEEDS, **_CONTEXT_RSS_FEEDS}.items():
         try:
-            articles = _parse_rss(feed_url, source)
+            articles = _parse_rss_all(feed_url, source)
             for a in articles[:10]:
                 combined = (a['title'] + " " + a.get('summary', '')).lower()
                 for label, kws in keyword_map.items():
