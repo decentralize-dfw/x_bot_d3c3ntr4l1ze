@@ -74,11 +74,22 @@ def _load_beliefs() -> dict:
     except Exception:
         return {}
 
+_used_beliefs_this_session: set = set()
+
 def _random_belief() -> str:
-    """Rastgele bir core belief veya contested claim döndür."""
+    """Belief seç. Aynı çalışma (session) içinde aynı belief tekrarlanmaz."""
+    global _used_beliefs_this_session
     b = _load_beliefs()
     pool = b.get("core_beliefs", []) + b.get("contested_claims", [])
-    return random.choice(pool) if pool else ""
+    if not pool:
+        return ""
+    unused = [p for p in pool if p not in _used_beliefs_this_session]
+    if not unused:
+        _used_beliefs_this_session.clear()
+        unused = pool
+    choice = random.choice(unused)
+    _used_beliefs_this_session.add(choice)
+    return choice
 
 # ── Bot hafızası (rolling context window) ─────────────────────────────────────
 def get_voice_context(n: int = 5) -> str:
@@ -248,8 +259,15 @@ def format_tweet(text):
 
 
 def load_db():
-    with open('database.json', 'r', encoding='utf-8') as file:
-        return json.load(file)
+    try:
+        with open('database.json', 'r', encoding='utf-8') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        print("database.json not found, returning empty list.")
+        return []
+    except json.JSONDecodeError as e:
+        print(f"database.json parse error: {e}")
+        return []
 
 def fix_wix_video_url(url):
     """Wix video URL'lerini indirilebilir formata çevirir."""
@@ -405,7 +423,8 @@ def post_morning_tweet():
         else:
             resp = client.create_tweet(text=tweet_text)
         tweet_archive.record_post(selected['id'], content_type="morning_media",
-                                  tweet_text=tweet_text, tweet_id=resp.data['id'])
+                                  tweet_text=tweet_text, tweet_id=resp.data['id'],
+                                  weekly_theme=get_this_weeks_theme())
         print(f"Morning broadcast complete: {name}")
     except tweepy.errors.Forbidden as e:
         api_codes = getattr(e, 'api_codes', [])
@@ -425,8 +444,10 @@ def post_morning_tweet():
             if not caption2:
                 caption2 = desc2[:134] + "..." if len(desc2) > 137 else desc2
             retry_text = format_tweet(trim_for_format(f"{type_label2} {name2}\n\n{caption2}"))
-            client.create_tweet(text=retry_text)
-            tweet_archive.record_post(selected2['id'], content_type="morning_media")
+            resp2 = client.create_tweet(text=retry_text)
+            tweet_archive.record_post(selected2['id'], content_type="morning_media",
+                                      tweet_text=retry_text, tweet_id=resp2.data['id'],
+                                      weekly_theme=get_this_weeks_theme())
             print(f"Morning broadcast complete (retry): {name2}")
         else:
             raise
@@ -738,7 +759,8 @@ def post_evening_tweet():
         resp = client.create_tweet(text=tweet_text)
         tweet_id = resp.data['id']
         tweet_archive.record_post(selected['id'], content_type="evening_text",
-                                  tweet_text=tweet_text, tweet_id=tweet_id)
+                                  tweet_text=tweet_text, tweet_id=tweet_id,
+                                  weekly_theme=get_this_weeks_theme())
         question = generate_thread_reply(tweet_text)
         if question:
             client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
@@ -768,8 +790,15 @@ def post_artwork_tweet():
     """Pick a random artwork, post image + metadata, then reply with site link."""
     client, api = get_twitter_clients()
 
-    with open('artworks.json', 'r', encoding='utf-8') as f:
-        artworks = json.load(f)
+    try:
+        with open('artworks.json', 'r', encoding='utf-8') as f:
+            artworks = json.load(f)
+    except FileNotFoundError:
+        print("artworks.json not found, skipping artwork tweet.")
+        return
+    except json.JSONDecodeError as e:
+        print(f"artworks.json parse error: {e}")
+        return
 
     if not artworks:
         print("No artworks found in artworks.json.")
@@ -832,7 +861,8 @@ def post_artwork_tweet():
     tweet_id = resp.data['id']
 
     tweet_archive.record_post(artwork['id'], content_type="artwork",
-                              tweet_text=tweet_text, tweet_id=tweet_id)
+                              tweet_text=tweet_text, tweet_id=tweet_id,
+                              weekly_theme=get_this_weeks_theme())
     # Thread: second tweet with site link + hashtags
     client.create_tweet(
         text="explore the collection: de-centralize.com #digitalart #metaverse",
@@ -933,7 +963,8 @@ def post_controversial_evening_tweet():
         resp = client.create_tweet(text=tweet_text)
         tweet_id = resp.data['id']
         tweet_archive.record_post(selected['id'], content_type="evening_controversial",
-                                  tweet_text=tweet_text, tweet_id=tweet_id)
+                                  tweet_text=tweet_text, tweet_id=tweet_id,
+                                  weekly_theme=get_this_weeks_theme())
         question = generate_thread_reply(tweet_text)
         if question:
             client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
@@ -1077,6 +1108,51 @@ def _parse_rss(rss_url, source_name):
         return None
 
 
+def _parse_rss_all(rss_url, source_name, max_items=20):
+    """Fetch ALL items from an RSS feed.
+    Returns list of {"title": str, "url": str, "summary": str} dicts, or [].
+    Used by community_pulse and data_viz which need multiple items.
+    """
+    headers = {
+        'User-Agent': (
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+            'AppleWebKit/537.36 (KHTML, like Gecko) '
+            'Chrome/120.0.0.0 Safari/537.36'
+        )
+    }
+    try:
+        resp = requests.get(rss_url, headers=headers, timeout=15)
+        if resp.status_code != 200:
+            print(f"{source_name} RSS fetch HTTP {resp.status_code}")
+            return []
+        root = ET.fromstring(resp.content)
+        channel = root.find('channel')
+        if channel is None:
+            return []
+        CONTENT_NS = 'http://purl.org/rss/1.0/modules/content/'
+        items = []
+        for item in channel.findall('item')[:max_items]:
+            title = (item.findtext('title') or '').strip()
+            url = (item.findtext('link') or '').strip()
+            raw_body = (
+                item.findtext(f'{{{CONTENT_NS}}}encoded')
+                or item.findtext('description')
+                or ''
+            )
+            summary = ''
+            if raw_body:
+                summary = BeautifulSoup(raw_body, 'html.parser').get_text(separator=' ', strip=True)
+            if title:
+                items.append({"title": title, "url": url, "summary": summary})
+        return items
+    except ET.ParseError as e:
+        print(f"{source_name} RSS XML parse error: {e}")
+        return []
+    except Exception as e:
+        print(f"{source_name} RSS error: {e}")
+        return []
+
+
 def _fetch_article_content(site_url, source_name):
     """Fetch the top article via RSS feed and return (title, full_text).
 
@@ -1203,7 +1279,9 @@ def _post_news_tweet(site_url, source_name):
     try:
         resp = client.create_tweet(text=tweet1)
         tweet1_id = resp.data['id']
-        tweet_archive.record_post(article_id, content_type="news")
+        tweet_archive.record_post(article_id, content_type="news",
+                                  tweet_text=tweet1, tweet_id=tweet1_id,
+                                  weekly_theme=get_this_weeks_theme())
     except Exception as e:
         print(f"{source_name} tweet 1 post error: {e}")
         return
@@ -1656,7 +1734,8 @@ def post_viral_mix_tweet():
         tweet_id = resp.data['id']
         archive_id = "viral_" + hashlib.md5(tweet_text.encode()).hexdigest()[:12]
         tweet_archive.record_post(archive_id, content_type="viral_mix",
-                                  tweet_text=tweet_text, tweet_id=tweet_id)
+                                  tweet_text=tweet_text, tweet_id=tweet_id,
+                                  weekly_theme=get_this_weeks_theme())
         tweet_archive.record_post(manifesto_item['id'] + '_viral', content_type="viral_mix_source")
         question = generate_thread_reply(tweet_text)
         if question:
@@ -1689,7 +1768,7 @@ def post_community_pulse_thread():
 
     for source, feed_url in feeds.items():
         try:
-            articles = _parse_rss(feed_url, source)
+            articles = _parse_rss_all(feed_url, source)
             for a in articles[:6]:
                 title_lower = a['title'].lower()
                 if any(kw in title_lower for kw in niche_kw):
@@ -1735,7 +1814,8 @@ def post_community_pulse_thread():
         resp = client.create_tweet(text=header)
         parent_id = resp.data['id']
         tweet_archive.record_post(pulse_id, content_type="community_pulse",
-                                  tweet_text=header, tweet_id=parent_id)
+                                  tweet_text=header, tweet_id=parent_id,
+                                  weekly_theme=get_this_weeks_theme())
     except Exception as e:
         print(f"Pulse header error: {e}")
         return
@@ -1784,7 +1864,7 @@ def post_data_viz_tweet():
 
     for source, feed_url in {**_RSS_FEEDS, **_CONTEXT_RSS_FEEDS}.items():
         try:
-            articles = _parse_rss(feed_url, source)
+            articles = _parse_rss_all(feed_url, source)
             for a in articles[:10]:
                 combined = (a['title'] + " " + a.get('summary', '')).lower()
                 for label, kws in keyword_map.items():
@@ -1848,7 +1928,8 @@ def post_data_viz_tweet():
         media = api.media_upload(tmp_path)
         resp = client.create_tweet(text=tweet_text, media_ids=[media.media_id_string])
         tweet_archive.record_post(viz_id, content_type="data_viz",
-                                  tweet_text=tweet_text, tweet_id=resp.data['id'])
+                                  tweet_text=tweet_text, tweet_id=resp.data['id'],
+                                  weekly_theme=get_this_weeks_theme())
         print(f"Data viz tweet posted: {resp.data['id']}\n{tweet_text}")
     except Exception as e:
         print(f"Data viz error: {e}")
