@@ -63,7 +63,11 @@ def sync_from_archive() -> list[dict]:
         posted_at = entry.get("posted_at", "")
         try:
             posted_dt = datetime.fromisoformat(posted_at)
-        except (ValueError, TypeError):
+            # Naive timestamp ise UTC kabul et (eski arşiv kayıtları için)
+            if posted_dt.tzinfo is None:
+                posted_dt = posted_dt.replace(tzinfo=timezone.utc)
+        except (ValueError, TypeError) as e:
+            print(f"Skipping record {tid}: bad posted_at '{posted_at}' — {e}")
             posted_dt = datetime.now(timezone.utc)
 
         record = {

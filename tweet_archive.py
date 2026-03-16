@@ -163,7 +163,8 @@ def get_recent_tweet_texts(days=COOLDOWN_DAYS):
     return [
         e["tweet_text"]
         for e in entries
-        if _parse_dt(e["posted_at"]) > cutoff and e.get("tweet_text")
+        if _parse_dt(e["posted_at"]) > cutoff
+        and e.get("tweet_text", "").strip()
     ]
 
 

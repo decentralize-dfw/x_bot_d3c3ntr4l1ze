@@ -23,7 +23,7 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 # Keyword search query used for viral context.
 SEARCH_KEYWORDS = (
     '(metaverse OR "virtual world" OR "AI agent" OR "on-chain" OR '
-    '"spatial computing" OR "web3" OR "3D NFT" OR "WebXR" OR "spatial computing")'
+    '"spatial computing" OR "web3" OR "3D NFT" OR "WebXR")'
 )
 
 # ── Multi-model rotation ───────────────────────────────────────────────────────
@@ -139,11 +139,15 @@ def score_tweet_quality(tweet_text: str) -> float:
     )
     try:
         raw = _call_llm(prompt, max_tokens=40, temperature=0.2)
-        # JSON parse
-        match = re.search(r'\{[^}]+\}', raw)
-        if not match:
-            return 7.0
-        scores = json.loads(match.group())
+        # Önce direkt parse dene (LLM bazen düz JSON döner)
+        try:
+            scores = json.loads(raw.strip())
+        except (json.JSONDecodeError, ValueError):
+            # Açıklama metni içinde gömülü JSON'ı bul — re.DOTALL ile nested destekli
+            match = re.search(r'\{.*\}', raw, re.DOTALL)
+            if not match:
+                return 7.0
+            scores = json.loads(match.group())
         avg = sum([
             scores.get("originality", 7),
             scores.get("specificity", 7),
@@ -230,7 +234,9 @@ def trim_for_format(text, limit=135):
         return text
     trimmed = text[:limit]
     last_space = trimmed.rfind(' ')
-    return trimmed[:last_space] if last_space > limit // 2 else trimmed
+    # Son boşluk metnin %75'inden sonraysa oradan kes (kelimeyi kırma).
+    # Daha önce ise hard-cut daha az içerik kaybı verir.
+    return trimmed[:last_space] if last_space > (limit * 3 // 4) else trimmed
 
 
 def is_youtube(url):
@@ -1736,7 +1742,8 @@ def post_viral_mix_tweet():
         tweet_archive.record_post(archive_id, content_type="viral_mix",
                                   tweet_text=tweet_text, tweet_id=tweet_id,
                                   weekly_theme=get_this_weeks_theme())
-        tweet_archive.record_post(manifesto_item['id'] + '_viral', content_type="viral_mix_source")
+        tweet_archive.record_post(manifesto_item['id'] + '_viral', content_type="viral_mix_source",
+                                  weekly_theme=get_this_weeks_theme())
         question = generate_thread_reply(tweet_text)
         if question:
             client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
@@ -1947,11 +1954,12 @@ if __name__ == "__main__":
     # ── Dinlenme günü (Pazar = 6): sadece morning/pulse/viz çalışır ────────────
     _QUIET_DAY = 6  # Sunday
     _today = datetime.now(timezone.utc).weekday()
+    # None: argümansız çalıştırıldığında (test/manual) saat-bazlı routing yürür —
+    # bu da kendi içinde quiet day'e saygı gösterir, burada bloklanmamalı.
     _quiet_exempt = {"morning", "community_pulse", "data_viz", "drift_check", "quote_tweet", None}
     if _today == _QUIET_DAY and mode not in _quiet_exempt:
         print(f"Quiet day (Sunday) — skipping '{mode}' to maintain selectivity. Only morning/pulse/viz run today.")
-        import sys as _sys
-        _sys.exit(0)
+        sys.exit(0)
 
     if mode == "morning":
         post_morning_tweet()
