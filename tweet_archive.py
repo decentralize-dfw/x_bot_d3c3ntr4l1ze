@@ -160,6 +160,38 @@ def record_post(content_id, content_type="unknown", tweet_text=None, tweet_id=No
     save_archive(entries)
 
 
+_FAILED_FILE = os.path.join(os.path.dirname(__file__), "failed_tweets.json")
+
+
+def record_failed(content_id, content_type, tweet_text=None, error_msg=None,
+                  media_url=None, weekly_theme=None):
+    """Atılamayan her tweet'i failed_tweets.json'a yazar. Geri dönüp bakılabilir."""
+    try:
+        try:
+            with open(_FAILED_FILE, "r", encoding="utf-8") as f:
+                entries = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            entries = []
+        entry = {
+            "content_id":   content_id,
+            "content_type": content_type,
+            "failed_at":    _utcnow().isoformat(),
+            "error":        error_msg or "unknown",
+        }
+        if tweet_text:
+            entry["tweet_text"] = tweet_text
+        if media_url:
+            entry["media_url"] = media_url
+        if weekly_theme:
+            entry["weekly_theme"] = weekly_theme
+        entries.append(entry)
+        with open(_FAILED_FILE, "w", encoding="utf-8") as f:
+            json.dump(entries, f, ensure_ascii=False, indent=2)
+        print(f"[failed_tweets] Logged: {content_id} ({content_type}) — {error_msg}")
+    except Exception as exc:
+        print(f"[record_failed] Write error: {exc}")
+
+
 def get_recent_tweet_texts(days=COOLDOWN_DAYS):
     entries = load_archive()
     cutoff = _utcnow() - timedelta(days=days)
