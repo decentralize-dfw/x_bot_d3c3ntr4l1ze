@@ -211,7 +211,10 @@ def fetch_target_tweets_with_ids(n_targets: int = 3) -> list:
     # AŞAMA 1: Önce günlük tarama sonuçlarını dene
     scan = _load_scan_results(max_age_hours=12)
     if scan:
-        sample = random.sample(scan, min(n_targets, len(scan)))
+        # reply_mode için sadece herkese açık tweet'leri döndür
+        open_scan = [r for r in scan if r.get("reply_settings", "everyone") == "everyone"]
+        pool = open_scan if open_scan else scan
+        sample = random.sample(pool, min(n_targets, len(pool)))
         return [{"id": r["tweet_id"], "text": r["text"], "author": r["author"]} for r in sample]
 
     # Fallback: canlı API araması

@@ -59,7 +59,7 @@ def run_daily_scan() -> list:
             resp = client.search_recent_tweets(
                 query=query,
                 max_results=_MAX_RESULTS,
-                tweet_fields=["public_metrics", "text", "author_id"],
+                tweet_fields=["public_metrics", "text", "author_id", "reply_settings"],
                 expansions=["author_id"],
                 user_fields=["username"],
                 sort_order="relevancy",
@@ -77,11 +77,14 @@ def run_daily_scan() -> list:
                 eng = _engagement(tweet)
                 if eng < _MIN_ENGAGEMENT:
                     continue
+                # reply_settings filtresi: sadece herkese açık tweet'ler
+                reply_settings = getattr(tweet, "reply_settings", "everyone") or "everyone"
                 all_tweets.append({
                     "tweet_id": str(tweet.id),
                     "text": tweet.text,
                     "author": users.get(tweet.author_id, "unknown"),
                     "engagement_score": eng,
+                    "reply_settings": reply_settings,
                     "fetched_at": datetime.now(timezone.utc).isoformat(),
                 })
                 seen_ids.add(tweet.id)
