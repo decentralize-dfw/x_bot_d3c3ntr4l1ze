@@ -104,14 +104,42 @@ def random_belief() -> str:
 
 
 # ── Bot hafızası (rolling context window) ─────────────────────────────────────
-def get_voice_context(n: int = 5) -> str:
+def get_voice_context(n: int = 8) -> str:
     """Son n tweet'i al — ses tutarlılığı ve tekrar önleme için LLM'e ver."""
-    recent = tweet_archive.get_recent_tweet_texts(days=30)
+    recent = tweet_archive.get_recent_tweet_texts(days=45)
     if not recent:
         return ""
     sample = recent[-n:] if len(recent) >= n else recent
     lines = "\n".join(f"- {t}" for t in sample)
     return (
-        f"Your {len(sample)} most recent tweets (DO NOT repeat these ideas, maintain this voice):\n"
+        f"Your {len(sample)} most recent tweets — study these carefully:\n"
         f"{lines}\n\n"
+        "WHAT TO DO WITH THIS:\n"
+        "1. Do NOT repeat any idea already expressed above, even loosely\n"
+        "2. Do NOT use the same sentence structure as any of the above\n"
+        "3. If the above lean toward questions → write a statement\n"
+        "4. If the above are short → go longer and more specific\n"
+        "5. If the above use 'virtual worlds' → find another angle\n\n"
+    )
+
+
+def get_recent_patterns(n: int = 10) -> str:
+    """Son n tweet'in açılış kalıplarını çıkar — LLM bunları yasaklasın."""
+    recent = tweet_archive.get_recent_tweet_texts(days=30)
+    if not recent:
+        return ""
+    sample = recent[-n:] if len(recent) >= n else recent
+    # İlk 4 kelimeyi al
+    import re as _re
+    openings = []
+    for t in sample:
+        words = _re.findall(r"\S+", t)[:4]
+        if words:
+            openings.append(" ".join(words).lower().rstrip(".,"))
+    if not openings:
+        return ""
+    banned = "\n".join(f"  • \"{o}...\"" for o in openings)
+    return (
+        f"BANNED OPENINGS (your recent tweets started with these — never repeat):\n"
+        f"{banned}\n\n"
     )

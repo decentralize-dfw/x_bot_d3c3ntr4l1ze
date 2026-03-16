@@ -9,7 +9,7 @@ import re
 
 import groq as groq_sdk
 
-from core.voice import TONE_BLOCK, get_this_weeks_theme, random_belief, get_voice_context
+from core.voice import TONE_BLOCK, get_this_weeks_theme, random_belief, get_voice_context, get_recent_patterns
 import tweet_archive
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
@@ -111,23 +111,39 @@ def is_semantically_duplicate(candidate: str) -> bool:
 
 
 def distill_to_tweet(chunk: str, source_name: str) -> str:
-    voice_ctx = get_voice_context(n=3)
+    voice_ctx = get_voice_context(n=5)
+    banned = get_recent_patterns(n=8)
     prompt = (
         "You write for a digital design studio (Decentralize Design) that builds virtual worlds and manifestos.\n"
-        "From the text below, extract or rephrase ONE powerful, self-contained thought as a tweet (max 130 chars).\n"
+        "From the text below, extract or rephrase ONE powerful, self-contained thought as a tweet.\n"
         "Rules: no quotes, no 'we believe / this manifesto / our studio', reads as a standalone statement.\n"
+        "Length: 50–200 chars. Stop when the idea is complete — don't pad.\n"
         f"{TONE_BLOCK}"
         f"{voice_ctx}"
+        f"{banned}"
         f"Output only the tweet text.\n\nSource: {source_name}\nText:\n{chunk}"
     )
-    client = groq_sdk.Groq(api_key=GROQ_API_KEY)
-    resp = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=60,
-        temperature=0.8,
-    )
-    return resp.choices[0].message.content.strip()
+    return _call_llm(prompt, max_tokens=120, temperature=0.85)
+
+
+# ── Format rotasyon menüsü — tüm generate fonksiyonları bunu kullanır ─────────
+_FORMAT_MENU = """
+Pick ONE format below that is MOST DIFFERENT from your recent tweets. Do not use the same format twice in a row.
+
+FORMAT OPTIONS:
+[A] Diagnosis — name the exact mechanism behind a failure/problem nobody talks about
+[B] Inversion — take a widely held truth and find where it quietly breaks down
+[C] Specificity bomb — one hyper-specific observation that implies a much bigger idea
+[D] Sequence — "first X happens. then Y. most people only see X."
+[E] Named gap — "there is no word for [X] yet. but there should be."
+[F] Uncomfortable admission — something true that people in this space don't say out loud
+[G] Practitioner's note — something you only know from actually building, not from reading
+[H] Time collapse — connect something ancient/permanent to something happening right now
+[I] Anti-hype — deflate a trend by naming what it actually is beneath the surface
+[J] The question nobody asks — not rhetorical, genuinely open, specific enough to sting
+
+After you decide which format fits, write the tweet. Do not label the format in the output.
+"""
 
 
 def generate_viral_tweet(chunk: str, source_name: str, context_tweets: list) -> str:
@@ -135,108 +151,115 @@ def generate_viral_tweet(chunk: str, source_name: str, context_tweets: list) -> 
     context_str = ""
     if context_tweets:
         context_str = (
-            "Trending conversation in this space (inspiration only, do NOT copy or quote):\n"
-            + "\n---\n".join(context_tweets[:2])
+            "Trending conversation (inspiration only — do NOT copy):\n"
+            + "\n---\n".join(context_tweets[:3])
             + "\n\n"
         )
     belief = random_belief()
-    belief_line = f'One of our core beliefs: "{belief}"\n\n' if belief else ""
-    voice_ctx = get_voice_context(n=4)
+    belief_line = f'Core belief: "{belief}"\n\n' if belief else ""
+    voice_ctx = get_voice_context(n=8)
+    banned = get_recent_patterns(n=10)
     weekly = get_this_weeks_theme()
 
     prompt = (
         "You are the voice of @decentralize___, a studio building 3D virtual worlds on-chain.\n\n"
         f"{TONE_BLOCK}\n"
         f"{voice_ctx}"
+        f"{banned}"
         f"{belief_line}"
-        f"This week's exploration theme: {weekly}\n\n"
-        "THINK STEP BY STEP before writing:\n"
+        f"This week's lens: {weekly}\n\n"
+        f"{_FORMAT_MENU}\n"
+        "NOW WRITE:\n"
         "Step 1 — What is the most counterintuitive thing the source material reveals?\n"
-        "Step 2 — What does the mainstream assume that is wrong?\n"
-        "Step 3 — Write ONE tweet that surfaces Step 2 through the lens of Step 1.\n\n"
-        "Tweet format (pick the sharpest fit):\n"
-        "A. Precise observation + unexpected implication\n"
-        "B. Physical vs virtual contrast with a non-obvious takeaway\n"
-        "C. Prediction grounded in a specific mechanism, not vibes\n"
-        "D. Reframe that makes a familiar idea suddenly strange\n\n"
-        "Max 130 chars. First line earns attention through insight, not shock.\n\n"
+        "Step 2 — What does mainstream assume that is demonstrably wrong?\n"
+        "Step 3 — Choose a format from above. Write the tweet.\n\n"
+        "Length: 80–260 characters. No artificial padding. Stop when the point lands.\n"
         f"{context_str}"
-        f"Source philosophy ({source_name}):\n{chunk}\n\n"
-        "Output ONLY the final tweet text — not the steps."
+        f"Source ({source_name}):\n{chunk}\n\n"
+        "Output ONLY the final tweet text."
     )
-    return _call_llm(prompt, max_tokens=120, temperature=0.9)
+    return _call_llm(prompt, max_tokens=180, temperature=0.92)
 
 
 def generate_controversial_tweet(chunk: str, source_name: str, context_tweets: list) -> str:
-    """Chain-of-thought contrarian tweet — intellectually provocative, not rage-bait."""
+    """Contrarian tweet — intellectually provocative, not rage-bait."""
     context_str = ""
     if context_tweets:
         context_str = (
-            "Trending takes (inspiration only, do NOT copy):\n"
-            + "\n---\n".join(context_tweets[:2])
+            "Trending takes (do NOT copy):\n"
+            + "\n---\n".join(context_tweets[:3])
             + "\n\n"
         )
     belief = random_belief()
-    belief_line = f'One of our contested beliefs: "{belief}"\n\n' if belief else ""
-    voice_ctx = get_voice_context(n=4)
+    belief_line = f'Contested belief: "{belief}"\n\n' if belief else ""
+    voice_ctx = get_voice_context(n=8)
+    banned = get_recent_patterns(n=10)
     weekly = get_this_weeks_theme()
 
     prompt = (
         "You are the voice of @decentralize___, a studio building 3D virtual worlds on-chain.\n\n"
         f"{TONE_BLOCK}\n"
         f"{voice_ctx}"
+        f"{banned}"
         f"{belief_line}"
-        f"This week's exploration theme: {weekly}\n\n"
-        "THINK STEP BY STEP before writing:\n"
-        "Step 1 — What widely held assumption about virtual/physical space is demonstrably wrong?\n"
-        "Step 2 — What is the actual truth, and why does it make people uncomfortable?\n"
-        "Step 3 — Write ONE tweet that delivers Step 2 with precision, not rage.\n\n"
-        "Format options:\n"
-        "A. Wrong assumption + actual truth\n"
-        "B. Prediction that exposes what mainstream is missing\n"
-        "C. Uncomfortable contradiction in how people think about virtual vs physical space\n"
-        "D. Reframe that makes a familiar idea suddenly strange\n\n"
-        "Max 130 chars. Intellectually provocative, not rage-bait.\n\n"
+        f"This week's lens: {weekly}\n\n"
+        f"{_FORMAT_MENU}\n"
+        "NOW WRITE (contrarian edition):\n"
+        "Step 1 — Find ONE widely held assumption in this space that is quietly wrong.\n"
+        "Step 2 — What is actually true, and why does it make people uncomfortable to say?\n"
+        "Step 3 — Choose a format. Write the tweet.\n\n"
+        "Tone: precision over provocation. IQ 150 thinking, not hot take. "
+        "80–260 chars. Stop when it lands.\n\n"
         f"{context_str}"
-        f"Source philosophy ({source_name}):\n{chunk}\n\n"
-        "Output ONLY the final tweet text — not the steps."
+        f"Source ({source_name}):\n{chunk}\n\n"
+        "Output ONLY the final tweet text."
     )
-    return _call_llm(prompt, max_tokens=120, temperature=0.92)
+    return _call_llm(prompt, max_tokens=180, temperature=0.94)
 
 
 def generate_media_caption(name: str, description: str, type_label: str) -> str:
-    """One complete, self-contained caption for a media item. ≤120 chars."""
+    """Self-contained caption for a media item — visual, precise, no hard char limit."""
+    voice_ctx = get_voice_context(n=3)
+    banned = get_recent_patterns(n=6)
     prompt = (
         "You write captions for @decentralize___ (a studio building 3D virtual worlds on-chain).\n"
-        "Write ONE complete sentence caption for this media item. Max 120 characters.\n"
-        "Rules: complete sentence, makes sense to someone who has never heard of this project, "
-        "no studio name, no 'this is...'. State what it IS or what it MEANS with precision.\n"
+        "Write ONE caption for this media item.\n"
+        "Rules: makes sense standalone, no studio name, no 'this is...'. "
+        "State what it IS or what it MEANS. Visual, precise, complete.\n"
+        "Length: 40–160 chars. Stop when the idea is expressed — don't pad.\n"
         f"{TONE_BLOCK}"
+        f"{voice_ctx}"
+        f"{banned}"
         f"Item: {type_label} — {name}\n"
         f"Description: {description}\n\n"
         "Output ONLY the caption."
     )
-    return _call_llm(prompt, max_tokens=50, temperature=0.7)
+    return _call_llm(prompt, max_tokens=80, temperature=0.78)
 
 
 def generate_artwork_tweet(name: str, description: str, categories: dict) -> str:
-    """Short punchy tweet for an artwork drop. ≤ 130 chars."""
+    """Tweet for an artwork drop — conceptually sharp, no hard char limit."""
     meta = ", ".join(
         f"{k}: {v}" for k, v in categories.items()
         if v and k in ('year', 'type', 'medium', 'collection')
     )
+    voice_ctx = get_voice_context(n=3)
+    banned = get_recent_patterns(n=6)
     prompt = (
         "You write for @decentralize___, a studio building 3D virtual worlds on-chain.\n"
-        "Write ONE tweet announcing this artwork drop. Max 130 characters.\n"
-        "Rules: complete sentence, no studio name, no quotes, no 'this is...'.\n"
-        "State what it IS or what makes it conceptually significant. Visual and precise.\n"
+        "Write ONE tweet announcing this artwork. "
+        "No studio name, no quotes, no 'this is...'. "
+        "State what makes it conceptually significant. Visual and precise.\n"
+        "Length: 50–200 chars. Stop when it lands.\n"
         f"{TONE_BLOCK}"
+        f"{voice_ctx}"
+        f"{banned}"
         f"Artwork: {name}\n"
         f"Description: {description}\n"
         f"Details: {meta}\n\n"
         "Output ONLY the tweet text."
     )
-    return _call_llm(prompt, max_tokens=55, temperature=0.75)
+    return _call_llm(prompt, max_tokens=100, temperature=0.82)
 
 
 def generate_news_headline(title: str, article_text: str, source: str) -> str:
@@ -251,47 +274,77 @@ def generate_news_headline(title: str, article_text: str, source: str) -> str:
 
 
 def generate_news_tweet(title: str, article_text: str, source: str, prior_opinions: list = None) -> str:
-    """3-5 word sharp fragment as news commentary."""
+    """News commentary — varied format, no 3-5 word lock, bellek entegreli."""
+    import random as _rnd
     prior_block = ""
     if prior_opinions:
-        prior_lines = "\n".join(f"- {o}" for o in prior_opinions[:3])
+        prior_lines = "\n".join(f"- {o}" for o in prior_opinions[:5])
         prior_block = (
-            f"You previously commented on similar topics:\n{prior_lines}\n"
-            "Build on this perspective — evolve the idea, don't repeat it.\n\n"
+            f"Your previous takes on similar topics:\n{prior_lines}\n"
+            "Evolve the thinking — don't repeat the same angle.\n\n"
         )
+    banned = get_recent_patterns(n=10)
+    voice_ctx = get_voice_context(n=6)
+
+    # Farklı commentary tarzları arasında rotate
+    styles = [
+        "Write ONE sharp observation about what this news actually means for virtual worlds, on-chain ownership, or spatial computing. Not a summary. Your angle.",
+        "Write the thing this article doesn't say but implies. One sentence or fragment — the subtext.",
+        "Write your reaction as someone who builds in this space. What does this news change, break, or confirm for you?",
+        "Write the uncomfortable implication of this news. What does it mean for the next 3 years?",
+        "Write what most people will miss when they read this headline. The detail that actually matters.",
+    ]
+    style = _rnd.choice(styles)
+
     prompt = (
-        "You are @decentralize___, building 3D virtual worlds on-chain.\n"
-        f"{TONE_BLOCK}"
+        "You are @decentralize___, building 3D virtual worlds on-chain.\n\n"
+        f"{TONE_BLOCK}\n"
+        f"{voice_ctx}"
+        f"{banned}"
         f"{prior_block}"
-        "Read the article below and write a SINGLE sharp commentary fragment.\n"
-        "Rules: EXACTLY 3 to 5 words. No sentence structure needed. No @mentions. "
-        "A precise gut-punch fragment that reveals something the headline missed. Max 30 chars.\n\n"
-        f"Source: {source}\n"
-        f"Title: {title}\n"
-        f"Article:\n{article_text[:1500]}\n\n"
-        "Output ONLY the 3-5 word fragment."
+        f"{style}\n\n"
+        "Rules: no 'this article says', no 'breaking:', no @mentions, no links. "
+        "Can be a full sentence, a fragment, or 2 short sentences. "
+        "40–200 chars. Hashtags optional (max 2 if used).\n\n"
+        f"Source: {source}\nTitle: {title}\n"
+        f"Article:\n{article_text[:2000]}\n\n"
+        "Output ONLY the commentary."
     )
-    return _call_llm(prompt, max_tokens=20, temperature=0.92).strip('"\'')
+    return _call_llm(prompt, max_tokens=120, temperature=0.93).strip('"\'')
 
 
 def generate_thread_reply(main_tweet: str) -> str | None:
-    """Reply that directly extends the main tweet's argument."""
+    """Self-reply that extends the main tweet — kendi thread'ine devam."""
     if not GROQ_API_KEY:
         return None
+    import random as _rnd
+    banned = get_recent_patterns(n=8)
+
+    extensions = [
+        "Write the 'because' — the underlying mechanism that makes the tweet true.",
+        "Write the implication — if the tweet is right, what has to change?",
+        "Write the edge case — where does this break down, and what does that reveal?",
+        "Write the real stakes — why does this actually matter in 5 years?",
+        "Write the practitioner's addendum — something you know from building that makes this even more true.",
+    ]
+    ext = _rnd.choice(extensions)
+
     prompt = (
         "You just posted this tweet:\n"
         f'"{main_tweet}"\n\n'
-        "Write ONE reply to yourself that deepens the argument — the 'because', the implication, or the real stakes.\n"
-        "The reply must connect DIRECTLY to what the tweet said. Not a generic question. Not a new topic.\n\n"
-        "BAD REPLY: 'what changes when your workspace has no walls?' — disconnected\n"
-        "BAD REPLY: 'Rethink trust models.' — vague\n"
-        "GOOD REPLY (wallets/dependency tweet): 'the interface is the leash. always has been.'\n"
-        "GOOD REPLY (VR retention tweet): 'people don't return to experiences. they return to places.'\n\n"
-        f"{TONE_BLOCK}"
-        "40-120 characters. No 'we'. Natural follow-through thought.\n"
-        "Output ONLY the reply text."
+        f"{ext}\n\n"
+        "Rules:\n"
+        "- Connect DIRECTLY to what the tweet said — not a new topic\n"
+        "- No generic questions ('what do you think?')\n"
+        "- No 'we' or studio branding\n"
+        "- Lowercase is fine\n"
+        f"{banned}"
+        "BAD: 'what changes when your workspace has no walls?' — disconnected\n"
+        "GOOD: 'the interface is the leash. always has been.' — direct extension\n"
+        "GOOD: 'people don't return to experiences. they return to places.' — deepens the point\n\n"
+        "40–180 chars. Output ONLY the reply text."
     )
-    return _call_llm(prompt, max_tokens=60, temperature=0.88).strip('"\'')
+    return _call_llm(prompt, max_tokens=100, temperature=0.9).strip('"\'')
 
 
 def generate_reply_comment(original_tweet: str) -> str:
@@ -351,24 +404,37 @@ def generate_reply_comment(original_tweet: str) -> str:
 
 def generate_quote_commentary(original_tweet: str) -> str:
     """LLM: target tweet'e quote commentary — kendi sesimizden, keskin görüş."""
-    voice_ctx = get_voice_context(n=3)
+    import random as _rnd
+    voice_ctx = get_voice_context(n=5)
+    banned = get_recent_patterns(n=10)
     belief = random_belief()
+    weekly = get_this_weeks_theme()
+
+    angles = [
+        "Sharpen their point — write a more precise, more honest version of what they're trying to say.",
+        "Find the gap — name the thing their logic is quietly skipping over.",
+        "Add the missing dimension — the part they completely missed that changes the whole picture.",
+        "Respectfully disagree — name the specific assumption they're making that you think is wrong, and say why in one sentence.",
+    ]
+    angle = _rnd.choice(angles)
+
     prompt = (
         "You are @decentralize___, a studio building 3D virtual worlds on-chain.\n\n"
         f"{TONE_BLOCK}\n"
         f"{voice_ctx}"
+        f"{banned}"
+        f"This week's lens: {weekly}\n"
         f'One of our beliefs: "{belief}"\n\n'
-        "Someone just said this:\n"
-        f'"{original_tweet}"\n\n'
-        "Write a quote-tweet commentary from our perspective. Options:\n"
-        "A. Sharpen their point with a more precise version\n"
-        "B. Find the gap in their logic and name it\n"
-        "C. Add the dimension they completely missed\n"
-        "D. Respectfully disagree with the specific assumption they're making\n\n"
-        "Max 200 characters. No 'RT @'. No 'great point'. No sycophancy. Your own voice.\n"
+        f"Someone just said:\n\"{original_tweet}\"\n\n"
+        f"Your task: {angle}\n\n"
+        "Rules:\n"
+        "- No 'RT @'. No 'great point'. No sycophancy.\n"
+        "- No buzzword salads. Say something specific.\n"
+        "- Your own voice — not a newsletter, not a press release.\n"
+        "- 40–200 chars. Stop when the point lands.\n\n"
         "Output ONLY the commentary text."
     )
-    return _call_llm(prompt, max_tokens=90, temperature=0.88).strip('"\'')
+    return _call_llm(prompt, max_tokens=120, temperature=0.90).strip('"\'')
 
 
 def generate_viral_mix_tweet(target_tweets: list, manifesto_chunk: str, source_name: str,
@@ -377,7 +443,8 @@ def generate_viral_mix_tweet(target_tweets: list, manifesto_chunk: str, source_n
 
     pattern_context: AŞAMA 2 pattern extraction çıktısı (opsiyonel).
     """
-    voice_ctx = get_voice_context(n=4)
+    voice_ctx = get_voice_context(n=6)
+    banned = get_recent_patterns(n=10)
     weekly = get_this_weeks_theme()
     belief = random_belief()
 
@@ -399,20 +466,23 @@ def generate_viral_mix_tweet(target_tweets: list, manifesto_chunk: str, source_n
         "You are the voice of @decentralize___, a studio building 3D virtual worlds on-chain.\n\n"
         f"{TONE_BLOCK}\n"
         f"{voice_ctx}"
+        f"{banned}"
         f'One of our core beliefs: "{belief}"\n\n'
         f"This week's exploration theme: {weekly}\n\n"
         f"{pattern_block}"
+        f"{_FORMAT_MENU}\n"
         f"{context_block}\n\n"
         "THINK STEP BY STEP:\n"
         "Step 1 — Which headline reveals the deepest tension or the biggest misunderstanding?\n"
         "Step 2 — What does the mainstream believe about this? Where are they wrong?\n"
-        "Step 3 — Write ONE tweet from our perspective that corrects Step 2 with precision.\n\n"
+        "Step 3 — Choose ONE format from above. Write the tweet.\n\n"
         "BAD: 'NEWS: New wallet research...' — restates headline, zero insight\n"
         "BAD: 'Rethink trust models.' — vague slogan\n"
         "GOOD: 'Every wallet preserving UX is protecting the part that keeps users dependent.' — reveals a mechanism\n"
         "GOOD: 'VR retention collapsed because studios kept building tourist attractions, not places to inhabit.' — diagnosis\n\n"
-        "100-220 characters. No 'NEWS:' prefix. No 'we'. No links. Expert thinking out loud.\n"
+        "No 'NEWS:' prefix. No 'we'. No links. Expert thinking out loud. "
+        "Stop when the point lands — no artificial padding.\n"
         f"Our manifesto ({source_name}):\n{manifesto_chunk}\n\n"
         "Output ONLY the final tweet text — not the steps."
     )
-    return _call_llm(prompt, max_tokens=130, temperature=0.92).strip('"\'')
+    return _call_llm(prompt, max_tokens=180, temperature=0.92).strip('"\'')
