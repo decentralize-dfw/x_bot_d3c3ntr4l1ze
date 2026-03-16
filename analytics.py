@@ -247,6 +247,7 @@ def print_report(records: list[dict]):
 # ── Failed tweets raporu (Faz 3.4 — rapor2.txt §3.4) ─────────────────────────
 
 FAILED_PATH = os.path.join(os.path.dirname(__file__), "failed_tweets.json")
+SCAN_PATH   = os.path.join(os.path.dirname(__file__), "scan_results.json")
 
 
 def report_failures(days: int = 7) -> None:
@@ -285,6 +286,53 @@ def report_failures(days: int = 7) -> None:
         bar = "█" * min(count, 20)
         print(f"  {ct:<28} {bar} {count}")
     print()
+
+
+# ── AŞAMA 2: Pattern Extraction ───────────────────────────────────────────────
+
+def analyze_scan_patterns(top_n: int = 10) -> str:
+    """scan_results.json'dan yüksek engagement tweet pattern'larını çıkar (AŞAMA 2).
+
+    Döndürür: LLM prompt'una inject edilecek kısa bağlam metni.
+    """
+    try:
+        with open(SCAN_PATH, "r", encoding="utf-8") as f:
+            results = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return ""
+
+    if not results:
+        return ""
+
+    # En yüksek engagement tweet'leri al
+    top = sorted(results, key=lambda r: r.get("engagement_score", 0), reverse=True)[:top_n]
+
+    # Kelime frekansı ile baskın temaları çıkar
+    from collections import Counter
+    import re as _re
+    stop = {"the","a","an","is","are","was","were","be","been","have","has","do","does",
+            "will","would","could","should","not","but","and","or","for","in","on","at",
+            "to","of","with","that","this","it","by","we","you","they","just","so","if",
+            "when","what","how","who","there","very","too","even","now","all","some",
+            "more","no","i","my","your","our","its","their","from","into","as","than",
+            "can","may","might","must","rt","via"}
+    words: Counter = Counter()
+    for r in top:
+        tokens = _re.findall(r"[a-z]+", r["text"].lower())
+        for t in tokens:
+            if t not in stop and len(t) > 3:
+                words[t] += 1
+
+    top_words = [w for w, _ in words.most_common(12)]
+    top_texts = [r["text"][:120] for r in top[:5]]
+
+    lines = ["High-engagement tweets in your niche right now (AŞAMA 2 — pattern context):"]
+    for txt in top_texts:
+        lines.append(f"  • {txt}")
+    if top_words:
+        lines.append(f"Dominant themes: {', '.join(top_words)}")
+
+    return "\n".join(lines)
 
 
 # ── Entrypoint ────────────────────────────────────────────────────────────────

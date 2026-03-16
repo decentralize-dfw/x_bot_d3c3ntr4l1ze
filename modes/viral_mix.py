@@ -24,7 +24,7 @@ from core.llm import (
 )
 from core.quality import post_with_retry
 from core.rss import _parse_rss_all
-from core.twitter import get_twitter_clients
+from core.twitter import get_twitter_clients, get_twitter_client_with_bearer
 from core.voice import NICHE_KEYWORDS, get_this_weeks_theme
 from utils.http import get_session
 from utils.logger import get_logger
@@ -149,7 +149,7 @@ def fetch_target_tweets(n_targets: int = 10, max_results: int = 20) -> list:
         top_targets = sorted(targets, key=lambda t: t.get("engagement_score", 0), reverse=True)[:n_targets]
         usernames = [t["username"] for t in top_targets if t.get("username")]
         if usernames:
-            client, _ = get_twitter_clients()
+            client = get_twitter_client_with_bearer()  # Bearer token for search
             from_clause = " OR ".join(f"from:{u}" for u in usernames)
             resp = client.search_recent_tweets(
                 query=f"({from_clause}) -is:retweet -is:reply lang:en",
@@ -180,9 +180,42 @@ def fetch_target_tweets(n_targets: int = 10, max_results: int = 20) -> list:
     return fetch_viral_context()
 
 
+def _load_scan_results(max_age_hours: int = 12) -> list:
+    """scan_results.json'dan taze tarama sonuçlarını yükle (AŞAMA 1)."""
+    scan_path = os.path.join(os.path.dirname(__file__), "..", "scan_results.json")
+    try:
+        with open(scan_path, "r", encoding="utf-8") as f:
+            results = json.load(f)
+        if not results:
+            return []
+        # Tazelik kontrolü: ilk kaydın fetched_at'ına bak
+        from datetime import datetime, timezone, timedelta
+        fetched_at = datetime.fromisoformat(results[0]["fetched_at"])
+        if fetched_at.tzinfo is None:
+            fetched_at = fetched_at.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) - fetched_at > timedelta(hours=max_age_hours):
+            logger.info("scan_results.json too old, will use live API search.")
+            return []
+        logger.info(f"Using scan_results.json: {len(results)} tweets (AŞAMA 1).")
+        return results
+    except Exception:
+        return []
+
+
 def fetch_target_tweets_with_ids(n_targets: int = 3) -> list:
-    """Target tweet'leri id + text ile döndür (quote/reply için)."""
-    client, _ = get_twitter_clients()
+    """Target tweet'leri id + text ile döndür (quote/reply/RT için).
+
+    Önce günlük tarama sonuçlarını (scan_results.json) dener (AŞAMA 1).
+    Taze değilse Twitter API ile canlı arama yapar.
+    """
+    # AŞAMA 1: Önce günlük tarama sonuçlarını dene
+    scan = _load_scan_results(max_age_hours=12)
+    if scan:
+        sample = random.sample(scan, min(n_targets, len(scan)))
+        return [{"id": r["tweet_id"], "text": r["text"], "author": r["author"]} for r in sample]
+
+    # Fallback: canlı API araması
+    client = get_twitter_client_with_bearer()  # Bearer token required for search_recent_tweets
     try:
         with open("targets.json", "r", encoding="utf-8") as f:
             targets = json.load(f)
@@ -263,13 +296,20 @@ def post_viral_mix_tweet():
     if not target_tweets:
         logger.info("No target tweets available, generating from manifesto only...")
 
+    # AŞAMA 2: Pattern extraction context
+    try:
+        from analytics import analyze_scan_patterns
+        pattern_ctx = analyze_scan_patterns()
+    except Exception:
+        pattern_ctx = ""
+
     def _gen():
         words = content.split()
         chunk = content
         if len(words) > 100:
             start = random.randint(0, len(words) - 100)
             chunk = " ".join(words[start : start + 100])
-        cand = generate_viral_mix_tweet(target_tweets, chunk, name)
+        cand = generate_viral_mix_tweet(target_tweets, chunk, name, pattern_context=pattern_ctx)
         if len(cand) < 50:
             raise ValueError(f"tweet too short: {len(cand)} chars")
         return cand

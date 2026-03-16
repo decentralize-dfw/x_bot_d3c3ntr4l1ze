@@ -19,8 +19,9 @@ Modlar:
     community_pulse      Haftalık RSS özet thread'i (Pazartesi)
     data_viz             Haftalık niche frekans bar chart tweeti
     quote_tweet          Target tweet'leri quote et (Premium — AKTİF)
-    reply_mode           Target tweet'lerine kriptik yanıt ver (Premium — YENİ)
-    like_mode            Target tweet'lerine like at (Premium — YENİ)
+    reply_mode           Target tweet'lerine kriptik yanıt ver (Premium — AKTİF)
+    like_mode            Target tweet'lerine like at (Premium — AKTİF)
+    retweet_mode         Target tweet'lerini retweet et (Premium — YENİ)
 """
 import sys
 from datetime import datetime, timezone
@@ -32,7 +33,7 @@ _QUIET_DAY = 6  # Pazar
 _QUIET_EXEMPT = {
     "morning", "community_pulse", "data_viz",
     "drift_check", "quote_tweet",
-    "reply_mode", "like_mode",  # engagement modları Pazar da çalışır
+    "reply_mode", "like_mode", "retweet_mode",  # engagement modları Pazar da çalışır
     None,
 }
 
@@ -98,6 +99,10 @@ def main():
     elif mode == "like_mode":
         from modes.like_mode import post_like_tweets
         post_like_tweets()
+
+    elif mode == "retweet_mode":
+        from modes.retweet_mode import post_retweet
+        post_retweet()
 
     else:
         # Saat bazlı fallback (geriye uyumluluk + manuel test)
