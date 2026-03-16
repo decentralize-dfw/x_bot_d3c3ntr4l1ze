@@ -20,6 +20,10 @@ on:
     - cron: '0 20 * * *'
     # TR 15:00 -> UTC 12:00  — Viral mix (target audience fusion)
     - cron: '0 12 * * *'
+    # TR 09:00 -> UTC 06:00 Pazartesi — Community pulse thread
+    - cron: '0 6 * * 1'
+    # TR 12:00 -> UTC 09:00 Perşembe — Data viz tweet
+    - cron: '0 9 * * 4'
   workflow_dispatch:
     inputs:
       mode:
@@ -36,6 +40,8 @@ on:
           - artwork
           - morning
           - viral_mix
+          - community_pulse
+          - data_viz
 
 jobs:
   transmit:
@@ -101,6 +107,12 @@ jobs:
           elif [ "$SCHEDULE" = "0 12 * * *" ]; then
             echo "Mode: viral_mix (target audience fusion)"
             python bot.py viral_mix
+          elif [ "$SCHEDULE" = "0 6 * * 1" ]; then
+            echo "Mode: community_pulse (weekly thread)"
+            python bot.py community_pulse
+          elif [ "$SCHEDULE" = "0 9 * * 4" ]; then
+            echo "Mode: data_viz (weekly chart tweet)"
+            python bot.py data_viz
           else
             echo "Mode: manual dispatch — running evening"
             python bot.py evening
