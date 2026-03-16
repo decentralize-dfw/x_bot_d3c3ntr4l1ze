@@ -150,11 +150,6 @@
     "posted_at": "2026-03-11T13:35:19.180615"
   },
   {
-    "content_id": "gallery",
-    "content_type": "evening_text",
-    "posted_at": "2026-03-11T15:18:26.214595"
-  },
-  {
     "content_id": "dfw-12",
     "content_type": "evening_controversial",
     "posted_at": "2026-03-11T20:14:40.468675"
@@ -425,6 +420,14 @@
     "posted_at": "2026-03-16T16:25:13.082037+00:00",
     "tweet_text": "By liberating elements from physical utility, we enter an aesthetic where Zen minimalism meets high-tech futurism. ꩜",
     "tweet_id": "2033580353202577861",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "gallery",
+    "content_type": "evening_text",
+    "posted_at": "2026-03-16T18:27:59.698166+00:00",
+    "tweet_text": "Different zones trigger distinct DJ sets, creating a multi-sensory retail loop. ꩜",
+    "tweet_id": "2033611250987339810",
     "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
   }
 ]
