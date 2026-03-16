@@ -316,8 +316,12 @@ def generate_quote_commentary(original_tweet: str) -> str:
     return _call_llm(prompt, max_tokens=90, temperature=0.88).strip('"\'')
 
 
-def generate_viral_mix_tweet(target_tweets: list, manifesto_chunk: str, source_name: str) -> str:
-    """Chain-of-thought viral mix — trending headlines + manifesto + bot memory + weekly theme."""
+def generate_viral_mix_tweet(target_tweets: list, manifesto_chunk: str, source_name: str,
+                             pattern_context: str = "") -> str:
+    """Chain-of-thought viral mix — trending headlines + manifesto + bot memory + weekly theme.
+
+    pattern_context: AŞAMA 2 pattern extraction çıktısı (opsiyonel).
+    """
     voice_ctx = get_voice_context(n=4)
     weekly = get_this_weeks_theme()
     belief = random_belief()
@@ -334,12 +338,15 @@ def generate_viral_mix_tweet(target_tweets: list, manifesto_chunk: str, source_n
             "in WebXR, on-chain ownership, virtual studio design, and spatial computing right now."
         )
 
+    pattern_block = f"\n{pattern_context}\n" if pattern_context else ""
+
     prompt = (
         "You are the voice of @decentralize___, a studio building 3D virtual worlds on-chain.\n\n"
         f"{TONE_BLOCK}\n"
         f"{voice_ctx}"
         f'One of our core beliefs: "{belief}"\n\n'
         f"This week's exploration theme: {weekly}\n\n"
+        f"{pattern_block}"
         f"{context_block}\n\n"
         "THINK STEP BY STEP:\n"
         "Step 1 — Which headline reveals the deepest tension or the biggest misunderstanding?\n"

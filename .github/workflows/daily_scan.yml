@@ -1,0 +1,45 @@
+name: Daily Niche Scan (AŞAMA 1)
+
+on:
+  schedule:
+    # Her gün 05:30 UTC — reply/quote/RT modlarından önce tarama tamamlansın
+    - cron: '30 5 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install tweepy
+
+      - name: Run daily scan
+        env:
+          BEARERTOKEN: ${{ secrets.BEARERTOKEN }}
+        run: python daily_scan.py
+
+      - name: Commit scan results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add scan_results.json
+          git diff --staged --quiet && echo "No scan changes." && exit 0
+          git commit -m "scan: daily niche scan results $(date -u +%Y-%m-%d)"
+          git push origin ${{ github.ref_name }} || (
+            git pull --rebase origin ${{ github.ref_name }} &&
+            git push origin ${{ github.ref_name }}
+          )
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

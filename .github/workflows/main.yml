@@ -24,12 +24,20 @@ on:
     - cron: '0 6 * * 1'
     # TR 12:00 -> UTC 09:00 Perşembe — Data viz tweet
     - cron: '0 9 * * 4'
-    # TR 14:00 -> UTC 11:00 Salı,Perşembe,Cuma — Quote tweet (Premium)
-    - cron: '0 11 * * 2,4,5'
-    # TR 16:00 -> UTC 13:00 Hergün — Reply mode (Premium)
+    # TR 13:00 -> UTC 10:00 Hergün — Quote tweet (Premium, günlük)
+    - cron: '0 10 * * *'
+    # TR 16:00 -> UTC 13:00 Hergün — Reply mode #1 (Premium)
     - cron: '0 13 * * 1-6'
+    # TR 20:00 -> UTC 17:00 Hergün — Reply mode #2 (Premium, 2x/gün = 10 reply/gün)
+    - cron: '0 17 * * 1-6'
     # TR 10:00 -> UTC 07:00 Hergün — Like mode (morning ile birlikte)
     - cron: '0 7 * * 1-6'
+    # TR 11:00 -> UTC 08:00 Hergün — Retweet mode #1 (Premium)
+    - cron: '0 8 * * 1-6'
+    # TR 23:00 -> UTC 20:00 Hergün — Retweet mode #2 (Premium, 2x/gün)
+    - cron: '0 20 * * 1-6'
+    # Pazar 08:00 UTC — Engagement backfill (AŞAMA 4)
+    - cron: '0 8 * * 0'
   workflow_dispatch:
     inputs:
       mode:
@@ -51,6 +59,8 @@ on:
           - quote_tweet
           - reply_mode
           - like_mode
+          - retweet_mode
+          - engagement_backfill
 
 jobs:
   transmit:
@@ -78,6 +88,7 @@ jobs:
           TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
           TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
           TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+          BEARERTOKEN: ${{ secrets.BEARERTOKEN }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           SCHEDULE: ${{ github.event.schedule }}
           DISPATCH_MODE: ${{ github.event.inputs.mode }}
@@ -85,7 +96,11 @@ jobs:
           # Manuel dispatch'te mode input'u varsa onu kullan
           if [ -n "$DISPATCH_MODE" ]; then
             echo "Mode: manual dispatch override → $DISPATCH_MODE"
-            python bot.py "$DISPATCH_MODE"
+            if [ "$DISPATCH_MODE" = "engagement_backfill" ]; then
+              python engagement_backfill.py
+            else
+              python bot.py "$DISPATCH_MODE"
+            fi
             exit 0
           fi
           echo "Triggered by schedule: '$SCHEDULE'"
@@ -122,15 +137,22 @@ jobs:
           elif [ "$SCHEDULE" = "0 9 * * 4" ]; then
             echo "Mode: data_viz (weekly chart tweet)"
             python bot.py data_viz
-          elif [ "$SCHEDULE" = "0 11 * * 2,4,5" ]; then
-            echo "Mode: quote_tweet (Premium — Salı/Perşembe/Cuma)"
+          elif [ "$SCHEDULE" = "0 10 * * *" ]; then
+            echo "Mode: quote_tweet (Premium — günlük)"
             python bot.py quote_tweet
-          elif [ "$SCHEDULE" = "0 13 * * 1-6" ]; then
-            echo "Mode: reply_mode (Premium — hergün)"
+          elif [ "$SCHEDULE" = "0 13 * * 1-6" ] || [ "$SCHEDULE" = "0 17 * * 1-6" ]; then
+            echo "Mode: reply_mode (Premium — hergün 2x)"
             python bot.py reply_mode
           elif [ "$SCHEDULE" = "0 7 * * 1-6" ]; then
             echo "Mode: like_mode (Premium — hergün)"
             python bot.py like_mode
+          elif [ "$SCHEDULE" = "0 8 * * 1-6" ] || [ "$SCHEDULE" = "0 20 * * 1-6" ]; then
+            echo "Mode: retweet_mode (Premium — hergün 2x)"
+            python bot.py retweet_mode
+          elif [ "$SCHEDULE" = "0 8 * * 0" ]; then
+            echo "Mode: engagement_backfill (AŞAMA 4 — Pazar)"
+            pip install -r requirements.txt -q
+            python engagement_backfill.py
           else
             echo "Mode: manual dispatch — running evening"
             python bot.py evening
