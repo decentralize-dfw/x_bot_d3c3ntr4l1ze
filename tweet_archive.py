@@ -136,7 +136,8 @@ def is_theme_in_cooldown(tweet_text: str) -> bool:
     return False
 
 
-def record_post(content_id, content_type="unknown", tweet_text=None, tweet_id=None, weekly_theme=None):
+def record_post(content_id, content_type="unknown", tweet_text=None, tweet_id=None,
+                weekly_theme=None, media_url=None):
     entries = load_archive()
     entries = [e for e in entries if e["content_id"] != content_id]
     entry = {
@@ -153,6 +154,8 @@ def record_post(content_id, content_type="unknown", tweet_text=None, tweet_id=No
         entry["tweet_id"] = str(tweet_id)
     if weekly_theme:
         entry["weekly_theme"] = weekly_theme
+    if media_url:
+        entry["media_url"] = media_url
     entries.append(entry)
     save_archive(entries)
 

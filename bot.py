@@ -430,7 +430,8 @@ def post_morning_tweet():
             resp = client.create_tweet(text=tweet_text)
         tweet_archive.record_post(selected['id'], content_type="morning_media",
                                   tweet_text=tweet_text, tweet_id=resp.data['id'],
-                                  weekly_theme=get_this_weeks_theme())
+                                  weekly_theme=get_this_weeks_theme(),
+                                  media_url=media_url_to_download if media_ids else None)
         print(f"Morning broadcast complete: {name}")
     except tweepy.errors.Forbidden as e:
         api_codes = getattr(e, 'api_codes', [])
@@ -840,6 +841,7 @@ def post_artwork_tweet():
 
     # Download and upload the first image
     media_ids = []
+    img_url = None
     media_list = artwork.get('media', [])
     if media_list:
         img_url = media_list[0].get('src')
@@ -868,7 +870,8 @@ def post_artwork_tweet():
 
     tweet_archive.record_post(artwork['id'], content_type="artwork",
                               tweet_text=tweet_text, tweet_id=tweet_id,
-                              weekly_theme=get_this_weeks_theme())
+                              weekly_theme=get_this_weeks_theme(),
+                              media_url=img_url)
     # Thread: second tweet with site link + hashtags
     client.create_tweet(
         text="explore the collection: de-centralize.com #digitalart #metaverse",
@@ -1310,7 +1313,10 @@ def _post_news_tweet(site_url, source_name):
 
     print(f"Posting {source_name} tweet 2 ({len(tweet2)} chars): {tweet2}")
     try:
-        client.create_tweet(text=tweet2, in_reply_to_tweet_id=tweet1_id)
+        resp2 = client.create_tweet(text=tweet2, in_reply_to_tweet_id=tweet1_id)
+        tweet_archive.record_post(article_id + "_reply", content_type="news_reply",
+                                  tweet_text=tweet2, tweet_id=resp2.data['id'],
+                                  weekly_theme=get_this_weeks_theme())
         print(f"{source_name} thread posted.")
     except Exception as e:
         print(f"{source_name} tweet 2 post error: {e}")
@@ -1640,7 +1646,8 @@ def post_quote_tweet():
         resp = client.create_tweet(text=commentary, quote_tweet_id=selected['id'])
         archive_id = "qt_" + hashlib.md5(selected['text'].encode()).hexdigest()[:12]
         tweet_archive.record_post(archive_id, content_type="quote_tweet",
-                                  tweet_text=commentary, tweet_id=resp.data['id'])
+                                  tweet_text=commentary, tweet_id=resp.data['id'],
+                                  weekly_theme=get_this_weeks_theme())
         print(f"Quote-tweet posted: {resp.data['id']}")
     except Exception as e:
         print(f"Quote-tweet failed: {e}")
