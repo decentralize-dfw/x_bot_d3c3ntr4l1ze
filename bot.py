@@ -74,11 +74,22 @@ def _load_beliefs() -> dict:
     except Exception:
         return {}
 
+_used_beliefs_this_session: set = set()
+
 def _random_belief() -> str:
-    """Rastgele bir core belief veya contested claim döndür."""
+    """Belief seç. Aynı çalışma (session) içinde aynı belief tekrarlanmaz."""
+    global _used_beliefs_this_session
     b = _load_beliefs()
     pool = b.get("core_beliefs", []) + b.get("contested_claims", [])
-    return random.choice(pool) if pool else ""
+    if not pool:
+        return ""
+    unused = [p for p in pool if p not in _used_beliefs_this_session]
+    if not unused:
+        _used_beliefs_this_session.clear()
+        unused = pool
+    choice = random.choice(unused)
+    _used_beliefs_this_session.add(choice)
+    return choice
 
 # ── Bot hafızası (rolling context window) ─────────────────────────────────────
 def get_voice_context(n: int = 5) -> str:
@@ -248,8 +259,15 @@ def format_tweet(text):
 
 
 def load_db():
-    with open('database.json', 'r', encoding='utf-8') as file:
-        return json.load(file)
+    try:
+        with open('database.json', 'r', encoding='utf-8') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        print("database.json not found, returning empty list.")
+        return []
+    except json.JSONDecodeError as e:
+        print(f"database.json parse error: {e}")
+        return []
 
 def fix_wix_video_url(url):
     """Wix video URL'lerini indirilebilir formata çevirir."""
@@ -405,7 +423,8 @@ def post_morning_tweet():
         else:
             resp = client.create_tweet(text=tweet_text)
         tweet_archive.record_post(selected['id'], content_type="morning_media",
-                                  tweet_text=tweet_text, tweet_id=resp.data['id'])
+                                  tweet_text=tweet_text, tweet_id=resp.data['id'],
+                                  weekly_theme=get_this_weeks_theme())
         print(f"Morning broadcast complete: {name}")
     except tweepy.errors.Forbidden as e:
         api_codes = getattr(e, 'api_codes', [])
@@ -427,7 +446,8 @@ def post_morning_tweet():
             retry_text = format_tweet(trim_for_format(f"{type_label2} {name2}\n\n{caption2}"))
             resp2 = client.create_tweet(text=retry_text)
             tweet_archive.record_post(selected2['id'], content_type="morning_media",
-                                      tweet_text=retry_text, tweet_id=resp2.data['id'])
+                                      tweet_text=retry_text, tweet_id=resp2.data['id'],
+                                      weekly_theme=get_this_weeks_theme())
             print(f"Morning broadcast complete (retry): {name2}")
         else:
             raise
@@ -739,7 +759,8 @@ def post_evening_tweet():
         resp = client.create_tweet(text=tweet_text)
         tweet_id = resp.data['id']
         tweet_archive.record_post(selected['id'], content_type="evening_text",
-                                  tweet_text=tweet_text, tweet_id=tweet_id)
+                                  tweet_text=tweet_text, tweet_id=tweet_id,
+                                  weekly_theme=get_this_weeks_theme())
         question = generate_thread_reply(tweet_text)
         if question:
             client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
@@ -769,8 +790,15 @@ def post_artwork_tweet():
     """Pick a random artwork, post image + metadata, then reply with site link."""
     client, api = get_twitter_clients()
 
-    with open('artworks.json', 'r', encoding='utf-8') as f:
-        artworks = json.load(f)
+    try:
+        with open('artworks.json', 'r', encoding='utf-8') as f:
+            artworks = json.load(f)
+    except FileNotFoundError:
+        print("artworks.json not found, skipping artwork tweet.")
+        return
+    except json.JSONDecodeError as e:
+        print(f"artworks.json parse error: {e}")
+        return
 
     if not artworks:
         print("No artworks found in artworks.json.")
@@ -833,7 +861,8 @@ def post_artwork_tweet():
     tweet_id = resp.data['id']
 
     tweet_archive.record_post(artwork['id'], content_type="artwork",
-                              tweet_text=tweet_text, tweet_id=tweet_id)
+                              tweet_text=tweet_text, tweet_id=tweet_id,
+                              weekly_theme=get_this_weeks_theme())
     # Thread: second tweet with site link + hashtags
     client.create_tweet(
         text="explore the collection: de-centralize.com #digitalart #metaverse",
@@ -934,7 +963,8 @@ def post_controversial_evening_tweet():
         resp = client.create_tweet(text=tweet_text)
         tweet_id = resp.data['id']
         tweet_archive.record_post(selected['id'], content_type="evening_controversial",
-                                  tweet_text=tweet_text, tweet_id=tweet_id)
+                                  tweet_text=tweet_text, tweet_id=tweet_id,
+                                  weekly_theme=get_this_weeks_theme())
         question = generate_thread_reply(tweet_text)
         if question:
             client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
@@ -1249,7 +1279,9 @@ def _post_news_tweet(site_url, source_name):
     try:
         resp = client.create_tweet(text=tweet1)
         tweet1_id = resp.data['id']
-        tweet_archive.record_post(article_id, content_type="news")
+        tweet_archive.record_post(article_id, content_type="news",
+                                  tweet_text=tweet1, tweet_id=tweet1_id,
+                                  weekly_theme=get_this_weeks_theme())
     except Exception as e:
         print(f"{source_name} tweet 1 post error: {e}")
         return
@@ -1702,7 +1734,8 @@ def post_viral_mix_tweet():
         tweet_id = resp.data['id']
         archive_id = "viral_" + hashlib.md5(tweet_text.encode()).hexdigest()[:12]
         tweet_archive.record_post(archive_id, content_type="viral_mix",
-                                  tweet_text=tweet_text, tweet_id=tweet_id)
+                                  tweet_text=tweet_text, tweet_id=tweet_id,
+                                  weekly_theme=get_this_weeks_theme())
         tweet_archive.record_post(manifesto_item['id'] + '_viral', content_type="viral_mix_source")
         question = generate_thread_reply(tweet_text)
         if question:
@@ -1781,7 +1814,8 @@ def post_community_pulse_thread():
         resp = client.create_tweet(text=header)
         parent_id = resp.data['id']
         tweet_archive.record_post(pulse_id, content_type="community_pulse",
-                                  tweet_text=header, tweet_id=parent_id)
+                                  tweet_text=header, tweet_id=parent_id,
+                                  weekly_theme=get_this_weeks_theme())
     except Exception as e:
         print(f"Pulse header error: {e}")
         return
@@ -1894,7 +1928,8 @@ def post_data_viz_tweet():
         media = api.media_upload(tmp_path)
         resp = client.create_tweet(text=tweet_text, media_ids=[media.media_id_string])
         tweet_archive.record_post(viz_id, content_type="data_viz",
-                                  tweet_text=tweet_text, tweet_id=resp.data['id'])
+                                  tweet_text=tweet_text, tweet_id=resp.data['id'],
+                                  weekly_theme=get_this_weeks_theme())
         print(f"Data viz tweet posted: {resp.data['id']}\n{tweet_text}")
     except Exception as e:
         print(f"Data viz error: {e}")

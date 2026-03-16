@@ -74,21 +74,38 @@ def _detect_theme(tweet_text: str) -> str | None:
     lower = tweet_text.lower()
     for theme, keywords in _THEME_KEYWORDS.items():
         for kw in keywords:
-            if kw in lower:
-                return theme
+            # Çok kelimeli ifadeler için basit `in` yeterli;
+            # tek kelimeler için word boundary kontrolü yapıyoruz.
+            if " " in kw:
+                if kw in lower:
+                    return theme
+            else:
+                if re.search(r'\b' + re.escape(kw) + r'\b', lower):
+                    return theme
     return None
 
 
-def load_archive():
+_ARCHIVE_CACHE: list | None = None
+
+
+def load_archive() -> list:
+    """JSON'ı diskten tek seferinde yükler; aynı process içinde cache'den döner."""
+    global _ARCHIVE_CACHE
+    if _ARCHIVE_CACHE is not None:
+        return _ARCHIVE_CACHE
     if not os.path.exists(ARCHIVE_PATH):
-        return []
+        _ARCHIVE_CACHE = []
+        return _ARCHIVE_CACHE
     with open(ARCHIVE_PATH, "r") as f:
-        return json.load(f)
+        _ARCHIVE_CACHE = json.load(f)
+    return _ARCHIVE_CACHE
 
 
-def save_archive(entries):
+def save_archive(entries: list) -> None:
+    global _ARCHIVE_CACHE
     with open(ARCHIVE_PATH, "w") as f:
         json.dump(entries, f, indent=2)
+    _ARCHIVE_CACHE = entries
 
 
 def is_posted_recently(content_id, days=COOLDOWN_DAYS):
@@ -119,7 +136,7 @@ def is_theme_in_cooldown(tweet_text: str) -> bool:
     return False
 
 
-def record_post(content_id, content_type="unknown", tweet_text=None, tweet_id=None):
+def record_post(content_id, content_type="unknown", tweet_text=None, tweet_id=None, weekly_theme=None):
     entries = load_archive()
     entries = [e for e in entries if e["content_id"] != content_id]
     entry = {
@@ -134,6 +151,8 @@ def record_post(content_id, content_type="unknown", tweet_text=None, tweet_id=No
             entry["theme"] = theme
     if tweet_id:
         entry["tweet_id"] = str(tweet_id)
+    if weekly_theme:
+        entry["weekly_theme"] = weekly_theme
     entries.append(entry)
     save_archive(entries)
 
