@@ -451,11 +451,17 @@ def post_morning_tweet():
             if not caption2:
                 caption2 = desc2[:134] + "..." if len(desc2) > 137 else desc2
             retry_text = format_tweet(trim_for_format(f"{type_label2} {name2}\n\n{caption2}"))
-            resp2 = client.create_tweet(text=retry_text)
-            tweet_archive.record_post(selected2['id'], content_type="morning_media",
-                                      tweet_text=retry_text, tweet_id=resp2.data['id'],
-                                      weekly_theme=get_this_weeks_theme())
-            print(f"Morning broadcast complete (retry): {name2}")
+            try:
+                resp2 = client.create_tweet(text=retry_text)
+                tweet_archive.record_post(selected2['id'], content_type="morning_media",
+                                          tweet_text=retry_text, tweet_id=resp2.data['id'],
+                                          weekly_theme=get_this_weeks_theme())
+                print(f"Morning broadcast complete (retry): {name2}")
+            except Exception as _re:
+                tweet_archive.record_failed(selected2['id'], "morning_media",
+                                            tweet_text=retry_text, error_msg=str(_re),
+                                            weekly_theme=get_this_weeks_theme())
+                print(f"Morning retry tweet failed — logged to failed_tweets.json, skipping.")
         elif "2 minutes" in str(e) or "longer than 2" in str(e).lower():
             # Video >2 dakika — medya yüklenemez, link tweet olarak paylaş
             print(f"Video >2min upload rejected — falling back to link tweet: {name}")
@@ -464,14 +470,25 @@ def post_morning_tweet():
             if len(prefix) > 255:
                 prefix = prefix[:252] + "..."
             link_text = f"{prefix}\n\n{url}"
-            resp_link = client.create_tweet(text=link_text)
-            tweet_archive.record_post(selected['id'], content_type="morning_media_long_video",
-                                      tweet_text=link_text, tweet_id=resp_link.data['id'],
-                                      weekly_theme=get_this_weeks_theme(),
-                                      media_url=media_url_to_download)
-            print(f"Morning broadcast complete (link fallback >2min): {name}")
+            try:
+                resp_link = client.create_tweet(text=link_text)
+                tweet_archive.record_post(selected['id'], content_type="morning_media_long_video",
+                                          tweet_text=link_text, tweet_id=resp_link.data['id'],
+                                          weekly_theme=get_this_weeks_theme(),
+                                          media_url=media_url_to_download)
+                print(f"Morning broadcast complete (link fallback >2min): {name}")
+            except Exception as _le:
+                tweet_archive.record_failed(selected['id'], "morning_media_long_video",
+                                            tweet_text=link_text, error_msg=str(_le),
+                                            media_url=media_url_to_download,
+                                            weekly_theme=get_this_weeks_theme())
+                print(f"Morning link tweet failed — logged to failed_tweets.json, skipping.")
         else:
-            raise
+            tweet_archive.record_failed(selected['id'], "morning_media",
+                                        tweet_text=tweet_text, error_msg=str(e),
+                                        media_url=media_url_to_download,
+                                        weekly_theme=get_this_weeks_theme())
+            print(f"Morning tweet failed (unhandled 403) — logged to failed_tweets.json, skipping.")
 
 
 # --- LLM HELPERS ---
@@ -784,7 +801,12 @@ def post_evening_tweet():
                                   weekly_theme=get_this_weeks_theme())
         question = generate_thread_reply(tweet_text)
         if question:
-            client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
+            try:
+                client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
+            except Exception as _te:
+                tweet_archive.record_failed(selected['id'] + "_thread", "thread_reply",
+                                            tweet_text=question, error_msg=str(_te))
+                print(f"Evening thread reply failed — logged, skipping.")
         print(f"Evening broadcast complete with thread:\n{tweet_text}\n→ {question}")
     except tweepy.errors.Forbidden as e:
         api_codes = getattr(e, 'api_codes', [])
@@ -797,13 +819,27 @@ def post_evening_tweet():
             new_chunk = ' '.join(words[start:start + 150])
             tweet_text = format_tweet(trim_for_format(distill_to_tweet(new_chunk, name)))
             print(f"Retry tweet:\n{tweet_text}")
-            resp = client.create_tweet(text=tweet_text)
-            tweet_id = resp.data['id']
-            question = random.choice(FOLLOW_UP_QUESTIONS)
-            client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
-            print(f"Evening broadcast complete (retry) with thread:\n{tweet_text}\n→ {question}")
+            try:
+                resp = client.create_tweet(text=tweet_text)
+                tweet_id = resp.data['id']
+                question = random.choice(FOLLOW_UP_QUESTIONS)
+                try:
+                    client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
+                except Exception as _te:
+                    tweet_archive.record_failed(selected['id'] + "_thread", "thread_reply",
+                                                tweet_text=question, error_msg=str(_te))
+                    print(f"Evening retry thread reply failed — logged, skipping.")
+                print(f"Evening broadcast complete (retry) with thread:\n{tweet_text}\n→ {question}")
+            except Exception as _re:
+                tweet_archive.record_failed(selected['id'], "evening_text",
+                                            tweet_text=tweet_text, error_msg=str(_re),
+                                            weekly_theme=get_this_weeks_theme())
+                print(f"Evening retry tweet failed — logged to failed_tweets.json, skipping.")
         else:
-            raise
+            tweet_archive.record_failed(selected['id'], "evening_text",
+                                        tweet_text=tweet_text, error_msg=str(e),
+                                        weekly_theme=get_this_weeks_theme())
+            print(f"Evening tweet failed (unhandled 403) — logged to failed_tweets.json, skipping.")
 
 
 # --- 23:00 (TR): ARTWORK DROP ---
@@ -875,23 +911,33 @@ def post_artwork_tweet():
 
     tweet_text = format_tweet(tweet_text)
     print(f"Posting artwork tweet:\n{tweet_text}")
-    if media_ids:
-        resp = client.create_tweet(text=tweet_text, media_ids=media_ids)
-    else:
-        resp = client.create_tweet(text=tweet_text)
-
-    tweet_id = resp.data['id']
-
-    tweet_archive.record_post(artwork['id'], content_type="artwork",
-                              tweet_text=tweet_text, tweet_id=tweet_id,
-                              weekly_theme=get_this_weeks_theme(),
-                              media_url=img_url)
-    # Thread: second tweet with site link + hashtags
-    client.create_tweet(
-        text="explore the collection: de-centralize.com #digitalart #metaverse",
-        in_reply_to_tweet_id=tweet_id
-    )
-    print(f"Artwork thread posted: {name}")
+    try:
+        if media_ids:
+            resp = client.create_tweet(text=tweet_text, media_ids=media_ids)
+        else:
+            resp = client.create_tweet(text=tweet_text)
+        tweet_id = resp.data['id']
+        tweet_archive.record_post(artwork['id'], content_type="artwork",
+                                  tweet_text=tweet_text, tweet_id=tweet_id,
+                                  weekly_theme=get_this_weeks_theme(),
+                                  media_url=img_url)
+        # Thread: second tweet with site link + hashtags
+        try:
+            client.create_tweet(
+                text="explore the collection: de-centralize.com #digitalart #metaverse",
+                in_reply_to_tweet_id=tweet_id
+            )
+        except Exception as _te:
+            tweet_archive.record_failed(artwork['id'] + "_thread", "thread_reply",
+                                        tweet_text="explore the collection: de-centralize.com #digitalart #metaverse",
+                                        error_msg=str(_te))
+            print(f"Artwork thread reply failed — logged, skipping.")
+        print(f"Artwork thread posted: {name}")
+    except Exception as e:
+        tweet_archive.record_failed(artwork['id'], "artwork",
+                                    tweet_text=tweet_text, error_msg=str(e),
+                                    media_url=img_url, weekly_theme=get_this_weeks_theme())
+        print(f"Artwork tweet failed — logged to failed_tweets.json, skipping.")
 
 
 
@@ -990,7 +1036,12 @@ def post_controversial_evening_tweet():
                                   weekly_theme=get_this_weeks_theme())
         question = generate_thread_reply(tweet_text)
         if question:
-            client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
+            try:
+                client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
+            except Exception as _te:
+                tweet_archive.record_failed(selected['id'] + "_thread", "thread_reply",
+                                            tweet_text=question, error_msg=str(_te))
+                print(f"Controversial thread reply failed — logged, skipping.")
         print(f"Controversial evening tweet complete with thread:\n{tweet_text}\n→ {question}")
     except tweepy.errors.Forbidden as e:
         api_codes = getattr(e, 'api_codes', [])
@@ -1000,13 +1051,27 @@ def post_controversial_evening_tweet():
             start = random.randint(0, max(0, len(words) - 150))
             new_chunk = ' '.join(words[start:start + 150])
             tweet_text = format_tweet(trim_for_format(distill_to_tweet(new_chunk, name)))
-            resp = client.create_tweet(text=tweet_text)
-            tweet_id = resp.data['id']
-            question = random.choice(FOLLOW_UP_QUESTIONS)
-            client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
-            print(f"Controversial evening tweet complete (retry) with thread:\n{tweet_text}\n→ {question}")
+            try:
+                resp = client.create_tweet(text=tweet_text)
+                tweet_id = resp.data['id']
+                question = random.choice(FOLLOW_UP_QUESTIONS)
+                try:
+                    client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
+                except Exception as _te:
+                    tweet_archive.record_failed(selected['id'] + "_thread", "thread_reply",
+                                                tweet_text=question, error_msg=str(_te))
+                    print(f"Controversial retry thread reply failed — logged, skipping.")
+                print(f"Controversial evening tweet complete (retry) with thread:\n{tweet_text}\n→ {question}")
+            except Exception as _re:
+                tweet_archive.record_failed(selected['id'], "evening_controversial",
+                                            tweet_text=tweet_text, error_msg=str(_re),
+                                            weekly_theme=get_this_weeks_theme())
+                print(f"Controversial retry tweet failed — logged to failed_tweets.json, skipping.")
         else:
-            raise
+            tweet_archive.record_failed(selected['id'], "evening_controversial",
+                                        tweet_text=tweet_text, error_msg=str(e),
+                                        weekly_theme=get_this_weeks_theme())
+            print(f"Controversial tweet failed (unhandled 403) — logged to failed_tweets.json, skipping.")
 
 
 
@@ -1756,10 +1821,10 @@ def post_viral_mix_tweet():
     tweet_text = format_tweet(trim_for_format(tweet_text))
 
     print(f"Posting viral mix tweet ({len(tweet_text)} chars):\n{tweet_text}")
+    archive_id = "viral_" + hashlib.md5(tweet_text.encode()).hexdigest()[:12]
     try:
         resp = client.create_tweet(text=tweet_text)
         tweet_id = resp.data['id']
-        archive_id = "viral_" + hashlib.md5(tweet_text.encode()).hexdigest()[:12]
         tweet_archive.record_post(archive_id, content_type="viral_mix",
                                   tweet_text=tweet_text, tweet_id=tweet_id,
                                   weekly_theme=get_this_weeks_theme())
@@ -1767,14 +1832,22 @@ def post_viral_mix_tweet():
                                   weekly_theme=get_this_weeks_theme())
         question = generate_thread_reply(tweet_text)
         if question:
-            client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
+            try:
+                client.create_tweet(text=question, in_reply_to_tweet_id=tweet_id)
+            except Exception as _te:
+                tweet_archive.record_failed(archive_id + "_thread", "thread_reply",
+                                            tweet_text=question, error_msg=str(_te))
+                print(f"Viral mix thread reply failed — logged, skipping.")
         print(f"Viral mix tweet posted:\n{tweet_text}\n→ {question}")
     except tweepy.errors.Forbidden as e:
         api_codes = getattr(e, 'api_codes', [])
         if 187 in api_codes:
             print("Duplicate viral mix tweet, skipping.")
         else:
-            raise
+            tweet_archive.record_failed(archive_id, "viral_mix",
+                                        tweet_text=tweet_text, error_msg=str(e),
+                                        weekly_theme=get_this_weeks_theme())
+            print(f"Viral mix tweet failed (unhandled 403) — logged to failed_tweets.json, skipping.")
 
 
 # --- COMMUNITY PULSE THREAD: Haftalık RSS özeti ---
