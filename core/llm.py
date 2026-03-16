@@ -294,6 +294,61 @@ def generate_thread_reply(main_tweet: str) -> str | None:
     return _call_llm(prompt, max_tokens=60, temperature=0.88).strip('"\'')
 
 
+def generate_reply_comment(original_tweet: str) -> str:
+    """LLM: target tweet'e REPLY — kısa, doğal, insan gibi, farklı format rotasyonu."""
+    import random as _rnd
+    belief = random_belief()
+
+    # Her çağrıda farklı bir yaklaşım seç — bot izlenimi kırılsın
+    styles = [
+        (
+            "Write a SHORT reply (under 120 chars) that adds ONE specific fact or mechanism "
+            "the original tweet missed. Sound like someone who actually builds in this space. "
+            "No question. Statement only. Lowercase ok."
+        ),
+        (
+            "Write a SHORT reply (under 120 chars) that gently challenges ONE assumption in "
+            "the tweet. Be direct, not preachy. First person ok ('i think', 'in my experience'). "
+            "No rhetorical questions."
+        ),
+        (
+            "Write a SHORT reply (under 120 chars) that agrees but adds the uncomfortable "
+            "implication they didn't mention. Like someone muttering 'yeah and also...' "
+            "Dry, specific, no hype."
+        ),
+        (
+            "Write a SHORT reply (under 120 chars) as a practitioner who actually shipped "
+            "something in this space. Name the specific friction or tradeoff. No buzzwords. "
+            "Can start with 'the real issue is...' or 'what nobody mentions is...' or similar."
+        ),
+        (
+            "Write a SHORT reply (under 120 chars) that reframes the tweet's premise in one "
+            "sharp sentence. Not a question. Not 'but what if'. Just a reframe that makes the "
+            "reader reconsider. Example: if tweet says 'VR failed' → reply might be "
+            "'it didn't fail. it just built for tourists instead of residents.'"
+        ),
+    ]
+
+    style = _rnd.choice(styles)
+
+    prompt = (
+        "You are @decentralize___, a studio building 3D virtual worlds on-chain. "
+        "You are replying to someone's tweet as a real human expert, not a bot.\n\n"
+        "HARD RULES:\n"
+        "- NEVER start with 'but what if' or 'what if'\n"
+        "- NEVER use 'accessibility', 'spatial narrative', 'token-driven'\n"
+        "- NEVER sound like a press release or a LinkedIn post\n"
+        "- NO hashtags in replies\n"
+        "- NO sycophancy ('great point', 'love this', 'totally agree')\n"
+        "- Sound like a real person who has an opinion\n\n"
+        f"STYLE FOR THIS REPLY:\n{style}\n\n"
+        f'Original tweet: "{original_tweet}"\n\n'
+        f'One belief that might inform your reply: "{belief}"\n\n'
+        "Output ONLY the reply text. Nothing else."
+    )
+    return _call_llm(prompt, max_tokens=80, temperature=0.95).strip('"\'')
+
+
 def generate_quote_commentary(original_tweet: str) -> str:
     """LLM: target tweet'e quote commentary — kendi sesimizden, keskin görüş."""
     voice_ctx = get_voice_context(n=3)

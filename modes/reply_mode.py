@@ -12,7 +12,7 @@ import hashlib
 import os
 
 import tweet_archive
-from core.llm import generate_quote_commentary, score_tweet_quality
+from core.llm import generate_reply_comment, score_tweet_quality
 from core.twitter import get_twitter_clients
 from core.voice import get_this_weeks_theme
 from modes.viral_mix import fetch_target_tweets_with_ids
@@ -53,7 +53,7 @@ def post_reply_tweet():
             logger.info(f"@{c['author']}: recently replied, skipping.")
             continue
 
-        commentary = generate_quote_commentary(c["text"])
+        commentary = generate_reply_comment(c["text"])
         quality = score_tweet_quality(commentary)
         if quality < 5.0:
             logger.info(f"@{c['author']}: reply quality {quality:.1f}/10 too low, skipping.")
