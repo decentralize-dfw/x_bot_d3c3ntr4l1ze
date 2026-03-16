@@ -1,0 +1,77 @@
+name: Daily Health Check
+
+on:
+  schedule:
+    # Her sabah 08:00 UTC — tweet sayısı kontrolü
+    - cron: '0 8 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v3
+
+      - name: Init Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Check last 24h tweet count
+        run: |
+          python -c "
+          import json, sys
+          from datetime import datetime, timezone, timedelta
+
+          try:
+              with open('tweet_archive.json') as f:
+                  archive = json.load(f)
+          except (FileNotFoundError, json.JSONDecodeError):
+              print('ERROR: tweet_archive.json missing or corrupt')
+              sys.exit(1)
+
+          cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+          recent = []
+          for e in archive:
+              try:
+                  dt_str = e.get('posted_at', '')
+                  dt = datetime.fromisoformat(dt_str.replace('Z', '+00:00'))
+                  if dt.tzinfo is None:
+                      dt = dt.replace(tzinfo=timezone.utc)
+                  if dt > cutoff:
+                      recent.append(e)
+              except (ValueError, KeyError):
+                  pass
+
+          print(f'Tweets in last 24h: {len(recent)}')
+          for e in recent:
+              ct = e.get('content_type', '?')
+              ts = e.get('posted_at', '')[:16]
+              print(f'  [{ts}] {ct}')
+
+          if len(recent) < 3:
+              print(f'WARNING: Only {len(recent)} tweets in last 24h (expected 8-10). Bot may be stalled.')
+              sys.exit(1)
+          else:
+              print(f'OK: {len(recent)} tweets in last 24h.')
+          "
+
+      - name: Check archive integrity
+        run: |
+          python -c "
+          import json, sys
+
+          try:
+              with open('tweet_archive.json') as f:
+                  archive = json.load(f)
+              print(f'Archive OK: {len(archive)} entries')
+          except json.JSONDecodeError as e:
+              print(f'ERROR: tweet_archive.json is corrupt: {e}')
+              sys.exit(1)
+          except FileNotFoundError:
+              print('WARNING: tweet_archive.json does not exist yet')
+          "

@@ -244,6 +244,49 @@ def print_report(records: list[dict]):
     print("\n" + "═" * 60)
 
 
+# ── Failed tweets raporu (Faz 3.4 — rapor2.txt §3.4) ─────────────────────────
+
+FAILED_PATH = os.path.join(os.path.dirname(__file__), "failed_tweets.json")
+
+
+def report_failures(days: int = 7) -> None:
+    """Son N günün başarısız tweet'lerini tip bazında raporla."""
+    try:
+        with open(FAILED_PATH, "r", encoding="utf-8") as f:
+            failures = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        print("No failed_tweets.json found or file is empty.")
+        return
+
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    recent = []
+    for fl in failures:
+        try:
+            failed_at = fl.get("failed_at", "")
+            dt = datetime.fromisoformat(failed_at.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            if dt > cutoff:
+                recent.append(fl)
+        except (ValueError, KeyError):
+            pass
+
+    if not recent:
+        print(f"No failures in last {days} days.")
+        return
+
+    by_type: dict = defaultdict(int)
+    for fl in recent:
+        ct = fl.get("content_type", "unknown")
+        by_type[ct] += 1
+
+    print(f"\n=== FAILURES (last {days} days) — {len(recent)} total ===")
+    for ct, count in sorted(by_type.items(), key=lambda x: -x[1]):
+        bar = "█" * min(count, 20)
+        print(f"  {ct:<28} {bar} {count}")
+    print()
+
+
 # ── Entrypoint ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
@@ -251,6 +294,9 @@ if __name__ == "__main__":
 
     if mode == "report":
         print_report(load_analytics())
+    elif mode == "failures":
+        report_failures(days=7)
     else:  # "sync" veya default
         records = sync_from_archive()
         print_report(records)
+        report_failures(days=7)

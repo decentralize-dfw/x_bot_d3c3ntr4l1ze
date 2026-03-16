@@ -24,6 +24,12 @@ on:
     - cron: '0 6 * * 1'
     # TR 12:00 -> UTC 09:00 Perşembe — Data viz tweet
     - cron: '0 9 * * 4'
+    # TR 14:00 -> UTC 11:00 Salı,Perşembe,Cuma — Quote tweet (Premium)
+    - cron: '0 11 * * 2,4,5'
+    # TR 16:00 -> UTC 13:00 Hergün — Reply mode (Premium)
+    - cron: '0 13 * * 1-6'
+    # TR 10:00 -> UTC 07:00 Hergün — Like mode (morning ile birlikte)
+    - cron: '0 7 * * 1-6'
   workflow_dispatch:
     inputs:
       mode:
@@ -42,6 +48,9 @@ on:
           - viral_mix
           - community_pulse
           - data_viz
+          - quote_tweet
+          - reply_mode
+          - like_mode
 
 jobs:
   transmit:
@@ -113,6 +122,15 @@ jobs:
           elif [ "$SCHEDULE" = "0 9 * * 4" ]; then
             echo "Mode: data_viz (weekly chart tweet)"
             python bot.py data_viz
+          elif [ "$SCHEDULE" = "0 11 * * 2,4,5" ]; then
+            echo "Mode: quote_tweet (Premium — Salı/Perşembe/Cuma)"
+            python bot.py quote_tweet
+          elif [ "$SCHEDULE" = "0 13 * * 1-6" ]; then
+            echo "Mode: reply_mode (Premium — hergün)"
+            python bot.py reply_mode
+          elif [ "$SCHEDULE" = "0 7 * * 1-6" ]; then
+            echo "Mode: like_mode (Premium — hergün)"
+            python bot.py like_mode
           else
             echo "Mode: manual dispatch — running evening"
             python bot.py evening
