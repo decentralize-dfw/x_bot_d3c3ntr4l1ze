@@ -31,10 +31,10 @@ _MAX_RESULTS = 20
 _SAVE_TOP = 30
 
 _QUERIES = [
-    "(metaverse OR webxr OR #SpatialComputing) -is:retweet -is:reply lang:en min_faves:5",
-    "(virtual reality OR #VR OR #XR) -is:retweet -is:reply lang:en min_faves:5",
-    "(web3 OR #OnChain OR #DigitalArt) -is:retweet -is:reply lang:en min_faves:5",
-    "(spatial computing OR #AI #Metaverse) -is:retweet -is:reply lang:en min_faves:5",
+    "(metaverse OR webxr OR #SpatialComputing) -is:retweet -is:reply lang:en",
+    "(#VirtualReality OR #VR OR #XR OR #ImmersiveWeb) -is:retweet -is:reply lang:en",
+    "(web3 OR #OnChain OR #DigitalArt OR #NFT) -is:retweet -is:reply lang:en",
+    "(#SpatialComputing OR #AI #Metaverse OR #WebXR) -is:retweet -is:reply lang:en",
 ]
 
 
