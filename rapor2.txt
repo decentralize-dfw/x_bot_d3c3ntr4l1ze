@@ -1,0 +1,544 @@
+@decentralize___ Bot — Kapsamlı Değerlendirme & Çözüm Planı
+Tarih: 2026-03-16
+==============================================================
+
+
+BÖLÜM 1: METRİK DEĞERLENDİRMESİ (10 üzerinden)
+=================================================
+
+
+1. Mimari & Tasarım — 6.5/10
+------------------------------
+
+Güçlü yanlar:
+- 9 bağımsız posting modu net biçimde ayrılmış
+- Fallback zinciri iyi düşünülmüş (LLM → basit model → kural tabanlı)
+- tweet_archive.py'nin ayrı bir modüle çıkarılması doğru karar
+
+Zayıf yanlar:
+- bot.py 2100+ satır — tek dosya tanrısı (God Object anti-pattern)
+- Retry döngüleri 5+ yerde kopyala-yapıştır
+- Thread reply pattern her modda 8 satır tekrar
+- Config değerleri (eşikler, char limitleri) kodun içine gömülü — değiştirmek için kaynak kodu okumak gerekiyor
+
+
+2. Hata Yönetimi — 7/10
+-------------------------
+
+Güçlü yanlar:
+- 130+ try/except blok, kapsamlı
+- failed_tweets.json ile başarısız tweet'ler loglanıyor
+- Video >2dk → link fallback
+- LLM yavaşsa basit modele düşüyor
+
+Zayıf yanlar:
+- Neredeyse her yerde "except Exception as e" — gereksiz geniş, spesifik exception tiplerini kaçırıyor
+- requests çağrılarında timeout var ama retry + backoff yok — ağ anlık kesilirse direkt fail
+- Archive JSON yazma başarısız olursa sessiz fail — veri kaybı fark edilmez
+- Thread reply kalite kontrolü yok — ana tweet kaliteli ama reply kalitesiz olabilir
+
+
+3. Kod Kalitesi & DRY — 5.5/10
+---------------------------------
+
+Kritik tekrarlar:
+
+Pattern                                      | Kaç yerde
+---------------------------------------------|----------
+attempt → quality gate → retry döngüsü      | 5+
+client.create_tweet → archive.record_post   | 10+
+Niche keyword listesi                        | 3 ayrı yerde
+get_voice_context() çağrısı                 | 8+
+Thread reply posting                         | 5+
+
+Bot şu an "çalışıyor ama kırılgan" aşamasında. Tek bir ortak fonksiyon değişikliği
+yerine 5 yerde ayrı ayrı düzeltme gerekiyor.
+
+
+4. Test Kapsamı — 1.5/10
+--------------------------
+
+- Sıfır unit test
+- Sıfır integration test
+- Runtime kalite kontrolleri (quality gate, dedup) var — bunlar test yerine geçiyor ama yetersiz
+- workflow_dispatch ile manuel tetikleme mevcut — pozitif
+- voice_drift_check.py CI/CD'yi fail ettirebiliyor — değerli bir mekanizma
+- Sorun: deploy olmadan önce hiçbir şey test edilmiyor
+
+
+5. Performans — 6/10
+----------------------
+
+Operasyon                          | Tipik Süre | Darboğaz
+-----------------------------------|------------|----------
+LLM tweet üretimi (3 deneme)       | 6–24s      | Dominant
+RSS parse (12 feed senkron)        | 30–60s     | Yüksek
+Media download                     | 1–30s      | Değişken
+Archive I/O                        | <100ms     | Düşük
+
+Toplam bir evening run: 20–80 saniye
+
+RSS feed'leri senkron çekildiği için community_pulse ve data_viz 1+ dakika alıyor.
+async/await veya ThreadPoolExecutor ile 5–6x hızlanabilir.
+
+
+6. Güvenlik — 7/10
+--------------------
+
+İyi:
+- Tüm API anahtarları env var — hardcoded yok
+- .gitignore'da .env var
+- GitHub Secrets kullanılıyor
+- Temp dosyaları finally bloğunda temizleniyor
+
+Eksik:
+- Media download'da dosya boyutu limiti yok — disk dolabilir
+- RSS URL'leri whitelist'e alınmamış
+- LLM output'u regex ile parse ediliyor — injection riski düşük ama var
+- Archive.json'a eşzamanlı yazma koruması yok (race condition)
+- Exception mesajları API key sızıntısına karşı yeterince temizlenmiyor
+
+
+7. Monitoring & Observability — 3/10
+--------------------------------------
+
+- Tüm logging print() ile — structured logging yok
+- GitHub Actions email bildirimi dışında alert yok
+- Drift check iyi bir fikir ama haftada bir — günlük aksaklıklar görünmez
+- failed_tweets.json var ama otomatik inceleme yok
+- Engagement metrics: API gerektirdiği için sıfır — büyüme takibi kör
+- Gerçek zamanlı dashboard yok
+
+
+8. Veri Yönetimi — 6.5/10
+---------------------------
+
+İyi:
+- 60 günlük rolling window ile archive temizliği
+- Git history otomatik backup görevi görüyor
+- Tema bazlı cooldown sistemi iyi düşünülmüş
+- Jaccard + semantic duplicate detection çift katmanlı
+
+Eksik:
+- Archive bozulursa recovery planı yok (sadece git geçmişi)
+- failed_tweets.json hiç temizlenmiyor, büyüyor
+- Engagement data hiç toplanmıyor — hangi tweet'in işe yaradığını bilmiyoruz
+- cleanup_old_entries() sadece morning modunda çağrılıyor — diğer modlarda temizlik yok
+
+
+9. İçerik Stratejisi & Çeşitlilik — 7.5/10
+--------------------------------------------
+
+İyi:
+- 12 haftalık tema rotasyonu deterministik ve tutarlı
+- 7 LLM modeli arasında gün bazlı rotasyon (ses çeşitliliği için iyi fikir)
+- Manifesto chunk sistemi özgün bir ses koruyor
+- Beliefs.json inject edilerek her tweet karakter taşıyor
+- Controversy + normal evening dengesi var
+
+Eksik:
+- Artwork tweet'leri çok benzer format — çeşitlilik düşük
+- News tweet'lerinde opinion evolution sistemi keyword bazlı ve kırılgan
+- Quote tweet tamamen devre dışı (API kısıtı ama büyük kayıp)
+- Trending topics veya güncel olaylara gerçek zamanlı tepki yok
+
+
+10. Production Readiness — 7/10
+---------------------------------
+
+- 2+ aydır GitHub Actions üzerinde canlıda çalışıyor — proven
+- Quiet day (Pazar) mantığı ile içerik yönetimi var
+- Manual dispatch ile acil override mümkün
+- Archive git'te versiyonlanıyor
+- AMA: Tek hata noktası (archive.json), sıfır alerting, sıfır test
+
+
+GENEL SKOR: 5.75 / 10
+-----------------------
+Bot çalışıyor ve içerik üretiyor. Ama ölçeklenebilir, test edilebilir ve bakımı
+kolay değil. "Kurucu aşaması" kodu — bir kişi her şeyi biliyor, başkası bakamaz.
+
+
+==============================================================
+BÖLÜM 2: KAPSAMLI ÇÖZÜM PLANI
+==============================================================
+
+
+FAZ 1: Acil Stabilizasyon (Bu Hafta)
+======================================
+Bunlar şu an production'da risk oluşturan sorunlar.
+
+
+1.1 — Requests Retry + Backoff
+--------------------------------
+Sorun: Ağ anlık kesilirse direkt fail, retry yok.
+
+Çözüm — utils/http.py olarak çıkarılacak:
+
+    import time, requests
+    from requests.adapters import HTTPAdapter
+    from urllib3.util.retry import Retry
+
+    def get_session(retries=3, backoff=1.0) -> requests.Session:
+        session = requests.Session()
+        adapter = HTTPAdapter(max_retries=Retry(
+            total=retries,
+            backoff_factor=backoff,
+            status_forcelist=[429, 500, 502, 503, 504]
+        ))
+        session.mount("https://", adapter)
+        return session
+
+Tüm requests.get() çağrıları bu session ile değiştirilecek.
+
+
+1.2 — Archive Write Corruption Koruması
+-----------------------------------------
+Sorun: JSON yazma yarıda kesilirse archive bozulur, hata fark edilmez.
+
+Çözüm — tweet_archive.py'de save_archive() fonksiyonu:
+
+    import tempfile, os
+
+    def save_archive(entries):
+        path = ARCHIVE_PATH
+        tmp_path = path + ".tmp"
+        with open(tmp_path, "w") as f:
+            json.dump(entries, f, indent=2)
+        os.replace(tmp_path, path)  # atomic rename — ya tümü ya hiç
+
+
+1.3 — Media Download Boyut Limiti
+-----------------------------------
+Sorun: Büyük video dosyası disk doldurana kadar indirilebilir.
+
+Çözüm:
+
+    MAX_MEDIA_BYTES = 100 * 1024 * 1024  # 100MB hard limit
+
+    def download_media(url):
+        ...
+        total = 0
+        for chunk in resp.iter_content(8192):
+            total += len(chunk)
+            if total > MAX_MEDIA_BYTES:
+                raise ValueError(f"Media too large: >{MAX_MEDIA_BYTES//1024//1024}MB")
+            f.write(chunk)
+
+
+1.4 — Thread Reply Kalite Kontrolü
+-------------------------------------
+Sorun: Ana tweet kalite gate'inden geçiyor, thread reply geçmiyor.
+
+Çözüm:
+
+    def _post_thread_reply(client, main_tweet_id, main_tweet_text):
+        reply_text = generate_thread_reply(main_tweet_text)
+        if score_tweet_quality(reply_text) < 5.0:
+            reply_text = generate_thread_reply(main_tweet_text)  # bir kez retry
+        ...
+
+
+FAZ 2: Refactoring & Teknik Borç (Önümüzdeki 2 Hafta)
+=======================================================
+
+
+2.1 — bot.py'yi Modüllere Böl
+-------------------------------
+Hedef yapı:
+
+    x_bot_d3c3ntr4l1ze/
+    ├── bot.py                  # sadece main() ve mode routing (~50 satır)
+    ├── modes/
+    │   ├── morning.py
+    │   ├── evening.py
+    │   ├── news.py
+    │   ├── artwork.py
+    │   ├── viral_mix.py
+    │   ├── community_pulse.py
+    │   └── data_viz.py
+    ├── core/
+    │   ├── llm.py              # _call_llm(), _get_model(), tüm generate_*()
+    │   ├── twitter.py          # get_twitter_clients(), media upload
+    │   ├── rss.py              # _parse_rss(), _parse_rss_all()
+    │   ├── voice.py            # TONE_BLOCK, get_voice_context(), weekly theme
+    │   └── quality.py          # score_tweet_quality(), is_semantically_duplicate()
+    ├── utils/
+    │   ├── http.py             # retry session, download_media()
+    │   └── text.py             # format_tweet(), trim_for_format()
+    ├── tweet_archive.py
+    ├── analytics.py
+    ├── discover_targets.py
+    └── voice_drift_check.py
+
+
+2.2 — Retry Loop'u Ortak Fonksiyona Çıkar
+-------------------------------------------
+Şu an 5 yerde aynı pattern. Çözüm — core/quality.py:
+
+    def post_with_retry(generator_fn, max_attempts=3, quality_threshold=6.0):
+        """
+        generator_fn: () -> str  (tweet text üretir)
+        Returns: tweet text veya None
+        """
+        for attempt in range(max_attempts):
+            try:
+                text = generator_fn()
+                if not text or len(text) < 10:
+                    continue
+                if tweet_archive.is_semantically_duplicate(text):
+                    continue
+                score = score_tweet_quality(text)
+                if score >= quality_threshold:
+                    return text
+            except Exception as e:
+                print(f"Attempt {attempt+1} failed: {e}")
+        return None
+
+
+2.3 — Config Dosyası
+----------------------
+Sorun: Tüm eşikler ve limitler kodun içinde.
+
+Çözüm — config.toml:
+
+    [quality]
+    min_score = 6.0
+    max_attempts = 3
+    jaccard_threshold = 0.35
+
+    [content]
+    morning_caption_max = 120
+    news_headline_max = 115
+    artwork_tweet_max = 130
+    evening_tweet_max = 130
+    viral_mix_max = 220
+
+    [archive]
+    cooldown_days = 60
+    cleanup_on_startup = true
+
+    [media]
+    max_download_mb = 100
+    video_max_duration_sec = 120
+
+    [schedule]
+    quiet_day = 6  # Sunday
+
+
+2.4 — Niche Keywords Sabitini Merkezi Konuma Al
+-------------------------------------------------
+Şu an 3 ayrı yerde tanımlı. Tek yer — core/voice.py veya config.toml:
+
+    NICHE_KEYWORDS = [
+        "webxr", "metaverse", "spatial computing", "virtual reality",
+        "augmented reality", "mixed reality", "3d web", "immersive",
+        "decentralized", "web3", "on-chain", "digital twin",
+        "volumetric", "xr", "vr", "ar", "holographic",
+        "generative ai", "procedural", "realtime 3d", "digital art", "nft"
+    ]
+
+
+FAZ 3: Yeni Özellikler & Büyüme (Önümüzdeki 1 Ay)
+====================================================
+
+
+3.1 — Structured Logging
+--------------------------
+Şu an: print("Tweet posted: ...")
+Olması gereken — utils/logger.py:
+
+    import logging, json
+    from datetime import datetime, timezone
+
+    def get_logger(name: str) -> logging.Logger:
+        logger = logging.getLogger(name)
+        handler = logging.StreamHandler()
+        handler.setFormatter(JsonFormatter())
+        logger.addHandler(handler)
+        logger.setLevel(logging.INFO)
+        return logger
+
+    class JsonFormatter(logging.Formatter):
+        def format(self, record):
+            return json.dumps({
+                "ts": datetime.now(timezone.utc).isoformat(),
+                "level": record.levelname,
+                "module": record.name,
+                "msg": record.getMessage(),
+                **(record.__dict__.get("extra", {}))
+            })
+
+GitHub Actions bu JSON logları parse edebilir, ileride herhangi bir
+log aggregator'a taşınabilir.
+
+
+3.2 — Engagement Tracking (API'siz)
+--------------------------------------
+Sorun: Hangi tweet'in işe yaradığını bilmiyoruz.
+Çözüm: Tweet ID'lerini saklayarak ileride API geldiğinde backfill:
+
+    def get_unscored_tweets(days=7):
+        """Son 7 günün tweet ID'lerini döner — engagement sync için."""
+        cutoff = now() - timedelta(days=days)
+        return [
+            e for e in load_archive()
+            if e.get("tweet_id")
+            and parsed(e["posted_at"]) > cutoff
+            and not e.get("engagement_score")
+        ]
+
+
+3.3 — Daily Health Check Workflow
+------------------------------------
+Sorun: Günlük aksaklıklar sadece email ile bildiriliyor.
+
+Çözüm — .github/workflows/health_check.yml:
+
+    name: Daily Health Check
+    on:
+      schedule:
+        - cron: '0 8 * * *'
+
+    jobs:
+      check:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Check last 24h tweets
+            run: |
+              python -c "
+              import json, sys
+              from datetime import datetime, timezone, timedelta
+
+              with open('tweet_archive.json') as f:
+                  archive = json.load(f)
+
+              cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+              recent = [e for e in archive
+                        if datetime.fromisoformat(e['posted_at'].replace('Z','+00:00')) > cutoff]
+
+              if len(recent) < 3:
+                  print(f'WARNING: Only {len(recent)} tweets in last 24h (expected 8-10)')
+                  sys.exit(1)
+              else:
+                  print(f'OK: {len(recent)} tweets in last 24h')
+              "
+
+
+3.4 — failed_tweets.json Otomatik Review
+------------------------------------------
+Sorun: failed_tweets.json büyüyor ama kimse bakmıyor.
+
+Çözüm — analytics.py'ye eklenecek:
+
+    def report_failures(days=7):
+        try:
+            with open("failed_tweets.json") as f:
+                failures = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return
+
+        cutoff = now() - timedelta(days=days)
+        recent = [f for f in failures if parsed(f["failed_at"]) > cutoff]
+
+        if not recent:
+            print("No failures in last 7 days.")
+            return
+
+        by_type = {}
+        for f in recent:
+            ct = f.get("content_type", "unknown")
+            by_type[ct] = by_type.get(ct, 0) + 1
+
+        print(f"\n=== FAILURES (last {days} days) ===")
+        for ct, count in sorted(by_type.items(), key=lambda x: -x[1]):
+            print(f"  {ct}: {count} failures")
+
+
+3.5 — Parallel RSS Fetching
+------------------------------
+Sorun: community_pulse ve data_viz 12 feed'i sırayla çekiyor = 30-60s.
+
+Çözüm — core/rss.py:
+
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    def fetch_all_feeds(feed_dict: dict, max_items=10) -> dict:
+        results = {}
+
+        def fetch_one(source, url):
+            try:
+                return source, _parse_rss_all(url, source, max_items)
+            except Exception:
+                return source, []
+
+        with ThreadPoolExecutor(max_workers=6) as executor:
+            futures = {
+                executor.submit(fetch_one, src, url): src
+                for src, url in feed_dict.items()
+            }
+            for future in as_completed(futures, timeout=30):
+                source, articles = future.result()
+                results[source] = articles
+
+        return results
+
+Beklenen iyileşme: 30–60s → 5–10s
+
+
+3.6 — Unit Test Suite (Temel)
+--------------------------------
+En az şu testler yazılmalı:
+
+tests/test_quality.py:
+    def test_score_tweet_quality_blocks_low_quality(): ...
+    def test_is_too_similar_detects_duplicates(): ...
+    def test_is_too_similar_passes_unique(): ...
+
+tests/test_archive.py:
+    def test_atomic_save_no_corruption(tmp_path): ...
+    def test_cleanup_removes_old_entries(): ...
+
+tests/test_voice.py:
+    def test_get_this_weeks_theme_is_deterministic(): ...
+    def test_format_tweet_appends_suffix(): ...
+
+
+ÖZET TABLO
+===========
+
+Faz    | Görev                        | Süre      | Etki              | Zorluk
+-------|------------------------------|-----------|-------------------|----------
+1.1    | Requests retry               | 1 gün     | Stability +++     | Düşük
+1.2    | Archive atomic write         | 1 gün     | Data safety +++   | Düşük
+1.3    | Media size limit             | 2 saat    | Güvenlik +        | Çok düşük
+1.4    | Thread reply kalite          | 2 saat    | Content quality + | Düşük
+2.1    | Modüler yapı                 | 3–5 gün   | Maintainability ++| Yüksek
+2.2    | Retry ortak fonksiyon        | 1 gün     | DRY +++           | Orta
+2.3    | Config dosyası               | 1 gün     | Maintainability ++| Düşük
+2.4    | Keyword merkezi              | 2 saat    | DRY +             | Çok düşük
+3.1    | Structured logging           | 1 gün     | Observability ++  | Orta
+3.2    | Engagement tracking          | 1 gün     | Analytics ++      | Orta
+3.3    | Health check workflow        | 2 saat    | Monitoring ++     | Çok düşük
+3.4    | Failed tweets review         | 2 saat    | Visibility +      | Çok düşük
+3.5    | Parallel RSS                 | 1 gün     | Performance +++   | Orta
+3.6    | Unit tests                   | 2–3 gün   | Quality +++       | Orta
+
+
+SKOR ÖZETI
+===========
+
+Metrik                          | Skor
+--------------------------------|------
+Mimari & Tasarım                | 6.5/10
+Hata Yönetimi                   | 7.0/10
+Kod Kalitesi & DRY              | 5.5/10
+Test Kapsamı                    | 1.5/10
+Performans                      | 6.0/10
+Güvenlik                        | 7.0/10
+Monitoring & Observability      | 3.0/10
+Veri Yönetimi                   | 6.5/10
+İçerik Stratejisi               | 7.5/10
+Production Readiness            | 7.0/10
+--------------------------------|------
+GENEL ORTALAMA                  | 5.75/10
