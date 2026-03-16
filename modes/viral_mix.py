@@ -203,22 +203,20 @@ def _load_scan_results(max_age_hours: int = 12) -> list:
 
 
 def fetch_target_tweets_with_ids(n_targets: int = 3) -> list:
-    """Target tweet'leri id + text ile döndür (quote/reply/RT için).
+    """Target tweet'leri id + text ile döndür (quote/RT için).
 
     Önce günlük tarama sonuçlarını (scan_results.json) dener (AŞAMA 1).
     Taze değilse Twitter API ile canlı arama yapar.
+    NOT: Reply modu için fetch_targets_for_reply() kullan — scan sonuçları yabancı hesaplar.
     """
     # AŞAMA 1: Önce günlük tarama sonuçlarını dene
     scan = _load_scan_results(max_age_hours=12)
     if scan:
-        # reply_mode için sadece herkese açık tweet'leri döndür
-        open_scan = [r for r in scan if r.get("reply_settings", "everyone") == "everyone"]
-        pool = open_scan if open_scan else scan
-        sample = random.sample(pool, min(n_targets, len(pool)))
+        sample = random.sample(scan, min(n_targets, len(scan)))
         return [{"id": r["tweet_id"], "text": r["text"], "author": r["author"]} for r in sample]
 
     # Fallback: canlı API araması
-    client = get_twitter_client_with_bearer()  # Bearer token required for search_recent_tweets
+    client = get_twitter_client_with_bearer()
     try:
         with open("targets.json", "r", encoding="utf-8") as f:
             targets = json.load(f)
@@ -247,6 +245,57 @@ def fetch_target_tweets_with_ids(n_targets: int = 3) -> list:
             logger.warning(f"fetch_target_tweets_with_ids error for @{target['username']}: {e}")
         time.sleep(1)
 
+    return results
+
+
+def fetch_targets_for_reply(n_targets: int = 10) -> list:
+    """Reply modu için SADECE targets.json'dan tweet çek.
+
+    Scan sonuçları yabancı hesaplardır — Twitter, follow etmediğin/etkileşim kurmadığın
+    hesaplara cold-reply atmana izin vermez (403). Targets.json curated listedir.
+    """
+    client = get_twitter_client_with_bearer()
+    try:
+        with open("targets.json", "r", encoding="utf-8") as f:
+            targets = json.load(f)
+    except Exception as e:
+        logger.error(f"targets.json load error: {e}")
+        return []
+
+    # Önce mid-tier (10k-50k), sonra genel — yanıt verme olasılığı yüksek
+    tier1 = [t for t in targets if 1_000 <= t.get("followers", 0) <= 50_000]
+    pool = tier1 if tier1 else targets
+    sample = random.sample(pool, min(n_targets, len(pool)))
+
+    results = []
+    for target in sample:
+        username = target.get("username", "")
+        if not username:
+            continue
+        try:
+            resp = client.search_recent_tweets(
+                query=f"from:{username} -is:retweet -is:reply lang:en",
+                max_results=5,
+                tweet_fields=["public_metrics", "text", "reply_settings"],
+                sort_order="relevancy",
+            )
+            if resp.data:
+                # reply_settings=everyone olan tweet'leri filtrele
+                open_tweets = [
+                    t for t in resp.data
+                    if getattr(t, "reply_settings", "everyone") == "everyone"
+                ]
+                candidates = open_tweets if open_tweets else resp.data
+                best = max(
+                    candidates,
+                    key=lambda t: t.public_metrics.get("like_count", 0) + t.public_metrics.get("retweet_count", 0) * 2,
+                )
+                results.append({"id": str(best.id), "text": best.text, "author": username})
+        except Exception as e:
+            logger.warning(f"fetch_targets_for_reply error for @{username}: {e}")
+        time.sleep(1)
+
+    logger.info(f"fetch_targets_for_reply: {len(results)} candidates from targets.json")
     return results
 
 

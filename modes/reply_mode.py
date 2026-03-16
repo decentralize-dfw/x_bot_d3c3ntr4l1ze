@@ -15,7 +15,7 @@ import tweet_archive
 from core.llm import generate_reply_comment, score_tweet_quality
 from core.twitter import get_twitter_clients
 from core.voice import get_this_weeks_theme
-from modes.viral_mix import fetch_target_tweets_with_ids
+from modes.viral_mix import fetch_targets_for_reply
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -37,8 +37,8 @@ def post_reply_tweet():
     """
     client, _ = get_twitter_clients()
 
-    logger.info("Fetching target tweets for reply mode...")
-    candidates = fetch_target_tweets_with_ids(n_targets=10)
+    logger.info("Fetching target tweets for reply mode (targets.json only)...")
+    candidates = fetch_targets_for_reply(n_targets=10)
     if not candidates:
         logger.warning("No candidates for reply mode, skipping.")
         return
