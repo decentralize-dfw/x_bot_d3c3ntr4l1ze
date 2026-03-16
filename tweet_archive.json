@@ -402,5 +402,23 @@
     "content_type": "viral_mix_source",
     "posted_at": "2026-03-16T12:21:46.993908+00:00",
     "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "news_7fcda67c6847",
+    "content_type": "news",
+    "posted_at": "2026-03-16T13:40:20.347821+00:00",
+    "tweet_text": "NEWS: AI-powered tools interact with websites on behalf of users.",
+    "theme": "ai_design",
+    "tweet_id": "2033538860173381745",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "news_7fcda67c6847_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-16T13:40:21.064191+00:00",
+    "tweet_text": "as ai agents blur the lines between human and automated activity, can we still trust the metrics that drive our digital economies #SpatialCo",
+    "theme": "ai_design",
+    "tweet_id": "2033538863113597212",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
   }
 ]
