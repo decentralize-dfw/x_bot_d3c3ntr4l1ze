@@ -52,46 +52,25 @@ def _load_rejected() -> list:
 # ── Kategori bazlı aday seçimi ────────────────────────────────────────────────
 
 def _by_category(tweets: list, category: str, n: int) -> list:
-    """scan_results'tan belirli kategorideki tweetleri al.
+    """scan_results'tan belirli kategorideki tweetleri IQ3'e göre sıralı döndür.
 
-    Önce daily_scan.py tarafından atanmış "category" alanını kullan.
-    Eğer category alanı yoksa (eski format), fallback mantığıyla seç.
+    daily_scan.py tarafından atanmış "category" alanını kullanır.
+    Kategori boşsa boş liste döner — başka kategorilerden çalmaz.
     """
-    # Yeni format: category alanı var
     primary = [t for t in tweets if t.get("category") == category]
-    if primary:
-        return sorted(primary, key=lambda t: t.get("scores", {}).get("iq3", 0), reverse=True)[:n]
-
-    # Fallback: eski format (category alanı yok) — engagement'a göre seç
-    used_ids = set()
-    if category == "quote_rt":
-        return sorted(tweets, key=lambda t: t["engagement_score"] + len(t["text"]) // 15, reverse=True)[:n]
-    elif category == "rt":
-        return sorted(tweets, key=lambda t: t["engagement_score"], reverse=True)[:n]
-    elif category == "reply":
-        candidates = [
-            t for t in tweets
-            if t.get("reply_settings", "everyone") == "everyone"
-        ]
-        return sorted(candidates, key=lambda t: t["engagement_score"], reverse=True)[:n]
-    return []
+    return sorted(primary, key=lambda t: t.get("scores", {}).get("iq3", 0), reverse=True)[:n]
 
 
 def _select_sections(tweets: list):
     """Tüm bölümler için aday listelerini döndür.
 
+    Her kategori kendi tweet'lerini alır — başka kategorilerden çalmaz.
+    daily_scan.py'nin atadığı "category" alanı kullanılır.
     Returns: (quote_rt, rt_tweets, reply_tweets)
     """
-    quote_rt = _by_category(tweets, "quote_rt", 5)
-    used = {t["tweet_id"] for t in quote_rt}
-
-    rt_pool = [t for t in tweets if t["tweet_id"] not in used]
-    rt_tweets = _by_category(rt_pool, "rt", 5)
-    used.update(t["tweet_id"] for t in rt_tweets)
-
-    reply_pool = [t for t in tweets if t["tweet_id"] not in used]
-    reply_tweets = _by_category(reply_pool, "reply", 20)
-
+    quote_rt    = _by_category(tweets, "quote_rt", 5)
+    rt_tweets   = _by_category(tweets, "rt",       5)
+    reply_tweets = _by_category(tweets, "reply",   20)
     return quote_rt, rt_tweets, reply_tweets
 
 

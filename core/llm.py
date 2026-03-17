@@ -411,37 +411,36 @@ def generate_thread_reply(main_tweet: str) -> str | None:
 
 
 def generate_reply_comment(original_tweet: str) -> str:
-    """LLM: target tweet'e REPLY — kısa, doğal, insan gibi, farklı format rotasyonu."""
+    """LLM: target tweet'e REPLY — tweet'in kendi içeriğine özgü, kısa, doğal."""
     import random as _rnd
-    belief = random_belief()
 
-    # Her çağrıda farklı bir yaklaşım seç — bot izlenimi kırılsın
+    # Her çağrıda farklı yaklaşım — ama HEP orijinal tweet içeriğine bağlı
     styles = [
         (
-            "Write a SHORT reply (under 120 chars) that adds ONE specific fact or mechanism "
-            "the original tweet missed. Sound like someone who actually builds in this space. "
-            "No question. Statement only. Lowercase ok."
+            "Add ONE specific fact or technical detail about exactly what they described "
+            "that makes their point more precise. Sound like someone who builds in this space. "
+            "Statement only. No question. Lowercase ok."
         ),
         (
-            "Write a SHORT reply (under 120 chars) that gently challenges ONE assumption in "
-            "the tweet. Be direct, not preachy. First person ok ('i think', 'in my experience'). "
-            "No rhetorical questions."
+            "Challenge ONE specific assumption in what they said. "
+            "Name the exact thing you're pushing back on — not a vague counter. "
+            "Direct, not preachy. 'in my experience...' or 'that breaks when...' style."
         ),
         (
-            "Write a SHORT reply (under 120 chars) that agrees but adds the uncomfortable "
-            "implication they didn't mention. Like someone muttering 'yeah and also...' "
-            "Dry, specific, no hype."
+            "Agree, but add the uncomfortable technical implication they glossed over. "
+            "Dry, specific. Like muttering 'yeah, and that also means...' "
+            "Name the concrete tradeoff or consequence."
         ),
         (
-            "Write a SHORT reply (under 120 chars) as a practitioner who actually shipped "
-            "something in this space. Name the specific friction or tradeoff. No buzzwords. "
-            "Can start with 'the real issue is...' or 'what nobody mentions is...' or similar."
+            "As someone who has shipped something similar: name the specific friction "
+            "they'll hit, or the tradeoff they're not seeing yet. No buzzwords. "
+            "Can start with 'the part nobody mentions is' or 'this breaks when' or similar."
         ),
         (
-            "Write a SHORT reply (under 120 chars) that reframes the tweet's premise in one "
-            "sharp sentence. Not a question. Not 'but what if'. Just a reframe that makes the "
-            "reader reconsider. Example: if tweet says 'VR failed' → reply might be "
-            "'it didn't fail. it just built for tourists instead of residents.'"
+            "Reframe what they said in one sharper sentence that makes the same point more precisely. "
+            "Not a question. Not 'but what if'. "
+            "Example: tweet says 'VR failed' → 'it didn't fail. it built for tourists, not residents.' "
+            "Stay on THEIR topic — don't pivot to a different technology."
         ),
     ]
 
@@ -449,35 +448,37 @@ def generate_reply_comment(original_tweet: str) -> str:
 
     prompt = (
         "You are @decentralize___, a studio building 3D virtual worlds on-chain. "
-        "You are replying to someone's tweet as a real human expert, not a bot.\n\n"
+        "Replying to someone's tweet. Sound like a real expert, not a bot.\n\n"
         "HARD RULES:\n"
+        "- Your reply must be DIRECTLY about the technology/claim/situation in the original tweet\n"
+        "- NEVER introduce topics that aren't in the original tweet\n"
+        "  (don't add 'permanence', 'on-chain ownership', 'data decay', 'blockchain' "
+        "  unless the original tweet is specifically about those)\n"
         "- NEVER start with 'but what if' or 'what if'\n"
-        "- NEVER use 'accessibility', 'spatial narrative', 'token-driven'\n"
-        "- NEVER sound like a press release or a LinkedIn post\n"
-        "- NO hashtags in replies\n"
+        "- NO hashtags\n"
         "- NO sycophancy ('great point', 'love this', 'totally agree')\n"
-        "- Sound like a real person who has an opinion\n\n"
+        "- Under 120 chars\n\n"
         f"STYLE FOR THIS REPLY:\n{style}\n\n"
         f'Original tweet: "{original_tweet}"\n\n'
-        f'One belief that might inform your reply: "{belief}"\n\n'
         "Output ONLY the reply text. Nothing else."
     )
     return _call_llm(prompt, max_tokens=80, temperature=0.95).strip('"\'')
 
 
 def generate_quote_commentary(original_tweet: str) -> str:
-    """LLM: target tweet'e quote commentary — kendi sesimizden, keskin görüş."""
+    """LLM: target tweet'e quote commentary — tweet içeriğine özgü, keskin görüş."""
     import random as _rnd
-    voice_ctx = get_voice_context(n=5)
-    banned = get_recent_patterns(n=10)
-    belief = random_belief()
-    weekly = get_this_weeks_theme()
+    voice_ctx = get_voice_context(n=3)
+    banned = get_recent_patterns(n=8)
 
     angles = [
-        "Sharpen their point — write a more precise, more honest version of what they're trying to say.",
-        "Find the gap — name the thing their logic is quietly skipping over.",
-        "Add the missing dimension — the part they completely missed that changes the whole picture.",
-        "Respectfully disagree — name the specific assumption they're making that you think is wrong, and say why in one sentence.",
+        "Sharpen their point — write a more precise, more honest version of what they said "
+        "about the specific technology they mentioned.",
+        "Find the gap — name one thing their logic is quietly skipping, specific to what they described.",
+        "Add the missing dimension — the part they completely missed that changes the picture, "
+        "directly related to their specific claim.",
+        "Respectfully disagree — name the specific assumption they're making about the technology "
+        "they mentioned that you think is wrong. One sentence, concrete reason.",
     ]
     angle = _rnd.choice(angles)
 
@@ -486,15 +487,16 @@ def generate_quote_commentary(original_tweet: str) -> str:
         f"{TONE_BLOCK}\n"
         f"{voice_ctx}"
         f"{banned}"
-        f"This week's lens: {weekly}\n"
-        f'One of our beliefs: "{belief}"\n\n'
         f"Someone just said:\n\"{original_tweet}\"\n\n"
         f"Your task: {angle}\n\n"
-        "Rules:\n"
+        "HARD RULES:\n"
+        "- Your commentary must be SPECIFICALLY about what they said — their technology, their claim\n"
+        "- Do NOT pivot to unrelated topics or generic studio beliefs\n"
+        "  (don't add 'permanence', 'on-chain', 'data decay' unless the tweet is about those)\n"
         "- No 'RT @'. No 'great point'. No sycophancy.\n"
-        "- No buzzword salads. Say something specific.\n"
-        "- Your own voice — not a newsletter, not a press release.\n"
-        "- 40–200 chars. Stop when the point lands.\n\n"
+        "- No buzzword salads. Say something specific to their tweet.\n"
+        "- NO hashtags\n"
+        "- 40–180 chars. Stop when the point lands.\n\n"
         "Output ONLY the commentary text."
     )
     return _call_llm(prompt, max_tokens=120, temperature=0.90).strip('"\'')
