@@ -12,8 +12,8 @@ from core.llm import score_tweet_quality, is_semantically_duplicate
 
 def post_with_retry(
     generator_fn,
-    max_attempts: int = 3,
-    quality_threshold: float = 6.0,
+    max_attempts: int = 5,
+    quality_threshold: float = 9.0,
 ) -> str | None:
     """Tweet üretim + kalite + dedup döngüsü — tek merkezi implementation.
 
