@@ -65,12 +65,17 @@ def post_like_tweets():
     logger.info(f"Like mode done: {liked}/{_LIKE_TARGET} likes sent.")
 
 
-def like_following_tweets():
+_FOLLOWING_DAILY_CAP = 35  # Günde en fazla bu kadar following like atılır
+
+
+def like_following_tweets(max_likes: int = _FOLLOWING_DAILY_CAP):
     """Takip edilen hesapların son 24h tweetlerini like at (retweet hariç).
 
     following_archive.json'u okur. Bu dosya following_scan modu tarafından
     günlük olarak güncellenir. Amaç: takip edilen herkesin timeline'ında
     hesap olarak görünür ve düzenli etkileşimde olmak.
+
+    max_likes: günlük üst sınır (varsayılan 35).
     """
     client, _ = get_twitter_clients()
 
@@ -96,6 +101,9 @@ def like_following_tweets():
     errors = 0
 
     for t in tweets:
+        if liked >= max_likes:
+            logger.info(f"like_following: daily cap {max_likes} reached, stopping.")
+            break
         archive_id = "fllike_" + t["tweet_id"]
         if tweet_archive.is_posted_recently(archive_id, days=_LIKE_COOLDOWN_DAYS):
             skipped += 1
