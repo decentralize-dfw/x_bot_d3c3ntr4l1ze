@@ -86,8 +86,44 @@ _SCAM_PATTERNS = re.compile(
     | \b(hackathon|hands[-\s]?on\s+workshops?|world[-\s]?class\s+mentors?|devkit)\b
     # "years of speed/momentum/building" — proje anma metinleri
     | \b(years\s+of\s+(speed|momentum|builders?|nonstop|growth)|here.s\s+to\s+the\s+next\s+chapter)\b
+    # Yetişkin AI eşlik servisi / "digital twin" seks ürünü
+    | \b(get\s+(you|me)\s+off(\s+in\s+under)?|try\s+(her|him)\s+out\s+here)\b
+    | \bmy\s+digital\s+twin\s+(is\s+waiting|never\s+does|can\s+get)\b
+    | \b(talking\s+in\s+my\s+voice|giving\s+you\s+attention\s+i|you\s+know\s+where\s+the\s+link\s+is|don.t\s+be\s+shy)\b
+    # Koordineli GM/morning + proje shill kalıpları (shill farm)
+    | \b(while\s+most\s+people\s+(scroll|sleep)|a\s+few\s+are\s+(building|earning|positioning))\b
+    | \b(quietly\s+creating\s+a\s+space|positioning\s+(early|yourself)\s+(in\s+)?web3|early\s+in\s+web3)\b
+    | \b(signal\s+over\s+noise|beyond\s+vanity\s+metrics|reward\s+impact|creator\s+ecosystem)\b
+    | \b(morning\s+greetings?\s+winners?|gm\s+and\s+happy\s+taco|happy\s+taco\s+tuesday)\b
+    | \b(is\s+all\s+about\s+community\s+growth|every\s+(building|logo)\s+(you\s+see|is\s+a))\b
+    | \bmost\s+partnered\s+(metaverse|game|platform)\b
+    # Tekrarlayan spam projeleri (koordineli shill kampanyaları)
+    | \b(xoob(network)?|permacast(app)?|permaweb\s*(dao)?|0g[\s_]labs|dypians|nasun[\s_.]io|letscatapult|yom[\s_]official|wallchain\b|mindoai|3look[\s_.]io)\b
+    # Konu dışı içerik: manga / anime / K-drama / spor
+    | \b(romcom|manga|manhwa|webtoon|kdrama|k[-\s]drama|anime\b|springbok|rugby)\b
+    | \b(copies\s+in\s+circulation|twin\s+tails|childhood\s+friend\s+but)\b
+    | \bboyfriend.on.demand\b
     """,
     re.IGNORECASE | re.VERBOSE,
+)
+
+# ── Konu geçerlilik filtresi — en az bir teknik XR/spatial keyword zorunlu ───
+_TOPIC_REQUIRED = re.compile(
+    r"\b("
+    r"webxr|openxr|"
+    r"spatial\s+(computing|audio|web|mapping|presence)|"
+    r"immersive\s+(web|tech|experience|technology)|"
+    r"virtual\s+reality|vr\s+headsets?|"
+    r"mixed\s+reality|augmented\s+reality|"
+    r"gaussian\s+spl[ai]t|3dgs\b|"
+    r"haptic|volumetric|holograph|"
+    r"webgl|three[.\s]?js|babylon[.\s]?js|a-frame\b|"
+    r"hmd\b|point\s+cloud|"
+    r"xr\s+(development|developer|scene|space|headset|experience|app)|"
+    r"immersive-web|spatial-web|"
+    r"vr\s+(development|developer|scene|game|app|experience)"
+    r")\b",
+    re.IGNORECASE,
 )
 
 # Maksimum hashtag sayısı
@@ -108,3 +144,12 @@ def is_spam(text: str) -> bool:
     if len(re.findall(r"@\w+", text)) >= 3 and "http" not in text:
         return True
     return False
+
+
+def is_off_topic(text: str) -> bool:
+    """True dönerse tweet niche'imizle (WebXR/spatial/immersive) ilgisiz.
+
+    daily_scan'de spam filtresiyle birlikte kullanılır.
+    True döndürürse tweet kesinlikle kabul edilmez.
+    """
+    return not bool(_TOPIC_REQUIRED.search(text))
