@@ -548,5 +548,28 @@
     "tweet_text": "Good Morning Legends.\n\nThe Web3 space is moving fast with teams building the next generation of dece",
     "theme": "architecture",
     "tweet_id": "2033776979447820718"
+  },
+  {
+    "content_id": "like_876f1c23e07f",
+    "content_type": "like",
+    "posted_at": "2026-03-17T11:17:53.596428+00:00",
+    "tweet_text": "Experimenting with generating WebXR scenes in VR. This demo uses Grok's @xai API to create @threejs ",
+    "theme": "vr_failure",
+    "tweet_id": "2032286633060614366"
+  },
+  {
+    "content_id": "like_3a8879444965",
+    "content_type": "like",
+    "posted_at": "2026-03-17T11:17:54.166900+00:00",
+    "tweet_text": "Built a tiny app for Apple Watch that triggers your hand with the haptic once Claude Code completed ",
+    "tweet_id": "2032459700470472789"
+  },
+  {
+    "content_id": "like_422dfa463788",
+    "content_type": "like",
+    "posted_at": "2026-03-17T11:17:54.661190+00:00",
+    "tweet_text": "This is not a video.\n\nIt’s a walkable photorealistic Gaussian Splat running live in your browser.\n\nV",
+    "theme": "vr_retention",
+    "tweet_id": "2032064169466327271"
   }
 ]
