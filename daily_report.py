@@ -79,9 +79,9 @@ def _safe_text(text: str) -> str:
 class _DailyPDF(FPDF):
     def header(self):
         self.set_font("Helvetica", "B", 14)
-        self.cell(0, 10, "@d3c3Ntr4L1z3 \u2014 Bilan Quotidien", new_x="LMARGIN", new_y="NEXT", align="C")
+        self.cell(0, 10, "@d3c3Ntr4L1z3 - Bilan Quotidien", new_x="LMARGIN", new_y="NEXT", align="C")
         self.set_font("Helvetica", "", 10)
-        date_str = datetime.now(timezone.utc).strftime("%d %B %Y \u2014 %H:%M UTC")
+        date_str = datetime.now(timezone.utc).strftime("%d %B %Y - %H:%M UTC")
         self.cell(0, 7, date_str, new_x="LMARGIN", new_y="NEXT", align="C")
         self.ln(3)
         self.set_draw_color(80, 80, 80)
@@ -98,7 +98,7 @@ def _add_section(pdf: _DailyPDF, title: str, tweets: list, rgb: tuple) -> None:
     pdf.set_font("Helvetica", "B", 11)
     pdf.set_fill_color(*rgb)
     pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 8, f"  {title}", new_x="LMARGIN", new_y="NEXT", fill=True)
+    pdf.cell(0, 8, _safe_text(f"  {title}"), new_x="LMARGIN", new_y="NEXT", fill=True)
     pdf.set_text_color(0, 0, 0)
     pdf.ln(2)
 
