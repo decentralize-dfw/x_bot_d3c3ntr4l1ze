@@ -1,0 +1,30 @@
+{
+  "usernames": [
+    "UNDOXXEDBOOK",
+    "ClareMaguire",
+    "zakgroup",
+    "carodebartolo",
+    "RED___DAO",
+    "danidoesnotxist",
+    "pronounceddrop",
+    "MetageistVR",
+    "Zaharia_af",
+    "WGMeets",
+    "dadabots",
+    "cryptopunks",
+    "voxvienne",
+    "reneil1337",
+    "co1born",
+    "CozomoMedici",
+    "madebyoona",
+    "cowboycowboyetc",
+    "Neue2Dojo",
+    "untitledxyz_",
+    "OVRtheReality",
+    "neon_buidl",
+    "MuseumofCrypto",
+    "punk6529",
+    "VitalikButerin"
+  ],
+  "note": "Backup following list. following_scan.py uses this when Twitter API v1.1 get_friends() fails."
+}

@@ -16,7 +16,6 @@ Kullanım:
 """
 import json
 import os
-import sys
 import time
 from datetime import datetime, timedelta, timezone
 
@@ -28,6 +27,7 @@ from utils.logger import get_logger
 logger = get_logger(__name__)
 
 ARCHIVE_PATH = os.path.join(os.path.dirname(__file__), "following_archive.json")
+BACKUP_PATH  = os.path.join(os.path.dirname(__file__), "following_backup.json")
 
 # Takip edilen hesap sayısı üst sınırı (API rate limit koruması)
 _MAX_FOLLOWING = 500
@@ -41,21 +41,53 @@ def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
-def _get_following(client: tweepy.Client, user_id: str) -> list:
-    """Takip edilen hesapları çek. Paginated, max _MAX_FOLLOWING."""
+def _get_following_v1(api: tweepy.API) -> list:
+    """Takip edilen hesapları çek — v1.1 API, OAuth 1.0a ile çalışır.
+
+    v2 get_users_following OAuth 2.0 PKCE gerektirir (401 verir).
+    v1.1 friends/list ise mevcut OAuth 1.0a token'larla doğrudan çalışır.
+    """
     following = []
     try:
-        for user in tweepy.Paginator(
-            client.get_users_following,
-            id=user_id,
-            max_results=1000,
-            user_fields=["username", "public_metrics"],
-        ).flatten(limit=_MAX_FOLLOWING):
-            following.append(user)
+        for page in tweepy.Cursor(
+            api.get_friends,
+            count=200,
+            skip_status=True,
+            include_user_entities=False,
+        ).pages():
+            for user in page:
+                following.append(user)
+                if len(following) >= _MAX_FOLLOWING:
+                    logger.info(f"Following cap reached: {_MAX_FOLLOWING}")
+                    return following
     except Exception as e:
-        logger.error(f"get_following error: {e}")
+        logger.error(f"get_friends (v1.1) error: {e}")
     logger.info(f"Following list: {len(following)} accounts")
     return following
+
+
+def _load_backup_following(api: tweepy.API) -> list:
+    """following_backup.json'daki username listesinden v1.1 user objelerini çek."""
+    try:
+        with open(BACKUP_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        usernames = data.get("usernames", [])
+        if not usernames:
+            return []
+        # Twitter API v1.1 lookup: max 100 per call
+        users = []
+        for i in range(0, len(usernames), 100):
+            batch = usernames[i:i + 100]
+            try:
+                result = api.lookup_users(screen_names=batch, include_entities=False)
+                users.extend(result)
+            except Exception as e:
+                logger.warning(f"lookup_users batch error: {e}")
+        logger.info(f"Backup following loaded: {len(users)} accounts")
+        return users
+    except Exception as e:
+        logger.error(f"_load_backup_following error: {e}")
+        return []
 
 
 def _get_user_tweets(client: tweepy.Client, user_id: str, start_time: datetime) -> list:
@@ -80,7 +112,7 @@ def _get_user_tweets(client: tweepy.Client, user_id: str, start_time: datetime) 
 
 def run_following_scan() -> dict:
     """Ana tarama: takip edilenlerin son 24h tweetlerini topla → following_archive.json."""
-    client, _ = get_twitter_clients()
+    client, api = get_twitter_clients()
     bearer_client = get_twitter_client_with_bearer()
 
     # Kendi kimliğimizi al
@@ -90,32 +122,38 @@ def run_following_scan() -> dict:
             raise ValueError("Empty response from get_me()")
     except Exception as e:
         logger.error(f"get_me() failed: {e}")
-        sys.exit(1)
+        return {}
 
-    user_id = str(me.data.id)
-    logger.info(f"Authenticated as: @{me.data.username} (ID: {user_id})")
+    logger.info(f"Authenticated as: @{me.data.username} (ID: {me.data.id})")
 
-    following = _get_following(client, user_id)
+    # v1.1 API ile following listesini al (OAuth 1.0a)
+    following = _get_following_v1(api)
     if not following:
-        logger.error("No following accounts found, exiting.")
-        sys.exit(1)
+        logger.warning("API following list empty — falling back to following_backup.json")
+        following = _load_backup_following(api)
+    if not following:
+        logger.warning("No following accounts found — archive not updated.")
+        return {}
 
     since = _utcnow() - timedelta(hours=24)
     all_tweets = []
     fetched_at = _utcnow().isoformat()
 
     for user in following:
-        tweets = _get_user_tweets(bearer_client, str(user.id), since)
+        # v1.1 user object: .id_str ve .screen_name
+        uid = user.id_str
+        uname = user.screen_name
+        tweets = _get_user_tweets(bearer_client, uid, since)
         for tweet in tweets:
             all_tweets.append({
                 "tweet_id":  str(tweet.id),
-                "author":    user.username,
-                "author_id": str(user.id),
+                "author":    uname,
+                "author_id": uid,
                 "text":      tweet.text,
                 "fetched_at": fetched_at,
             })
         if tweets:
-            logger.info(f"  @{user.username}: {len(tweets)} tweet(s)")
+            logger.info(f"  @{uname}: {len(tweets)} tweet(s)")
         time.sleep(_SLEEP_BETWEEN)
 
     result = {
