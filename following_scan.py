@@ -27,6 +27,7 @@ from utils.logger import get_logger
 logger = get_logger(__name__)
 
 ARCHIVE_PATH = os.path.join(os.path.dirname(__file__), "following_archive.json")
+BACKUP_PATH  = os.path.join(os.path.dirname(__file__), "following_backup.json")
 
 # Takip edilen hesap sayısı üst sınırı (API rate limit koruması)
 _MAX_FOLLOWING = 500
@@ -63,6 +64,30 @@ def _get_following_v1(api: tweepy.API) -> list:
         logger.error(f"get_friends (v1.1) error: {e}")
     logger.info(f"Following list: {len(following)} accounts")
     return following
+
+
+def _load_backup_following(api: tweepy.API) -> list:
+    """following_backup.json'daki username listesinden v1.1 user objelerini çek."""
+    try:
+        with open(BACKUP_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        usernames = data.get("usernames", [])
+        if not usernames:
+            return []
+        # Twitter API v1.1 lookup: max 100 per call
+        users = []
+        for i in range(0, len(usernames), 100):
+            batch = usernames[i:i + 100]
+            try:
+                result = api.lookup_users(screen_names=batch, include_entities=False)
+                users.extend(result)
+            except Exception as e:
+                logger.warning(f"lookup_users batch error: {e}")
+        logger.info(f"Backup following loaded: {len(users)} accounts")
+        return users
+    except Exception as e:
+        logger.error(f"_load_backup_following error: {e}")
+        return []
 
 
 def _get_user_tweets(client: tweepy.Client, user_id: str, start_time: datetime) -> list:
@@ -103,6 +128,9 @@ def run_following_scan() -> dict:
 
     # v1.1 API ile following listesini al (OAuth 1.0a)
     following = _get_following_v1(api)
+    if not following:
+        logger.warning("API following list empty — falling back to following_backup.json")
+        following = _load_backup_following(api)
     if not following:
         logger.warning("No following accounts found — archive not updated.")
         return {}

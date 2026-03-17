@@ -43,11 +43,14 @@ jobs:
       - name: Generate daily PDF report (bilan_quotidienne)
         run: python daily_report.py
 
-      - name: Commit scan results + following archive + PDF report
+      - name: Update BRAIN-WIP archive
+        run: python brain_wip.py
+
+      - name: Commit scan results + following archive + PDF report + BRAIN-WIP
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add scan_results.json following_archive.json bilan_quotidienne/
+          git add scan_results.json following_archive.json bilan_quotidienne/ brain_wip.json
           git diff --staged --quiet && echo "No changes to commit." && exit 0
           git commit -m "scan: daily niche + following scan + bilan $(date -u +%Y-%m-%d)"
           git push origin ${{ github.ref_name }} || (
