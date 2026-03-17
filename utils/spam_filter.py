@@ -13,9 +13,9 @@ _SCAM_PATTERNS = re.compile(
     # Pump sinyalleri
     | \b(100x|1000x|mooning|to\s+the\s+moon|next\s+gem|hidden\s+gem|ape\s+in|dyor)\b
     # Airdrop / giveaway
-    | \b(airdrop|giveaway|free\s+tokens?|win\s+\d|drop\s+your\s+wallet|enter\s+to\s+win)\b
+    | \b(airdrop|giveaway|free\s+tokens?|win\s+\d|drop\s+your\s+wallets?|enter\s+to\s+win)\b
     # Follower farming
-    | \b(follow\s+(&|and)\s+(rt|retweet)|rt\s+to\s+(win|enter)|like\s+and\s+follow)\b
+    | \b(follow\s+(&|and)\s+(rt|retweet)|rt\s+to\s+(win|enter)|like\s+(and|&)\s+(follow|rt)|like\s+and\s+follow)\b
     # Finansal spam
     | \b(buy\s+now|last\s+chance|limited\s+supply|floor\s+price|bullish|bearish|ath\b)\b
     # Proje isim kalıpları
@@ -24,8 +24,8 @@ _SCAM_PATTERNS = re.compile(
     | boot\s+sequence|gathering[\s,]+ready
     # Wallet/contract spam
     | \b(ca:|contract\s+address|0x[0-9a-f]{6,})\b
-    # Token ticker ($XOOB, $ACH, $KVAI vb.)
-    | \$[A-Z]{2,8}\b
+    # Token ticker ($XOOB, $ACH, $OS1, $KVAI vb. — harf+rakam karışık dahil)
+    | \$[A-Z][A-Z0-9]{1,7}\b
     # Yield farming
     | \b(farming|yield\s+farm|liquidity\s+pool|staking\s+reward)\b
     # Wallet bağlantı spamı
@@ -62,6 +62,30 @@ _SCAM_PATTERNS = re.compile(
     | \b(fiat\s+(payment|rail|on[-\s]?ramp)|payment\s+rail|crypto\s+on[-\s]?ramp)\b
     # Grant / award self-promotion (proje başarı reklamı)
     | \b(secured\s+\d+\s+(competitive\s+)?(grants?|awards?))\b
+    # NSFW / adult / ERP içerik
+    | \b(nsfw|erp|lewd|18\+)\b|\#(nsfw|erp)
+    # Memecoin / meme token
+    | \b(memecoin|meme\s+coin|step\s+into\s+the\s+rhythm\s+of\s+web3)\b
+    # "@Proje is trying to / built to / designed to" ürün shili
+    | @\w+\s+is\s+(trying\s+to\s+(solve|fix|change|disrupt|modernize|revolutionize)|designed\s+to|built\s+to\s+(solve|fix|change)|here\s+to\s+(solve|fix|change|disrupt))\b
+    # "Discover it:" / "Link in bio" / tıklama CTAları
+    | \b(discover\s+it\s*:|link\s+in\s+(bio|the\s+replies?|below)|tap\s+the\s+link|click\s+(below|here\s+to))\b
+    # "modernize/revolutionize/reinvent" + web3/blockchain bağlamı
+    | \b(modernize|revolutionize|reinvent)\b.{0,80}\b(web3|blockchain|crypto|on[-\s]?chain|defi)\b
+    # "The future of X is here/becoming more" hype kalıpları
+    | \b(the\s+future\s+of\s+\w+\s+is\s+(here|becoming|now|never)\b|more\s+(accessible|affordable)\s+than\s+ever)\b
+    # Üçlü proje kolaborasyonu "A x B x C" (multi-word proje isimleri dahil)
+    | \b\w+(?:\s+\w+)?\s+x\s+\w+(?:\s+\w+)?\s+x\s+\w+
+    # "Happy N(th) anniversary" — kripto proje kutlaması
+    | \bhappy\s+\d+\w*\s+(anniversary|birthday)\b
+    # "Introducing [platform/protocol/sdk/framework]" — ürün duyurusu
+    | \bintroducing\b.{0,60}\b(platform|protocol|development|framework|sdk|infrastructure|network)\b
+    # "event is LIVE" / "is now LIVE!" — etkinlik duyurusu
+    | \b(event\s+is\s+(live|now\s+live)|collection\s+race|season\s+pass|spring\s+event)\b
+    # Hackathon/workshop event spami
+    | \b(hackathon|hands[-\s]?on\s+workshops?|world[-\s]?class\s+mentors?|devkit)\b
+    # "years of speed/momentum/building" — proje anma metinleri
+    | \b(years\s+of\s+(speed|momentum|builders?|nonstop|growth)|here.s\s+to\s+the\s+next\s+chapter)\b
     """,
     re.IGNORECASE | re.VERBOSE,
 )
