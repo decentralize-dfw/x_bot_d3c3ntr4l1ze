@@ -24,18 +24,15 @@ on:
     - cron: '0 6 * * 1'
     # TR 12:00 -> UTC 09:00 Perşembe — Data viz tweet
     - cron: '0 9 * * 4'
-    # TR 13:00 -> UTC 10:00 Hergün — Quote tweet (Premium, günlük)
-    - cron: '0 10 * * *'
-    # TR 16:00 -> UTC 13:00 Hergün — Reply mode #1 (Premium)
-    - cron: '0 13 * * 1-6'
-    # TR 20:00 -> UTC 17:00 Hergün — Reply mode #2 (Premium, 2x/gün = 10 reply/gün)
-    - cron: '0 17 * * 1-6'
-    # TR 10:00 -> UTC 07:00 Hergün — Like mode (morning ile birlikte)
-    - cron: '0 7 * * 1-6'
-    # TR 11:00 -> UTC 08:00 Hergün — Retweet mode #1 (Premium)
-    - cron: '0 8 * * 1-6'
-    # TR 23:00 -> UTC 20:00 Hergün — Retweet mode #2 (Premium, 2x/gün)
-    - cron: '0 20 * * 1-6'
+    # ── LIKE — 50/gün, ara ara (her saat ~3 niche like) ─────────────────────────
+    - cron: '0 7 * * 1-6'   # like batch 1
+    - cron: '0 9 * * 1-6'   # like batch 2
+    - cron: '0 11 * * 1-6'  # like batch 3
+    - cron: '0 14 * * 1-6'  # like batch 4
+    - cron: '0 17 * * 1-6'  # like batch 5
+    - cron: '0 20 * * 1-6'  # like batch 6
+    # ── LIKE FOLLOWING — following_archive'den 35 like (06:30 UTC, scan sonrası) ─
+    - cron: '30 6 * * *'
     # Pazar 08:00 UTC — Engagement backfill (AŞAMA 4)
     - cron: '0 8 * * 0'
   workflow_dispatch:
@@ -60,6 +57,8 @@ on:
           - reply_mode
           - like_mode
           - retweet_mode
+          - like_following
+          - following_scan
           - engagement_backfill
 
 jobs:
@@ -137,18 +136,14 @@ jobs:
           elif [ "$SCHEDULE" = "0 9 * * 4" ]; then
             echo "Mode: data_viz (weekly chart tweet)"
             python bot.py data_viz
-          elif [ "$SCHEDULE" = "0 10 * * *" ]; then
-            echo "Mode: quote_tweet (Premium — günlük)"
-            python bot.py quote_tweet
-          elif [ "$SCHEDULE" = "0 13 * * 1-6" ] || [ "$SCHEDULE" = "0 17 * * 1-6" ]; then
-            echo "Mode: reply_mode (Premium — hergün 2x)"
-            python bot.py reply_mode
-          elif [ "$SCHEDULE" = "0 7 * * 1-6" ]; then
-            echo "Mode: like_mode (Premium — hergün)"
+          elif [ "$SCHEDULE" = "0 7 * * 1-6" ] || [ "$SCHEDULE" = "0 9 * * 1-6" ] || \
+               [ "$SCHEDULE" = "0 11 * * 1-6" ] || [ "$SCHEDULE" = "0 14 * * 1-6" ] || \
+               [ "$SCHEDULE" = "0 17 * * 1-6" ] || [ "$SCHEDULE" = "0 20 * * 1-6" ]; then
+            echo "Mode: like_mode (niche — 50/gün spread)"
             python bot.py like_mode
-          elif [ "$SCHEDULE" = "0 8 * * 1-6" ] || [ "$SCHEDULE" = "0 20 * * 1-6" ]; then
-            echo "Mode: retweet_mode (Premium — hergün 2x)"
-            python bot.py retweet_mode
+          elif [ "$SCHEDULE" = "30 6 * * *" ]; then
+            echo "Mode: like_following (following archive — 35 like cap)"
+            python bot.py like_following
           elif [ "$SCHEDULE" = "0 8 * * 0" ]; then
             echo "Mode: engagement_backfill (AŞAMA 4 — Pazar)"
             pip install -r requirements.txt -q
