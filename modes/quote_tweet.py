@@ -21,7 +21,10 @@ logger = get_logger(__name__)
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
-_QUOTE_QUALITY_MIN = 9.0
+# BUG FIX #15: 9.0 çok sıkı — score_tweet_quality() 4 eksenin MIN'ini döner.
+# GROQ API fail → 0.0 → tüm adaylar rejected → sıfır quote tweet atılıyor.
+# 6.0'a indirildi: tüm eksenler en az 6/10 olsun yeterli.
+_QUOTE_QUALITY_MIN = 6.0
 
 
 def post_quote_tweet():

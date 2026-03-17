@@ -158,11 +158,12 @@ def fetch_target_tweets(n_targets: int = 10, max_results: int = 20) -> list:
                 sort_order="relevancy",
             )
             if resp.data:
+                # BUG FIX #14: public_metrics None guard — API bazen None döner
                 tweets = sorted(
                     resp.data,
                     key=lambda t: (
-                        t.public_metrics.get("like_count", 0)
-                        + t.public_metrics.get("retweet_count", 0) * 3
+                        (t.public_metrics or {}).get("like_count", 0)
+                        + (t.public_metrics or {}).get("retweet_count", 0) * 3
                     ),
                     reverse=True,
                 )
@@ -236,9 +237,10 @@ def fetch_target_tweets_with_ids(n_targets: int = 3) -> list:
                 sort_order="relevancy",
             )
             if resp.data:
+                # BUG FIX #14: public_metrics None guard
                 best = max(
                     resp.data,
-                    key=lambda t: t.public_metrics.get("like_count", 0) + t.public_metrics.get("retweet_count", 0) * 2,
+                    key=lambda t: (t.public_metrics or {}).get("like_count", 0) + (t.public_metrics or {}).get("retweet_count", 0) * 2,
                 )
                 results.append({"id": str(best.id), "text": best.text, "author": target["username"]})
         except Exception as e:
@@ -286,9 +288,10 @@ def fetch_targets_for_reply(n_targets: int = 10) -> list:
                     if getattr(t, "reply_settings", "everyone") == "everyone"
                 ]
                 candidates = open_tweets if open_tweets else resp.data
+                # BUG FIX #14: public_metrics None guard
                 best = max(
                     candidates,
-                    key=lambda t: t.public_metrics.get("like_count", 0) + t.public_metrics.get("retweet_count", 0) * 2,
+                    key=lambda t: (t.public_metrics or {}).get("like_count", 0) + (t.public_metrics or {}).get("retweet_count", 0) * 2,
                 )
                 results.append({"id": str(best.id), "text": best.text, "author": username})
         except Exception as e:

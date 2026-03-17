@@ -19,7 +19,7 @@ Modlar:
     community_pulse      Haftalık RSS özet thread'i (Pazartesi)
     data_viz             Haftalık niche frekans bar chart tweeti
     quote_tweet          Target tweet'leri quote et (Premium — AKTİF)
-    reply_mode           Target tweet'lerine kriptik yanıt ver (Premium — AKTİF)
+    reply_mode           Scan/target tweet'lerini quote tweet ile engage et (Premium — AKTİF)
     like_mode            Target tweet'lerine like at (Premium — AKTİF)
     retweet_mode         Target tweet'lerini retweet et (Premium — YENİ)
     following_scan       Takip edilenlerin 24h tweetlerini following_archive.json'a kaydet
@@ -96,8 +96,9 @@ def main():
         post_quote_tweet()
 
     elif mode == "reply_mode":
-        from modes.reply_mode import post_reply_tweet
-        post_reply_tweet()
+        # BUG FIX #21: post_quote_engage kullan (post_reply_tweet alias olarak kalıyor)
+        from modes.reply_mode import post_quote_engage
+        post_quote_engage()
 
     elif mode == "like_mode":
         from modes.like_mode import post_like_tweets

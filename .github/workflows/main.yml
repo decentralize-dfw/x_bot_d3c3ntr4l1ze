@@ -22,15 +22,30 @@ on:
     - cron: '0 12 * * *'
     # TR 09:00 -> UTC 06:00 Pazartesi — Community pulse thread
     - cron: '0 6 * * 1'
-    # TR 12:00 -> UTC 09:00 Perşembe — Data viz tweet
-    - cron: '0 9 * * 4'
+    # BUG FIX #17: Data viz Perşembe 09:00'dan 10:00'a taşındı
+    # Eski: '0 9 * * 4' — decrypt + like_mode ile 3 iş aynı anda çakışıyordu
+    # TR 13:00 -> UTC 10:00 Perşembe — Data viz tweet (çakışmasız slot)
+    - cron: '0 10 * * 4'
+    # BUG FIX #16: retweet_mode schedule eklendi — daha önce hiç otomatik çalışmıyordu
+    # TR 11:00 -> UTC 08:00 Pazartesi-Cumartesi — Retweet modu (3 RT/run × 2 run = 6 RT/gün)
+    - cron: '0 8 * * 1-6'
+    # BUG FIX #16: reply_mode (quote engage) schedule eklendi — daha önce hiç otomatik çalışmıyordu
+    # TR 22:00 -> UTC 19:00 Pazartesi-Cumartesi — Quote engage (5 QT/run)
+    - cron: '0 19 * * 1-6'
+    # BUG FIX #20: quote_tweet (curated targets) hiç schedule'da yoktu
+    # TR 13:00 -> UTC 10:00 Her gün (Perşembe hariç — o gün data_viz var) — Curated quote tweet
+    - cron: '0 10 * * 0,1,2,3,5,6'
     # ── LIKE — 50/gün, ara ara (her saat ~3 niche like) ─────────────────────────
-    - cron: '0 7 * * 1-6'   # like batch 1
-    - cron: '0 9 * * 1-6'   # like batch 2
-    - cron: '0 11 * * 1-6'  # like batch 3
-    - cron: '0 14 * * 1-6'  # like batch 4
-    - cron: '0 17 * * 1-6'  # like batch 5
-    - cron: '0 20 * * 1-6'  # like batch 6
+    - cron: '0 7 * * 1-6'   # like batch 1 (Mon-Sat)
+    - cron: '0 9 * * 1-6'   # like batch 2 (Mon-Sat)
+    - cron: '0 11 * * 1-6'  # like batch 3 (Mon-Sat)
+    - cron: '0 14 * * 1-6'  # like batch 4 (Mon-Sat)
+    - cron: '0 17 * * 1-6'  # like batch 5 (Mon-Sat)
+    - cron: '0 20 * * 1-6'  # like batch 6 (Mon-Sat)
+    # BUG FIX #22: Pazar like_mode yoktu — 3 hafif batch eklendi
+    - cron: '0 9 * * 0'     # like batch Pazar sabah
+    - cron: '0 14 * * 0'    # like batch Pazar öğlen
+    - cron: '0 20 * * 0'    # like batch Pazar akşam
     # ── LIKE FOLLOWING — following_archive'den 35 like (06:30 UTC, scan sonrası) ─
     - cron: '30 6 * * *'
     # Pazar 08:00 UTC — Engagement backfill (AŞAMA 4)
@@ -133,24 +148,40 @@ jobs:
           elif [ "$SCHEDULE" = "0 6 * * 1" ]; then
             echo "Mode: community_pulse (weekly thread)"
             python bot.py community_pulse
-          elif [ "$SCHEDULE" = "0 9 * * 4" ]; then
+          elif [ "$SCHEDULE" = "0 10 * * 4" ]; then
+            # BUG FIX #17: '0 9 * * 4' → '0 10 * * 4' — çakışma giderildi
             echo "Mode: data_viz (weekly chart tweet)"
             python bot.py data_viz
+          elif [ "$SCHEDULE" = "0 10 * * 0,1,2,3,5,6" ]; then
+            # BUG FIX #20: quote_tweet (curated targets) artık günlük çalışıyor
+            echo "Mode: quote_tweet (curated targets — 1 quote/run)"
+            python bot.py quote_tweet
+          elif [ "$SCHEDULE" = "0 8 * * 1-6" ]; then
+            # BUG FIX #16: retweet_mode schedule eklendi
+            echo "Mode: retweet_mode (3 RT/run, Mon-Sat 08:00 UTC)"
+            python bot.py retweet_mode
+          elif [ "$SCHEDULE" = "0 19 * * 1-6" ]; then
+            # BUG FIX #16: reply_mode (quote engage) schedule eklendi
+            echo "Mode: reply_mode (5 quote-engage/run, Mon-Sat 19:00 UTC)"
+            python bot.py reply_mode
           elif [ "$SCHEDULE" = "0 7 * * 1-6" ] || [ "$SCHEDULE" = "0 9 * * 1-6" ] || \
                [ "$SCHEDULE" = "0 11 * * 1-6" ] || [ "$SCHEDULE" = "0 14 * * 1-6" ] || \
-               [ "$SCHEDULE" = "0 17 * * 1-6" ] || [ "$SCHEDULE" = "0 20 * * 1-6" ]; then
-            echo "Mode: like_mode (niche — 50/gün spread)"
+               [ "$SCHEDULE" = "0 17 * * 1-6" ] || [ "$SCHEDULE" = "0 20 * * 1-6" ] || \
+               [ "$SCHEDULE" = "0 9 * * 0" ] || [ "$SCHEDULE" = "0 14 * * 0" ] || \
+               [ "$SCHEDULE" = "0 20 * * 0" ]; then
+            # BUG FIX #22: son 3 branch = Pazar like batch'leri
+            echo "Mode: like_mode (niche — 50/gün spread, Pazar dahil)"
             python bot.py like_mode
           elif [ "$SCHEDULE" = "30 6 * * *" ]; then
             echo "Mode: like_following (following archive — 35 like cap)"
             python bot.py like_following
           elif [ "$SCHEDULE" = "0 8 * * 0" ]; then
             echo "Mode: engagement_backfill (AŞAMA 4 — Pazar)"
-            pip install -r requirements.txt -q
             python engagement_backfill.py
           else
-            echo "Mode: manual dispatch — running evening"
-            python bot.py evening
+            # BUG FIX #18: Bilinmeyen schedule veya boş dispatch → sessiz evening yerine uyarı
+            echo "WARNING: No matching mode for SCHEDULE='$SCHEDULE' — skipping to prevent unexpected posts."
+            exit 0
           fi
 
       - name: Commit Archive Update

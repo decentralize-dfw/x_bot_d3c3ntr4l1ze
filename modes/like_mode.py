@@ -10,6 +10,8 @@ Like modu — YENİ. Premium API ile aktif. (Faz 3.3)
 Günlük hedef: 3 niche like (d3c3ntr4l1z3_strategy.docx §05) +
               following_archive'deki tüm tweetler.
 """
+# BUG FIX #13: import hashlib döngü içindeydi — dosya başına taşındı
+import hashlib
 import json
 import os
 import time
@@ -35,6 +37,14 @@ def post_like_tweets():
     """
     client, _ = get_twitter_clients()
 
+    # BUG FIX #12: client.like(user_id, tweet_id) — user_id zorunlu (Tweepy 4.14)
+    try:
+        me = client.get_me()
+        my_id = me.data.id
+    except Exception as e:
+        logger.error(f"get_me() failed: {e}")
+        return
+
     logger.info("Fetching target tweets for like mode...")
     candidates = fetch_target_tweets_with_ids(n_targets=6)
     if not candidates:
@@ -50,14 +60,13 @@ def post_like_tweets():
             logger.info(f"@{c['author']}: spam/shill filtered, skipping like.")
             continue
 
-        import hashlib
         archive_id = "like_" + hashlib.md5(c["text"].encode()).hexdigest()[:12]
         if tweet_archive.is_posted_recently(archive_id, days=_LIKE_COOLDOWN_DAYS):
             logger.info(f"@{c['author']}: tweet recently liked, skipping.")
             continue
 
         try:
-            client.like(c["id"])
+            client.like(my_id, c["id"])
             tweet_archive.record_post(
                 archive_id, content_type="like",
                 tweet_text=c["text"][:100], tweet_id=c["id"],
@@ -83,6 +92,14 @@ def like_following_tweets(max_likes: int = _FOLLOWING_DAILY_CAP):
     max_likes: günlük üst sınır (varsayılan 35).
     """
     client, _ = get_twitter_clients()
+
+    # BUG FIX #12: client.like(user_id, tweet_id) — user_id zorunlu (Tweepy 4.14)
+    try:
+        me = client.get_me()
+        my_id = me.data.id
+    except Exception as e:
+        logger.error(f"get_me() failed: {e}")
+        return
 
     try:
         with open(_FOLLOWING_ARCHIVE, "r", encoding="utf-8") as f:
@@ -121,7 +138,7 @@ def like_following_tweets(max_likes: int = _FOLLOWING_DAILY_CAP):
             continue
 
         try:
-            client.like(t["tweet_id"])
+            client.like(my_id, t["tweet_id"])
             tweet_archive.record_post(
                 archive_id, content_type="following_like",
                 tweet_text=t["text"][:100], tweet_id=t["tweet_id"],
