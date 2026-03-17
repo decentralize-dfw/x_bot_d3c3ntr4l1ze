@@ -116,21 +116,32 @@ def _score_detail(text: str) -> dict:
         return {"o": 0, "s": 0, "p": 0, "c": 0, "avg": 0.0, "iq": 0, "iq3": 0}
 
 
+import re as _re
+
+# 1. şahıs kelime sınırlı regex — "your" içindeki "our"u yakalamaz
+_FIRST_PERSON_RE = _re.compile(
+    r"\bi\b|\bi'm\b|\bi've\b|\bi'll\b|\bi'd\b"
+    r"|\bmy\b|\bmine\b"
+    r"|\bwe\b|\bwe're\b|\bwe've\b"
+    r"|\bour\b",       # \b: kelime sınırı — "your" içindeki "our"u YOK sayar
+    _re.IGNORECASE,
+)
+
+
 def _classify(t: dict) -> str:
     """Tweet'i kategorize et: quote_rt | rt | reply | like.
 
     Kural hiyerarşisi:
     1. QUOTE_RT: Orijinal analiz/içgörü içeren → kendi sesimizle yorum ekleyeceğiz
-       - O >= 7 (özgün düşünce)
-       - Metin uzunluğu >= 100 karakter
-       - IQ3 >= 110
-       - URL yok (link değil, düşünce paylaşıyor)
+       - O >= 7 ve IQ3 >= 110  (özgün, yüksek kalite)
+       - Metin uzunluğu >= 80 karakter (gerçek içerik var, sadece URL değil)
+       → URL olsa da olur — iyi tweet URL içerebilir
     2. RT: Haber/demo/yüksek engagement → sessizce amplify
        - eng >= 200 (zaten viral)
-       - VEYA URL var + metin kısa (<120 kar) + S >= 7
+       - VEYA metin kısa (<140 kar) + URL var + S >= 7 (link paylaşımı)
     3. REPLY: Geliştirici/uygulayıcı paylaşımı → konuşma başlatmak
        - reply_settings == "everyone"
-       - Metin 1. şahıs içeriyor ("I ", "my ", "we ", "our ")
+       - Metin 1. şahıs içeriyor (kelime sınırlı regex — "your" hariç)
        - IQ3 >= 99
     4. LIKE: Kalan kaliteli içerik (fallback)
     """
@@ -142,23 +153,20 @@ def _classify(t: dict) -> str:
     eng  = t.get("engagement_score", 0)
     has_url = "http" in text
     text_len = len(text)
-    is_first_person = any(
-        word in text.lower()
-        for word in [" i ", " i'", "my ", "we ", "our ", " i'm", " i've", " i've", "i built", "i made"]
-    )
+    is_first_person = bool(_FIRST_PERSON_RE.search(text))
     reply_open = t.get("reply_settings", "everyone") == "everyone"
 
-    # 1. QUOTE_RT
-    if o >= 7 and text_len >= 100 and iq3 >= 110 and not has_url:
+    # 1. QUOTE_RT — özgün analiz içeren tweet → kendi yorumumuzla paylaş
+    if o >= 7 and iq3 >= 110 and text_len >= 80:
         return "quote_rt"
 
-    # 2. RT
+    # 2. RT — viral veya link paylaşımı → amplify et
     if eng >= 200:
         return "rt"
-    if has_url and text_len < 120 and s >= 7:
+    if has_url and text_len < 140 and s >= 7:
         return "rt"
 
-    # 3. REPLY
+    # 3. REPLY — geliştirici/kişisel paylaşım → konuşma başlat
     if reply_open and is_first_person and iq3 >= 99:
         return "reply"
 
