@@ -18,6 +18,7 @@ import tweet_archive
 from core.twitter import get_twitter_clients
 from modes.viral_mix import fetch_target_tweets_with_ids
 from utils.logger import get_logger
+from utils.spam_filter import is_spam
 
 logger = get_logger(__name__)
 
@@ -44,6 +45,10 @@ def post_like_tweets():
     for c in candidates:
         if liked >= _LIKE_TARGET:
             break
+
+        if is_spam(c["text"]):
+            logger.info(f"@{c['author']}: spam/shill filtered, skipping like.")
+            continue
 
         import hashlib
         archive_id = "like_" + hashlib.md5(c["text"].encode()).hexdigest()[:12]
@@ -104,6 +109,12 @@ def like_following_tweets(max_likes: int = _FOLLOWING_DAILY_CAP):
         if liked >= max_likes:
             logger.info(f"like_following: daily cap {max_likes} reached, stopping.")
             break
+
+        if is_spam(t["text"]):
+            logger.info(f"@{t['author']}: spam/shill filtered, skipping like.")
+            skipped += 1
+            continue
+
         archive_id = "fllike_" + t["tweet_id"]
         if tweet_archive.is_posted_recently(archive_id, days=_LIKE_COOLDOWN_DAYS):
             skipped += 1
