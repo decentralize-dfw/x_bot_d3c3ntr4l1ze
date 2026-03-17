@@ -35,11 +35,11 @@ _SCAM_PATTERNS = re.compile(
     # Çok sayıda 🚀 veya 💎 (3+)
     | (?:🚀){3,}|(?:💎){3,}|(?:🔥){4,}
     # AMA / etkinlik duyuruları
-    | \b(ama\s+announcement|exclusive\s+#?ama|join\s+us\s+for\s+(an?\s+)?(exclusive|live|ama|special)|featuring\s+guests?|set\s+your\s+reminders?)\b
+    | \b(ama\s+announcement|exclusive\s+\#?ama|join\s+us\s+for\s+(an?\s+)?(exclusive|live|ama|special)|featuring\s+guests?|set\s+your\s+reminders?)\b
     # Tarih damgalı etkinlik
     | \bdate:\s*(january|february|march|april|may|june|july|august|september|october|november|december|\d)\b
     # Proje ranking / ödül spami
-    | \b(ranked\s+#\d|#1\s+(metaverse|game|project|platform)|most\s+played\s+(game|metaverse))\b
+    | \b(ranked\s+\#\d|\#1\s+(metaverse|game|project|platform)|most\s+played\s+(game|metaverse))\b
     # Ürün güncelleme / Discord katılım spami
     | \b(update\s+is\s+(now\s+)?available(\s+at\s+no\s+additional\s+cost)?|join\s+our\s+discord\s+today)\b
     # ImpactFi / campaign / token puanı sistemi
