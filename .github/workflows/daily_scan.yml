@@ -31,6 +31,7 @@ jobs:
         run: python daily_scan.py
 
       - name: Run following scan (following_archive.json güncelle)
+        continue-on-error: true
         env:
           TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
           TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
