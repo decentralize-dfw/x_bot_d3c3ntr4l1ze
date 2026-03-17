@@ -104,6 +104,48 @@ def score_tweet_quality(tweet_text: str) -> float:
         return 0.0
 
 
+def score_tweet_detail(tweet_text: str) -> dict:
+    """Incoming tweet'i 4 eksen üzerinden puanla.
+
+    Returns:
+        {"o": int, "s": int, "p": int, "c": int, "avg": float, "iq": int}
+        iq = avg * 16.5  →  10 ortalama = 165 IQ
+    Returns pass-through dict (avg=9, iq=148) if GROQ_API_KEY not set.
+    """
+    if not GROQ_API_KEY:
+        return {"o": 9, "s": 9, "p": 9, "c": 9, "avg": 9.0, "iq": 148}
+    prompt = (
+        "Rate this tweet on exactly 4 axes, each scored 1-10:\n"
+        "1. ORIGINALITY: Does it say something the reader hasn't encountered before?\n"
+        "2. SPECIFICITY: Does it make a precise, non-generic, non-vague claim?\n"
+        "3. PROVOCATION: Does it leave an unanswerable question in the reader's mind?\n"
+        "4. CLARITY: Without any context, can the reader immediately identify the specific "
+        "subject/technology/problem this tweet is about?\n\n"
+        f'Tweet: "{tweet_text}"\n\n'
+        'Respond ONLY with JSON: {"originality": N, "specificity": N, "provocation": N, "clarity": N}'
+    )
+    try:
+        raw = _call_llm(prompt, max_tokens=50, temperature=0.2)
+        try:
+            scores = json.loads(raw.strip())
+        except (json.JSONDecodeError, ValueError):
+            match = re.search(r'\{.*\}', raw, re.DOTALL)
+            if not match:
+                return {"o": 0, "s": 0, "p": 0, "c": 0, "avg": 0.0, "iq": 0}
+            scores = json.loads(match.group())
+        o = int(scores.get("originality", 0))
+        s = int(scores.get("specificity", 0))
+        p = int(scores.get("provocation", 0))
+        c = int(scores.get("clarity", 0))
+        avg = round((o + s + p + c) / 4, 1)
+        iq = round(avg * 16.5)
+        print(f"  Score: IQ={iq} avg={avg} O:{o} S:{s} P:{p} C:{c}")
+        return {"o": o, "s": s, "p": p, "c": c, "avg": avg, "iq": iq}
+    except Exception as e:
+        print(f"score_tweet_detail failed: {e}")
+        return {"o": 0, "s": 0, "p": 0, "c": 0, "avg": 0.0, "iq": 0}
+
+
 def is_semantically_duplicate(candidate: str) -> bool:
     """LLM tabanlı semantic benzerlik kontrolü."""
     recent = tweet_archive.get_recent_tweet_texts(days=60)
