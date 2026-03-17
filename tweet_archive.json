@@ -596,5 +596,23 @@
     "content_type": "viral_mix_source",
     "posted_at": "2026-03-17T12:20:34.135984+00:00",
     "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
+  },
+  {
+    "content_id": "news_b0ec8ffae74a",
+    "content_type": "news",
+    "posted_at": "2026-03-17T13:39:30.750978+00:00",
+    "tweet_text": "NEWS: Nvidia introduced Vera Rubin, a seven-chip AI platform.",
+    "theme": "ai_design",
+    "tweet_id": "2033901039825371213",
+    "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
+  },
+  {
+    "content_id": "news_b0ec8ffae74a_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-17T13:39:31.771016+00:00",
+    "tweet_text": "Nvidia's Vera Rubin platform will redefine the economics of AI computing, but what are the implications for decentralized, on-chain worlds w",
+    "theme": "ownership",
+    "tweet_id": "2033901044221063365",
+    "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
   }
 ]
