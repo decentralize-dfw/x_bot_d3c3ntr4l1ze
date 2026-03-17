@@ -18,6 +18,7 @@ IQ  = (O+S+P+C)/4 * 16.5 (kendi tweetlerimiz için)
 import json
 import os
 from datetime import datetime, timezone
+from itertools import zip_longest
 
 from fpdf import FPDF
 
@@ -261,9 +262,12 @@ def generate_daily_report() -> str:
         pdf.ln(4)
 
     # 2. QUOTE RT
+    # BUG FIX #5: zip_longest ile draft listesi kısa kalsa da tweet kaybı olmaz
     _section_header(pdf, f"QUOTE RETWEET -- {len(quote_rt)}/5 aday", (40, 80, 160))
-    for i, (t, draft) in enumerate(zip(quote_rt, quote_drafts), 1):
-        _tweet_block(pdf, i, t, draft)
+    for i, (t, draft) in enumerate(zip_longest(quote_rt, quote_drafts, fillvalue=""), 1):
+        if not t:
+            continue
+        _tweet_block(pdf, i, t, draft or "")
     pdf.ln(4)
 
     # 3. RETWEET
@@ -273,9 +277,12 @@ def generate_daily_report() -> str:
     pdf.ln(4)
 
     # 4. REPLY
+    # BUG FIX #5: zip_longest ile draft listesi kısa kalsa da reply kaybı olmaz
     _section_header(pdf, f"REPLY -- {len(reply_tweets)}/20 aday", (160, 80, 40))
-    for i, (t, draft) in enumerate(zip(reply_tweets, reply_drafts), 1):
-        _tweet_block(pdf, i, t, draft)
+    for i, (t, draft) in enumerate(zip_longest(reply_tweets, reply_drafts, fillvalue=""), 1):
+        if not t:
+            continue
+        _tweet_block(pdf, i, t, draft or "")
 
     # Alt özet
     pdf.ln(2)

@@ -5,6 +5,7 @@ Tüm LLM çağrıları ve tweet üretici fonksiyonlar.
 """
 import os
 import json
+import random as _rnd  # BUG FIX #15: her fonksiyon içinde tekrar import ediliyordu
 import re
 
 import groq as groq_sdk
@@ -107,10 +108,11 @@ def score_tweet_quality(tweet_text: str) -> float:
 def score_tweet_detail(tweet_text: str) -> dict:
     """Incoming tweet'i 4 eksen üzerinden puanla.
 
-    Returns:
-        {"o": int, "s": int, "p": int, "c": int, "avg": float, "iq": int}
-        iq = avg * 16.5  →  10 ortalama = 165 IQ
-    Returns pass-through dict (avg=9, iq=148) if GROQ_API_KEY not set.
+    Returns:  # BUG FIX #11: iq3 eksikti
+        {"o": int, "s": int, "p": int, "c": int, "avg": float, "iq": int, "iq3": int}
+        iq  = (O+S+P+C)/4 * 16.5  →  kendi tweetlerimiz için
+        iq3 = (O+S+C)/3   * 16.5  →  başkasının tweeti (P ekseni hariç)
+    Returns pass-through dict if GROQ_API_KEY not set.
     """
     if not GROQ_API_KEY:
         return {"o": 9, "s": 9, "p": 9, "c": 9, "avg": 9.0, "iq": 148, "iq3": 148}
@@ -338,7 +340,6 @@ def generate_news_headline(title: str, article_text: str, source: str) -> str:
 
 def generate_news_tweet(title: str, article_text: str, source: str, prior_opinions: list = None) -> str:
     """News commentary — varied format, no 3-5 word lock, bellek entegreli."""
-    import random as _rnd
     prior_block = ""
     if prior_opinions:
         prior_lines = "\n".join(f"- {o}" for o in prior_opinions[:5])
@@ -380,7 +381,6 @@ def generate_thread_reply(main_tweet: str) -> str | None:
     """Self-reply that extends the main tweet — kendi thread'ine devam."""
     if not GROQ_API_KEY:
         return None
-    import random as _rnd
     banned = get_recent_patterns(n=8)
 
     extensions = [
@@ -412,7 +412,6 @@ def generate_thread_reply(main_tweet: str) -> str | None:
 
 def generate_reply_comment(original_tweet: str) -> str:
     """LLM: target tweet'e REPLY — tweet'in kendi içeriğine özgü, kısa, doğal."""
-    import random as _rnd
 
     # Her çağrıda farklı yaklaşım — ama HEP orijinal tweet içeriğine bağlı
     styles = [
@@ -467,7 +466,6 @@ def generate_reply_comment(original_tweet: str) -> str:
 
 def generate_quote_commentary(original_tweet: str) -> str:
     """LLM: target tweet'e quote commentary — tweet içeriğine özgü, keskin görüş."""
-    import random as _rnd
     voice_ctx = get_voice_context(n=3)
     banned = get_recent_patterns(n=8)
 

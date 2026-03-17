@@ -79,8 +79,10 @@ WEEKLY_THEMES = [
 
 
 def get_this_weeks_theme() -> str:
+    # BUG FIX #6: isocalendar() 1-53 döndürür, 0-tabanlı indeksleme için -1 gerekli.
+    # Eski: week_number % len → Hafta 1 index[1] oluyordu (yıl boyunca kayık).
     week_number = datetime.now(timezone.utc).isocalendar()[1]
-    return WEEKLY_THEMES[week_number % len(WEEKLY_THEMES)]
+    return WEEKLY_THEMES[(week_number - 1) % len(WEEKLY_THEMES)]
 
 
 # ── Beliefs ───────────────────────────────────────────────────────────────────
