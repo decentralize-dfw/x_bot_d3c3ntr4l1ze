@@ -53,11 +53,19 @@ _SCAM_PATTERNS = re.compile(
     # Finansal spam
     | \b(buy\s+now|last\s+chance|limited\s+supply|floor\s+price|bullish|bearish|ath\b)\b
     # Proje isim kalıpları (8bit X, baby X, ape X, pepe X, doge X vb.)
-    | \b(8bit|babydoge|babyape|pepe\s+coin|shib\b|degen\b|based\s+dev|doxed\s+team)\b
+    | \b(8bit|babydoge|babyape|pepe\s+coin|shib\b|degens?\b|based\s+dev|doxed\s+team)\b
     # Boot sequence / hype intro kalıbı
     | boot\s+sequence|gathering[\s,]+ready
     # Wallet/contract spam
     | \b(ca:|contract\s+address|0x[0-9a-f]{6,})\b
+    # Token ticker ($XOOB, $KVAI vb.) — proje shill klasiği
+    | \$[A-Z]{2,8}\b
+    # Yield farming / token farming
+    | \b(farming|yield\s+farm|liquidity\s+pool|staking\s+reward)\b
+    # Wallet bağlantı spamı (Kvants tipi)
+    | \b(link\s+(your\s+)?(evm\s+)?wallet|connect\s+(your\s+)?wallet|evm\s+wallet)\b
+    # VIP / upgrade shill
+    | \b(vip\s+access|unlock\s+vip|upgrade\s+(your|to)\s+(vip|access))\b
     # Çok sayıda 🚀 veya 💎 (3+) — scam klasiği
     | (?:🚀){3,}|(?:💎){3,}|(?:🔥){4,}
     """,
