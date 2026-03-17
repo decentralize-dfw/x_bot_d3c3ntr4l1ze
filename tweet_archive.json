@@ -150,11 +150,6 @@
     "posted_at": "2026-03-11T13:35:19.180615"
   },
   {
-    "content_id": "dfw-12",
-    "content_type": "evening_controversial",
-    "posted_at": "2026-03-11T20:14:40.468675"
-  },
-  {
     "content_id": "news_d39c6a4f5f5f",
     "content_type": "news",
     "posted_at": "2026-03-12T09:22:25.434386"
@@ -617,6 +612,15 @@
     "tweet_text": "This endeavor celebrates open-ended creativity, blending elements of fashion, design, architecture, sound, light, and the 💿💿💿",
     "theme": "architecture",
     "tweet_id": "2033927755772137626",
+    "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
+  },
+  {
+    "content_id": "dfw-12",
+    "content_type": "evening_controversial",
+    "posted_at": "2026-03-17T16:26:43.211921+00:00",
+    "tweet_text": "To escape uncertainty and finitude, we created a perfect metal structure with our own hands. 💿💿💿",
+    "theme": "ownership",
+    "tweet_id": "2033943119037661213",
     "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
   }
 ]
