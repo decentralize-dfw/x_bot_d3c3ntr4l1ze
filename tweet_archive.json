@@ -581,5 +581,20 @@
     "tweet_id": "2033865627849404612",
     "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable",
     "media_url": "https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives/main/bayan.jpg"
+  },
+  {
+    "content_id": "viral_b2c61b771312",
+    "content_type": "viral_mix",
+    "posted_at": "2026-03-17T12:20:34.134831+00:00",
+    "tweet_text": "WebXR developers often overlook the fact that spatial audio is what truly anchors users in virtual environments, making the 💿💿💿",
+    "theme": "webxr",
+    "tweet_id": "2033881172883726386",
+    "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
+  },
+  {
+    "content_id": "dfw-1_viral",
+    "content_type": "viral_mix_source",
+    "posted_at": "2026-03-17T12:20:34.135984+00:00",
+    "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
   }
 ]
