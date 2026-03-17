@@ -507,5 +507,22 @@
     "posted_at": "2026-03-17T08:31:50.868139+00:00",
     "tweet_text": "Tuesday flow.\n\nWeb3 keeps advancing when infrastructure supports seamless connection between builder",
     "tweet_id": "2033804949570596897"
+  },
+  {
+    "content_id": "news_8df6a9951508",
+    "content_type": "news",
+    "posted_at": "2026-03-17T09:25:44.026699+00:00",
+    "tweet_text": "NEWS: Minors sue xAI in California over alleged child abuse images.",
+    "tweet_id": "2033837174517350758",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "news_8df6a9951508_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-17T09:25:44.736108+00:00",
+    "tweet_text": "on-chain content moderation will become a critical issue as AI-generated abuse images spread, forcing a reevaluation of decentralized platfo",
+    "theme": "ownership",
+    "tweet_id": "2033837177436508292",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
   }
 ]
