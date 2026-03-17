@@ -42,11 +42,7 @@ def _utcnow() -> datetime:
 
 
 def _get_following_v1(api: tweepy.API) -> list:
-    """Takip edilen hesapları çek — v1.1 API, OAuth 1.0a ile çalışır.
-
-    v2 get_users_following OAuth 2.0 PKCE gerektirir (401 verir).
-    v1.1 friends/list ise mevcut OAuth 1.0a token'larla doğrudan çalışır.
-    """
+    """v1.1 friends/list — mevcut API planında genellikle 403 döner, graceful fail."""
     following = []
     try:
         for page in tweepy.Cursor(
@@ -58,32 +54,37 @@ def _get_following_v1(api: tweepy.API) -> list:
             for user in page:
                 following.append(user)
                 if len(following) >= _MAX_FOLLOWING:
-                    logger.info(f"Following cap reached: {_MAX_FOLLOWING}")
                     return following
     except Exception as e:
         logger.error(f"get_friends (v1.1) error: {e}")
-    logger.info(f"Following list: {len(following)} accounts")
+    logger.info(f"Following list (v1.1): {len(following)} accounts")
     return following
 
 
-def _load_backup_following(api: tweepy.API) -> list:
-    """following_backup.json'daki username listesinden v1.1 user objelerini çek."""
+def _load_backup_following(bearer_client: tweepy.Client) -> list:
+    """following_backup.json'daki usernames → v2 get_users() ile objeler al.
+
+    v1.1 planı yoksa bu yola düşeriz. Bearer token ile GET /2/users/by
+    çalışır (basic v2 erişiminde mevcut).
+    Döndürülen objelerin .id ve .username attribute'ları var (v2 User nesnesi).
+    """
     try:
         with open(BACKUP_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
         usernames = data.get("usernames", [])
         if not usernames:
             return []
-        # Twitter API v1.1 lookup: max 100 per call
         users = []
+        # v2 get_users max 100 per call
         for i in range(0, len(usernames), 100):
             batch = usernames[i:i + 100]
             try:
-                result = api.lookup_users(screen_names=batch, include_entities=False)
-                users.extend(result)
+                resp = bearer_client.get_users(usernames=batch, user_fields=["username"])
+                if resp.data:
+                    users.extend(resp.data)
             except Exception as e:
-                logger.warning(f"lookup_users batch error: {e}")
-        logger.info(f"Backup following loaded: {len(users)} accounts")
+                logger.warning(f"get_users (v2 backup) batch error: {e}")
+        logger.info(f"Backup following loaded (v2): {len(users)} accounts")
         return users
     except Exception as e:
         logger.error(f"_load_backup_following error: {e}")
@@ -129,8 +130,8 @@ def run_following_scan() -> dict:
     # v1.1 API ile following listesini al (OAuth 1.0a)
     following = _get_following_v1(api)
     if not following:
-        logger.warning("API following list empty — falling back to following_backup.json")
-        following = _load_backup_following(api)
+        logger.warning("v1.1 following list empty — falling back to v2 backup")
+        following = _load_backup_following(bearer_client)
     if not following:
         logger.warning("No following accounts found — archive not updated.")
         return {}
@@ -140,9 +141,9 @@ def run_following_scan() -> dict:
     fetched_at = _utcnow().isoformat()
 
     for user in following:
-        # v1.1 user object: .id_str ve .screen_name
-        uid = user.id_str
-        uname = user.screen_name
+        # v1.1: .id_str / .screen_name  |  v2: .id / .username
+        uid   = str(getattr(user, "id_str", None) or getattr(user, "id", ""))
+        uname = getattr(user, "screen_name", None) or getattr(user, "username", "unknown")
         tweets = _get_user_tweets(bearer_client, uid, since)
         for tweet in tweets:
             all_tweets.append({
