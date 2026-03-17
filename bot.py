@@ -22,6 +22,8 @@ Modlar:
     reply_mode           Target tweet'lerine kriptik yanıt ver (Premium — AKTİF)
     like_mode            Target tweet'lerine like at (Premium — AKTİF)
     retweet_mode         Target tweet'lerini retweet et (Premium — YENİ)
+    following_scan       Takip edilenlerin 24h tweetlerini following_archive.json'a kaydet
+    like_following       following_archive'deki tüm tweetleri like at
 """
 import sys
 from datetime import datetime, timezone
@@ -34,6 +36,7 @@ _QUIET_EXEMPT = {
     "morning", "community_pulse", "data_viz",
     "drift_check", "quote_tweet",
     "reply_mode", "like_mode", "retweet_mode",  # engagement modları Pazar da çalışır
+    "following_scan", "like_following",           # following pipeline Pazar da çalışır
     None,
 }
 
@@ -103,6 +106,14 @@ def main():
     elif mode == "retweet_mode":
         from modes.retweet_mode import post_retweet
         post_retweet()
+
+    elif mode == "following_scan":
+        from following_scan import run_following_scan
+        run_following_scan()
+
+    elif mode == "like_following":
+        from modes.like_mode import like_following_tweets
+        like_following_tweets()
 
     else:
         # Saat bazlı fallback (geriye uyumluluk + manuel test)
