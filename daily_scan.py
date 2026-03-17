@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 
 import tweepy
 
-from utils.spam_filter import is_spam as _is_scam
+from utils.spam_filter import is_spam as _is_scam, is_off_topic as _is_off_topic
 
 BEARER_TOKEN = os.environ.get("BEARERTOKEN")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
@@ -38,16 +38,20 @@ _QUALITY_FALLBACK = 5.0
 _MIN_QUALITY_COUNT = 15  # bu kadar tweet bulunamazsa fallback devreye girer
 
 _QUERIES = [
-    "(metaverse OR webxr OR #SpatialComputing) -is:retweet -is:reply lang:en",
-    "(#VirtualReality OR #VR OR #XR OR #ImmersiveWeb) -is:retweet -is:reply lang:en",
-    "(web3 OR #OnChain OR #DigitalArt OR #NFT) -is:retweet -is:reply lang:en",
-    "(#SpatialComputing OR #AI #Metaverse OR #WebXR) -is:retweet -is:reply lang:en",
+    # Ultra-spesifik: WebXR / OpenXR teknik içerik
+    "webxr -is:retweet -is:reply lang:en",
+    # Spatial computing / immersive web teknik terimler
+    "(#SpatialComputing OR openxr OR #ImmersiveWeb OR #3DGS) -is:retweet -is:reply lang:en",
+    # VR/XR — sadece geliştirici/teknik bağlamda (eğlence/spor değil)
+    "(#VirtualReality OR #MixedReality OR #XR) (developer OR SDK OR browser OR scene OR spatial OR research) -is:retweet -is:reply lang:en",
+    # WebXR + metaverse teknik — kripto/NFT hariç
+    "(#WebXR OR immersive-web OR gaussian-splat) -(NFT OR memecoin OR airdrop OR token OR coin) -is:retweet -is:reply lang:en",
 ]
 
 # Yeterli kaliteli tweet bulunamazsa bu ek sorgular denenir
 _EXTENDED_QUERIES = [
-    "(WebXR OR spatial computing OR immersive web) developer -is:retweet -is:reply lang:en",
-    "(virtual world OR digital twin OR 3D web) -is:retweet -is:reply lang:en",
+    "(volumetric OR haptic OR holographic OR openxr) -is:retweet -is:reply lang:en",
+    "(spatial-audio OR spatial-computing OR webgl) developer -is:retweet -is:reply lang:en",
 ]
 
 
@@ -100,6 +104,9 @@ def _fetch_query(client, query: str, seen_ids: set) -> list:
                 continue
             if _is_scam(tweet.text):
                 print(f"  SCAM filtered: {tweet.text[:60]}...")
+                continue
+            if _is_off_topic(tweet.text):
+                print(f"  OFF-TOPIC filtered: {tweet.text[:60]}...")
                 continue
             reply_settings = getattr(tweet, "reply_settings", "everyone") or "everyone"
             results.append({
