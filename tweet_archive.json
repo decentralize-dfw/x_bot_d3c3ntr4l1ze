@@ -571,5 +571,15 @@
     "tweet_text": "This is not a video.\n\nIt’s a walkable photorealistic Gaussian Splat running live in your browser.\n\nV",
     "theme": "vr_retention",
     "tweet_id": "2032064169466327271"
+  },
+  {
+    "content_id": "people-5",
+    "content_type": "artwork",
+    "posted_at": "2026-03-17T11:18:48.293925+00:00",
+    "tweet_text": "photorealistic 3D recreations of real-world cities like istanbul challenge our perception of ownership in on-chain environments #OnChain #SpatialComputing #Metaverse 💿💿💿",
+    "theme": "ownership",
+    "tweet_id": "2033865627849404612",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable",
+    "media_url": "https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives/main/bayan.jpg"
   }
 ]
