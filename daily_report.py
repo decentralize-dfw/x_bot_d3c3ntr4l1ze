@@ -6,11 +6,12 @@ Günlük tarama sonrası PDF bilan üret.
 Yapı:
   0. PUANLAMA ÖZETİ  — kaç tweet tarandı, kaçı kabul/ret edildi
   1. RET LİSTESİ     — reddedilen tweetler + neden
-  2. QUOTE RT        — 5 aday, IQ skoru, "Ne yazılacak:" taslak
-  3. RETWEET         — 5 aday, IQ skoru
-  4. REPLY           — 20 aday, IQ skoru, "Ne yazılacak:" taslak
+  2. QUOTE RT        — 5 aday, IQ3 skoru, "Ne yazılacak:" taslak
+  3. RETWEET         — 5 aday, IQ3 skoru
+  4. REPLY           — 20 aday, IQ3 skoru, "Ne yazılacak:" taslak
 
-IQ = avg_score * 16.5  (10 ortalama = 165 IQ)
+IQ3 = (O+S+C)/3 * 16.5  (10 ortalama = 165 IQ, P ekseni hariç)
+IQ  = (O+S+P+C)/4 * 16.5 (kendi tweetlerimiz için)
 
 Çıktı: bilan_quotidienne/YYYY-MM-DD.pdf
 """
@@ -48,43 +49,50 @@ def _load_rejected() -> list:
         return []
 
 
-# ── Aday seçimi ───────────────────────────────────────────────────────────────
+# ── Kategori bazlı aday seçimi ────────────────────────────────────────────────
 
-def _iq(t: dict) -> int:
-    return t.get("scores", {}).get("iq", 0)
+def _by_category(tweets: list, category: str, n: int) -> list:
+    """scan_results'tan belirli kategorideki tweetleri al.
+
+    Önce daily_scan.py tarafından atanmış "category" alanını kullan.
+    Eğer category alanı yoksa (eski format), fallback mantığıyla seç.
+    """
+    # Yeni format: category alanı var
+    primary = [t for t in tweets if t.get("category") == category]
+    if primary:
+        return sorted(primary, key=lambda t: t.get("scores", {}).get("iq3", 0), reverse=True)[:n]
+
+    # Fallback: eski format (category alanı yok) — engagement'a göre seç
+    used_ids = set()
+    if category == "quote_rt":
+        return sorted(tweets, key=lambda t: t["engagement_score"] + len(t["text"]) // 15, reverse=True)[:n]
+    elif category == "rt":
+        return sorted(tweets, key=lambda t: t["engagement_score"], reverse=True)[:n]
+    elif category == "reply":
+        candidates = [
+            t for t in tweets
+            if t.get("reply_settings", "everyone") == "everyone"
+        ]
+        return sorted(candidates, key=lambda t: t["engagement_score"], reverse=True)[:n]
+    return []
 
 
-def _select_quote_rt(tweets: list, n: int = 5) -> list:
-    return sorted(tweets, key=lambda t: t["engagement_score"] + len(t["text"]) // 15, reverse=True)[:n]
+def _select_sections(tweets: list):
+    """Tüm bölümler için aday listelerini döndür.
 
+    Returns: (quote_rt, rt_tweets, reply_tweets)
+    """
+    quote_rt = _by_category(tweets, "quote_rt", 5)
+    used = {t["tweet_id"] for t in quote_rt}
 
-def _select_rt(tweets: list, exclude_ids: set, n: int = 5) -> list:
-    candidates = [t for t in tweets if t["tweet_id"] not in exclude_ids]
-    return sorted(candidates, key=lambda t: t["engagement_score"], reverse=True)[:n]
+    rt_pool = [t for t in tweets if t["tweet_id"] not in used]
+    rt_tweets = _by_category(rt_pool, "rt", 5)
+    used.update(t["tweet_id"] for t in rt_tweets)
 
+    reply_pool = [t for t in tweets if t["tweet_id"] not in used]
+    reply_tweets = _by_category(reply_pool, "reply", 20)
 
-def _select_reply(tweets: list, exclude_ids: set, n: int = 20) -> list:
-    candidates = [
-        t for t in tweets
-        if t["tweet_id"] not in exclude_ids
-        and t.get("reply_settings", "everyone") == "everyone"
-    ]
-    seen_authors: set = set()
-    result = []
-    for t in sorted(candidates, key=lambda t: t["engagement_score"], reverse=True):
-        if t["author"] not in seen_authors:
-            result.append(t)
-            seen_authors.add(t["author"])
-        elif len(result) < n // 2:
-            result.append(t)
-        if len(result) >= n:
-            break
-    for t in candidates:
-        if t not in result:
-            result.append(t)
-        if len(result) >= n:
-            break
-    return result[:n]
+    return quote_rt, rt_tweets, reply_tweets
 
 
 # ── PDF yardımcıları ──────────────────────────────────────────────────────────
@@ -158,20 +166,22 @@ def _iq_bar_label(iq: int) -> str:
 
 def _tweet_block(pdf: _DailyPDF, i: int, t: dict, draft: str = "") -> None:
     scores = t.get("scores", {})
+    iq3 = scores.get("iq3", "?")
     iq  = scores.get("iq",  "?")
     avg = scores.get("avg", "?")
     o   = scores.get("o",   "?")
     s   = scores.get("s",   "?")
     p   = scores.get("p",   "?")
     c   = scores.get("c",   "?")
-    label = _iq_bar_label(iq if isinstance(iq, int) else 0)
+    cat = t.get("category", "?")
+    label = _iq_bar_label(iq3 if isinstance(iq3, int) else 0)
 
     # ── Başlık satırı ──
     pdf.set_font("Helvetica", "B", 9)
     pdf.set_fill_color(245, 245, 245)
     header_line = _safe(
-        f"#{i}  @{t['author']}   eng:{t['engagement_score']}"
-        f"   |   IQ:{iq} [{label}]  avg:{avg}  O:{o} S:{s} P:{p} C:{c}"
+        f"#{i}  @{t['author']}   eng:{t['engagement_score']}   cat:{cat}"
+        f"   |   IQ3:{iq3} [{label}]  IQ:{iq}  avg:{avg}  O:{o} S:{s} P:{p} C:{c}"
     )
     pdf.cell(_PAGE_W, 6, header_line, new_x="LMARGIN", new_y="NEXT", fill=True)
 
@@ -197,7 +207,7 @@ def _tweet_block(pdf: _DailyPDF, i: int, t: dict, draft: str = "") -> None:
     elif not GROQ_API_KEY:
         pdf.set_font("Helvetica", "I", 8)
         pdf.set_text_color(150, 100, 0)
-        pdf.cell(_PAGE_W, 5, "(GROQ_API_KEY yok — taslak uretilmedi)",
+        pdf.cell(_PAGE_W, 5, "(GROQ_API_KEY yok -- taslak uretilmedi)",
                  new_x="LMARGIN", new_y="NEXT")
         pdf.set_text_color(0, 0, 0)
 
@@ -216,13 +226,7 @@ def generate_daily_report() -> str:
     tweets   = _load_scan()
     rejected = _load_rejected()
 
-    quote_rt = _select_quote_rt(tweets, 5)
-    used     = {t["tweet_id"] for t in quote_rt}
-
-    rt_tweets = _select_rt(tweets, used, 5)
-    used.update(t["tweet_id"] for t in rt_tweets)
-
-    reply_tweets = _select_reply(tweets, used, 20)
+    quote_rt, rt_tweets, reply_tweets = _select_sections(tweets)
 
     # ── Taslakları üret ──
     print("Quote taslakları uretiliyor...")
@@ -249,14 +253,20 @@ def generate_daily_report() -> str:
     _section_header(pdf, "PUANLAMA OZETI", (60, 60, 60))
     pdf.set_font("Helvetica", "", 9)
     total_scanned = len(tweets) + len(rejected)
+    # Kategori sayıları
+    cat_counts = {}
+    for t in tweets:
+        cat = t.get("category", "?")
+        cat_counts[cat] = cat_counts.get(cat, 0) + 1
+    cat_str = "  ".join(f"{k}:{v}" for k, v in sorted(cat_counts.items()))
     pdf.multi_cell(
         _PAGE_W, 5,
         _safe(
             f"Taranan: {total_scanned} tweet\n"
-            f"Kabul (IQ>=115): {len(tweets)} tweet\n"
+            f"Kabul (IQ3>=99+): {len(tweets)} tweet  |  {cat_str}\n"
             f"Ret: {len(rejected)} tweet\n"
-            f"IQ olcegi: avg*16.5  (10 ortalama = 165 IQ)  |  "
-            f"Esik: IQ>=115 (avg>=7.0)  |  Fallback: IQ>=99 (avg>=6.0)"
+            f"IQ3 olcegi: (O+S+C)/3*16.5  (P ekseni hariç — baskasının tweeti)  |  "
+            f"Esik: IQ3>=115 (tur1)  IQ3>=99 (tur2-3)  IQ3>=82 (tur4 kurtarma)"
         ),
         new_x="LMARGIN", new_y="NEXT",
     )
@@ -264,7 +274,7 @@ def generate_daily_report() -> str:
 
     # 1. RET LİSTESİ (varsa)
     if rejected:
-        _section_header(pdf, f"REDDEDILENLER — {len(rejected)} tweet", (180, 50, 50))
+        _section_header(pdf, f"REDDEDILENLER -- {len(rejected)} tweet", (180, 50, 50))
         pdf.set_font("Helvetica", "", 8)
         for r in rejected:
             line = _safe(f"@{r.get('author','?')}  {r.get('reason','?')}  |  {r.get('text','')[:80]}...")
@@ -272,19 +282,19 @@ def generate_daily_report() -> str:
         pdf.ln(4)
 
     # 2. QUOTE RT
-    _section_header(pdf, f"QUOTE RETWEET — {len(quote_rt)}/5 aday", (40, 80, 160))
+    _section_header(pdf, f"QUOTE RETWEET -- {len(quote_rt)}/5 aday", (40, 80, 160))
     for i, (t, draft) in enumerate(zip(quote_rt, quote_drafts), 1):
         _tweet_block(pdf, i, t, draft)
     pdf.ln(4)
 
     # 3. RETWEET
-    _section_header(pdf, f"RETWEET — {len(rt_tweets)}/5 aday", (50, 130, 70))
+    _section_header(pdf, f"RETWEET -- {len(rt_tweets)}/5 aday", (50, 130, 70))
     for i, t in enumerate(rt_tweets, 1):
         _tweet_block(pdf, i, t)
     pdf.ln(4)
 
     # 4. REPLY
-    _section_header(pdf, f"REPLY — {len(reply_tweets)}/20 aday", (160, 80, 40))
+    _section_header(pdf, f"REPLY -- {len(reply_tweets)}/20 aday", (160, 80, 40))
     for i, (t, draft) in enumerate(zip(reply_tweets, reply_drafts), 1):
         _tweet_block(pdf, i, t, draft)
 
