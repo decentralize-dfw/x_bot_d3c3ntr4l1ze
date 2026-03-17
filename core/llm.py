@@ -113,7 +113,7 @@ def score_tweet_detail(tweet_text: str) -> dict:
     Returns pass-through dict (avg=9, iq=148) if GROQ_API_KEY not set.
     """
     if not GROQ_API_KEY:
-        return {"o": 9, "s": 9, "p": 9, "c": 9, "avg": 9.0, "iq": 148}
+        return {"o": 9, "s": 9, "p": 9, "c": 9, "avg": 9.0, "iq": 148, "iq3": 148}
     prompt = (
         "Rate this tweet on exactly 4 axes, each scored 1-10:\n"
         "1. ORIGINALITY: Does it say something the reader hasn't encountered before?\n"
@@ -131,7 +131,7 @@ def score_tweet_detail(tweet_text: str) -> dict:
         except (json.JSONDecodeError, ValueError):
             match = re.search(r'\{.*\}', raw, re.DOTALL)
             if not match:
-                return {"o": 0, "s": 0, "p": 0, "c": 0, "avg": 0.0, "iq": 0}
+                return {"o": 0, "s": 0, "p": 0, "c": 0, "avg": 0.0, "iq": 0, "iq3": 0}
             scores = json.loads(match.group())
         o = int(scores.get("originality", 0))
         s = int(scores.get("specificity", 0))
@@ -139,11 +139,12 @@ def score_tweet_detail(tweet_text: str) -> dict:
         c = int(scores.get("clarity", 0))
         avg = round((o + s + p + c) / 4, 1)
         iq = round(avg * 16.5)
-        print(f"  Score: IQ={iq} avg={avg} O:{o} S:{s} P:{p} C:{c}")
-        return {"o": o, "s": s, "p": p, "c": c, "avg": avg, "iq": iq}
+        iq3 = round((o + s + c) / 3 * 16.5)  # 3-axis: P hariç (başkalarının tweet'i)
+        print(f"  Score: IQ={iq} IQ3={iq3} avg={avg} O:{o} S:{s} P:{p} C:{c}")
+        return {"o": o, "s": s, "p": p, "c": c, "avg": avg, "iq": iq, "iq3": iq3}
     except Exception as e:
         print(f"score_tweet_detail failed: {e}")
-        return {"o": 0, "s": 0, "p": 0, "c": 0, "avg": 0.0, "iq": 0}
+        return {"o": 0, "s": 0, "p": 0, "c": 0, "avg": 0.0, "iq": 0, "iq3": 0}
 
 
 def is_semantically_duplicate(candidate: str) -> bool:
