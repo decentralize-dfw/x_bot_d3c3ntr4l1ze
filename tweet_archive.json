@@ -290,11 +290,6 @@
     "posted_at": "2026-03-15T15:08:47.990752"
   },
   {
-    "content_id": "works-5",
-    "content_type": "evening_controversial",
-    "posted_at": "2026-03-15T16:08:07.717904"
-  },
-  {
     "content_id": "dfw-1",
     "content_type": "evening_text",
     "posted_at": "2026-03-15T18:14:37.542443"
@@ -621,6 +616,14 @@
     "tweet_text": "To escape uncertainty and finitude, we created a perfect metal structure with our own hands. 💿💿💿",
     "theme": "ownership",
     "tweet_id": "2033943119037661213",
+    "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
+  },
+  {
+    "content_id": "works-5",
+    "content_type": "evening_text",
+    "posted_at": "2026-03-17T18:27:56.161764+00:00",
+    "tweet_text": "AWARDS / MENTIONS\nCreatorverse Buildathon by Parcel x PangeaDAO, Music Venue, 2022, Winner\nCreatorverse Buildathon by Parcel x 💿💿💿",
+    "tweet_id": "2033973624093237674",
     "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
   }
 ]
