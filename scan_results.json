@@ -1,12 +1,19 @@
 [
   {
-    "tweet_id": "2033078642801365055",
-    "text": "asciivision install script added, playing with some new visualizations w opentui, i think we need pacman in there.\n\ni really wanna add grok imagine in the CLI, maybe worldlabs api and see what a gaussian splat looks ? https://t.co/7sSnwb7LrV",
-    "author": "lalopenguin",
-    "engagement_score": 194,
+    "tweet_id": "2032459700470472789",
+    "text": "Built a tiny app for Apple Watch that triggers your hand with the haptic once Claude Code completed the task. The completion screen roasts you differently every time :) https://t.co/8RTS0dlyKv",
+    "author": "dzzgnr",
+    "engagement_score": 5808,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T10:40:26.972170+00:00",
-    "quality_score": 6.0
+    "fetched_at": "2026-03-17T11:05:37.222688+00:00",
+    "scores": {
+      "o": 8,
+      "s": 9,
+      "p": 6,
+      "c": 7,
+      "avg": 7.5,
+      "iq": 124
+    }
   },
   {
     "tweet_id": "2032064169466327271",
@@ -14,8 +21,15 @@
     "author": "arrival_space_",
     "engagement_score": 96,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T10:40:20.245017+00:00",
-    "quality_score": 6.0
+    "fetched_at": "2026-03-17T11:05:21.233330+00:00",
+    "scores": {
+      "o": 8,
+      "s": 9,
+      "p": 6,
+      "c": 7,
+      "avg": 7.5,
+      "iq": 124
+    }
   },
   {
     "tweet_id": "2032286633060614366",
@@ -23,7 +37,14 @@
     "author": "mechpil0t",
     "engagement_score": 19,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T10:40:20.248237+00:00",
-    "quality_score": 6.0
+    "fetched_at": "2026-03-17T11:05:21.236112+00:00",
+    "scores": {
+      "o": 8,
+      "s": 9,
+      "p": 6,
+      "c": 7,
+      "avg": 7.5,
+      "iq": 124
+    }
   }
 ]
