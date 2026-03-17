@@ -1,13 +1,17 @@
 """
 modes/reply_mode.py
 -------------------
-Quote tweet modu — scan + targets kaynaklı, engagement gerektirmez.
+Quote tweet engage modu — scan + targets kaynaklı, engagement gerektirmez.
 
 Direct reply (in_reply_to_tweet_id) Twitter tarafından cold accounts için engelleniyor
 (403: "not mentioned or engaged"). Quote tweet aynı algoritmik değeri taşıyor ve
 herhangi bir hesabın tweet'ini quote edebilirsin.
 
 Günlük hedef: 5 quote tweet/run × 2 run = 10/gün.
+
+BUG FIX #21: post_reply_tweet() → post_quote_engage() olarak yeniden adlandırıldı.
+  Bu mod direct reply DEĞIL, quote tweet atar — eski isim bakımcıları yanıltıyordu.
+  bot.py routing güncellendi. Geriye uyumluluk alias'ı dosyanın sonunda.
 """
 import hashlib
 import os
@@ -27,7 +31,7 @@ _QUOTE_COOLDOWN_DAYS = 3
 _MAX_QUOTES_PER_RUN = 5
 
 
-def post_reply_tweet():
+def post_quote_engage():
     """Target tweet'leri quote tweet olarak engage et.
 
     Direct reply yerine quote tweet — Twitter cold-reply'ı engelliyor
@@ -77,3 +81,7 @@ def post_reply_tweet():
     logger.info(f"Quote engagement done: {quoted}/{_MAX_QUOTES_PER_RUN} posted.")
     if quoted == 0:
         logger.warning("No quote tweets sent this run.")
+
+
+# Geriye uyumluluk alias — eski çağrılar çalışmaya devam eder
+post_reply_tweet = post_quote_engage

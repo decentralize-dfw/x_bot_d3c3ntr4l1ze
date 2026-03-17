@@ -36,12 +36,16 @@ on:
     # TR 13:00 -> UTC 10:00 Her gün (Perşembe hariç — o gün data_viz var) — Curated quote tweet
     - cron: '0 10 * * 0,1,2,3,5,6'
     # ── LIKE — 50/gün, ara ara (her saat ~3 niche like) ─────────────────────────
-    - cron: '0 7 * * 1-6'   # like batch 1
-    - cron: '0 9 * * 1-6'   # like batch 2
-    - cron: '0 11 * * 1-6'  # like batch 3
-    - cron: '0 14 * * 1-6'  # like batch 4
-    - cron: '0 17 * * 1-6'  # like batch 5
-    - cron: '0 20 * * 1-6'  # like batch 6
+    - cron: '0 7 * * 1-6'   # like batch 1 (Mon-Sat)
+    - cron: '0 9 * * 1-6'   # like batch 2 (Mon-Sat)
+    - cron: '0 11 * * 1-6'  # like batch 3 (Mon-Sat)
+    - cron: '0 14 * * 1-6'  # like batch 4 (Mon-Sat)
+    - cron: '0 17 * * 1-6'  # like batch 5 (Mon-Sat)
+    - cron: '0 20 * * 1-6'  # like batch 6 (Mon-Sat)
+    # BUG FIX #22: Pazar like_mode yoktu — 3 hafif batch eklendi
+    - cron: '0 9 * * 0'     # like batch Pazar sabah
+    - cron: '0 14 * * 0'    # like batch Pazar öğlen
+    - cron: '0 20 * * 0'    # like batch Pazar akşam
     # ── LIKE FOLLOWING — following_archive'den 35 like (06:30 UTC, scan sonrası) ─
     - cron: '30 6 * * *'
     # Pazar 08:00 UTC — Engagement backfill (AŞAMA 4)
@@ -162,8 +166,11 @@ jobs:
             python bot.py reply_mode
           elif [ "$SCHEDULE" = "0 7 * * 1-6" ] || [ "$SCHEDULE" = "0 9 * * 1-6" ] || \
                [ "$SCHEDULE" = "0 11 * * 1-6" ] || [ "$SCHEDULE" = "0 14 * * 1-6" ] || \
-               [ "$SCHEDULE" = "0 17 * * 1-6" ] || [ "$SCHEDULE" = "0 20 * * 1-6" ]; then
-            echo "Mode: like_mode (niche — 50/gün spread)"
+               [ "$SCHEDULE" = "0 17 * * 1-6" ] || [ "$SCHEDULE" = "0 20 * * 1-6" ] || \
+               [ "$SCHEDULE" = "0 9 * * 0" ] || [ "$SCHEDULE" = "0 14 * * 0" ] || \
+               [ "$SCHEDULE" = "0 20 * * 0" ]; then
+            # BUG FIX #22: son 3 branch = Pazar like batch'leri
+            echo "Mode: like_mode (niche — 50/gün spread, Pazar dahil)"
             python bot.py like_mode
           elif [ "$SCHEDULE" = "30 6 * * *" ]; then
             echo "Mode: like_following (following archive — 35 like cap)"
