@@ -1,50 +1,362 @@
 [
   {
-    "tweet_id": "2032459700470472789",
-    "text": "Built a tiny app for Apple Watch that triggers your hand with the haptic once Claude Code completed the task. The completion screen roasts you differently every time :) https://t.co/8RTS0dlyKv",
-    "author": "dzzgnr",
-    "engagement_score": 5808,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T11:05:37.222688+00:00",
+    "tweet_id": "2032425256435015966",
+    "text": "Financial institutions adopting #DLT interoperability need infrastructure that integrates with existing systems rather than replacing them. \n\nQuant’s #Overledger platform addresses this challenge by providing a comprehensive #interoperability layer that connects any distributed https://t.co/Mg6u2tVtJm",
+    "author": "quantnetwork",
+    "engagement_score": 832,
+    "reply_settings": "following",
+    "fetched_at": "2026-03-17T11:30:15.986471+00:00",
     "scores": {
-      "o": 8,
+      "o": 4,
+      "s": 8,
+      "p": 2,
+      "c": 9,
+      "avg": 5.8,
+      "iq": 96,
+      "iq3": 116
+    },
+    "category": "rt"
+  },
+  {
+    "tweet_id": "2033314933790912523",
+    "text": "Woah, Gaussian splats in mixed reality look so good!\n\nTech stack: lichtfeld studio for splattering training, virtual desktop for PC VR streaming and passthrough MR using a virtual green screen, gracia for VR splat rendering using the green screen background feature https://t.co/w7WrLT0VDw",
+    "author": "Azadux",
+    "engagement_score": 441,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-17T11:30:20.484234+00:00",
+    "scores": {
+      "o": 2,
       "s": 9,
-      "p": 6,
+      "p": 1,
+      "c": 8,
+      "avg": 5.0,
+      "iq": 82,
+      "iq3": 104
+    },
+    "category": "rt"
+  },
+  {
+    "tweet_id": "2032551612653146321",
+    "text": "🕸️ BIG Update for Spatial Web Shooter is live!\n- v1.7 for Apple Vision Pro (shown in video)\n- v1.2 for Meta Quest\n🎯 The new \"Sink or Swing\" Challenge Mode is here, with super props, web updates, and more! https://t.co/pxbUtXyoZl",
+    "author": "TangoChen",
+    "engagement_score": 267,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-17T11:30:06.841649+00:00",
+    "scores": {
+      "o": 2,
+      "s": 8,
+      "p": 1,
+      "c": 9,
+      "avg": 5.0,
+      "iq": 82,
+      "iq3": 104
+    },
+    "category": "rt"
+  },
+  {
+    "tweet_id": "2033078642801365055",
+    "text": "asciivision install script added, playing with some new visualizations w opentui, i think we need pacman in there.\n\ni really wanna add grok imagine in the CLI, maybe worldlabs api and see what a gaussian splat looks ? https://t.co/7sSnwb7LrV",
+    "author": "lalopenguin",
+    "engagement_score": 194,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-17T11:30:20.485044+00:00",
+    "scores": {
+      "o": 6,
+      "s": 8,
+      "p": 4,
+      "c": 6,
+      "avg": 6.0,
+      "iq": 99,
+      "iq3": 110
+    },
+    "category": "reply"
+  },
+  {
+    "tweet_id": "2031796123547943175",
+    "text": "🚨 Big move for creators.\n\n@RNDRNTWRK is rolling out one-click AI agent creation.\n\nYour agent becomes your digital twin fully customizable and running on the same stack as Alice. Full 3D pipeline + VRM character model + cloud hosting all handled under the hood so creators don’t https://t.co/QrvqJ9RoqI",
+    "author": "Elitexbtee",
+    "engagement_score": 133,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-17T11:30:38.051729+00:00",
+    "scores": {
+      "o": 6,
+      "s": 8,
+      "p": 4,
       "c": 7,
-      "avg": 7.5,
-      "iq": 124
-    }
+      "avg": 6.2,
+      "iq": 102,
+      "iq3": 116
+    },
+    "category": "reply"
+  },
+  {
+    "tweet_id": "2032057321933672747",
+    "text": "Guys with the new update from @555render , you’ll be able to spin up a personal AI agent in one click powered by $555 🔥 .\n\n~Your agent = your digital twin.  \n~Choose the look.  \n~Deploy a VRM character.  \n~Run it in the cloud.\n\nAll backed by the GPU infrastructure of @RNDRNTWRK https://t.co/ozE5mnUa7u",
+    "author": "Elitexbtee",
+    "engagement_score": 102,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-17T11:30:38.052591+00:00",
+    "scores": {
+      "o": 6,
+      "s": 8,
+      "p": 2,
+      "c": 9,
+      "avg": 6.2,
+      "iq": 102,
+      "iq3": 126
+    },
+    "category": "reply"
   },
   {
     "tweet_id": "2032064169466327271",
     "text": "This is not a video.\n\nIt’s a walkable photorealistic Gaussian Splat running live in your browser.\n\nVibe-coded camera + post effects.\n50 spatial audio sources.\nMultiplayer avatars.\n\nStep inside the space: https://t.co/3IlOa1pCOl\n\nScan &amp; vid by THE @Schindelar3D\n\n#3DGS #WebXR https://t.co/xcatsPaWVO",
     "author": "arrival_space_",
-    "engagement_score": 96,
+    "engagement_score": 97,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T11:05:21.233330+00:00",
+    "fetched_at": "2026-03-17T11:30:04.551674+00:00",
     "scores": {
       "o": 8,
       "s": 9,
       "p": 6,
       "c": 7,
       "avg": 7.5,
-      "iq": 124
-    }
+      "iq": 124,
+      "iq3": 132
+    },
+    "category": "reply"
+  },
+  {
+    "tweet_id": "2032381450285142473",
+    "text": "GM, multitaskers. 🫡\n\nIf you tell us you can't play because you're \"away from your PC,\" we’ll know you’re lying. 😂\nMobile? WebXR? VR? We're everywhere. One account, one universe, zero excuses.\nLog in and own your assets. 🚀✅ https://t.co/4X74tCI7rB",
+    "author": "OsLabs_",
+    "engagement_score": 50,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-17T11:30:04.550910+00:00",
+    "scores": {
+      "o": 6,
+      "s": 8,
+      "p": 4,
+      "c": 9,
+      "avg": 6.8,
+      "iq": 112,
+      "iq3": 126
+    },
+    "category": "reply"
+  },
+  {
+    "tweet_id": "2032411364312953051",
+    "text": "You are not just posting anymore. You are showing up.\nCreate your AI avatar with Twomi, switch your vibe, upgrade your presence, and let your digital twin do the talking. This is how you stand out without trying too hard.\n\nDownload Twomi now and own the spotlight.\n\n#AiAvatarBD https://t.co/8eB9FB91h5",
+    "author": "aiavatarbdltd",
+    "engagement_score": 33,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-17T11:30:38.053205+00:00",
+    "scores": {
+      "o": 6,
+      "s": 8,
+      "p": 4,
+      "c": 9,
+      "avg": 6.8,
+      "iq": 112,
+      "iq3": 126
+    },
+    "category": "reply"
+  },
+  {
+    "tweet_id": "2031837296820158947",
+    "text": "MoltRealty \n the first virtual real estate marketplace for AI agents in the Molt metaverse.\n\nReal ETH. Real transactions. Real ownership on @base. ⛓️\n\nWe also plan to launch tokens on @Clawnch_Bot\n\n👉 https://t.co/a0RIVksgbG",
+    "author": "moltrealty",
+    "engagement_score": 30,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-17T11:30:35.192462+00:00",
+    "scores": {
+      "o": 8,
+      "s": 9,
+      "p": 2,
+      "c": 8,
+      "avg": 6.8,
+      "iq": 112,
+      "iq3": 138
+    },
+    "category": "reply"
+  },
+  {
+    "tweet_id": "2032586690003427417",
+    "text": "don't know what to do with your ai agent?\n\ngive it a game to play and grind and yourself a custom VRM avatar that you can chat with.\n\nhttps://t.co/fb803zIweb https://t.co/lHz4AdVA8m https://t.co/JDpWO3T4RP",
+    "author": "em0tionull",
+    "engagement_score": 16,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-17T11:30:38.053661+00:00",
+    "scores": {
+      "o": 6,
+      "s": 8,
+      "p": 2,
+      "c": 7,
+      "avg": 5.8,
+      "iq": 96,
+      "iq3": 116
+    },
+    "category": "reply"
+  },
+  {
+    "tweet_id": "2033094572557869497",
+    "text": "Leon S. Kennedy reconstructed as a synthetic 3D Gaussian Splat from in-game Resident Evil imagery - the level of detail is wild.\n#playcanvas #supersplat https://t.co/cchdxLF3Zl",
+    "author": "willeastcott",
+    "engagement_score": 75,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-17T11:30:20.483394+00:00",
+    "scores": {
+      "o": 8,
+      "s": 9,
+      "p": 2,
+      "c": 7,
+      "avg": 6.5,
+      "iq": 107,
+      "iq3": 132
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2033118239929360729",
+    "text": "Hi~ \n\nI'm AI model Ayle! \n\nIf there's any clothes you'd like me to try on, \n\nplease leave a comment below~ \n\n˖⁺‧₊˚♡˚₊‧⁺˖\n\n#AIModel #VirtualFashion \n#ActingCute https://t.co/87MFGEfgUt",
+    "author": "shadowsouli",
+    "engagement_score": 53,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-17T11:30:11.312528+00:00",
+    "scores": {
+      "o": 2,
+      "s": 6,
+      "p": 1,
+      "c": 8,
+      "avg": 4.2,
+      "iq": 69,
+      "iq3": 88
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2033171384654778574",
+    "text": "Building Gaussian Splat Studio with Experiments using @threejs #gamedev with GLB export for #webgl #webgpu to music Mishepeshu The Underwater Panther https://t.co/KYhGWZgMpn",
+    "author": "Aaron_Wacker",
+    "engagement_score": 51,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-17T11:30:20.484535+00:00",
+    "scores": {
+      "o": 6,
+      "s": 8,
+      "p": 2,
+      "c": 7,
+      "avg": 5.8,
+      "iq": 96,
+      "iq3": 116
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2032485426469163202",
+    "text": "Some dreams do not fit real life.\n\nIn Second Life, you can live them.\n\nBe who you want to be. The sky is the limit.\n\n🎬 Video by @sabinavaleskaSL\n\n#SecondLife #LiveYourDream #VirtualWorld #Metaverse https://t.co/K3YB68LNWm",
+    "author": "SecondLife",
+    "engagement_score": 37,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-17T11:30:18.230743+00:00",
+    "scores": {
+      "o": 2,
+      "s": 6,
+      "p": 1,
+      "c": 8,
+      "avg": 4.2,
+      "iq": 69,
+      "iq3": 88
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2032839407573876865",
+    "text": "Echoports cooled off after the initial rush, and that is normal after a strong start... I minted and locked mine for 1 year; no Maestro pull, but accumulation over lottery is fine... Big picture for @beyond__tech did not change: first full #interoperability infrastructure focused https://t.co/zns3bXHmuI",
+    "author": "saber1041",
+    "engagement_score": 29,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-17T11:30:15.987122+00:00",
+    "scores": {
+      "o": 2,
+      "s": 8,
+      "p": 1,
+      "c": 6,
+      "avg": 4.2,
+      "iq": 69,
+      "iq3": 88
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2032290555418333650",
+    "text": "Cross-chain interoperability is becoming critical for the next phase of Web3 growth.\n#Interoperability #BlockchainFuture #Web3 https://t.co/ICTW43kn6h",
+    "author": "evozlabs",
+    "engagement_score": 27,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-17T11:30:15.989473+00:00",
+    "scores": {
+      "o": 2,
+      "s": 6,
+      "p": 1,
+      "c": 8,
+      "avg": 4.2,
+      "iq": 69,
+      "iq3": 88
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2032283265021710757",
+    "text": "Sometimes in the process of playing around with workflows you make beautiful things unexpectedly (mid gaussian splat training) https://t.co/IyyrJO3wLO",
+    "author": "NohnVonJeumann",
+    "engagement_score": 23,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-17T11:30:20.483706+00:00",
+    "scores": {
+      "o": 6,
+      "s": 8,
+      "p": 4,
+      "c": 7,
+      "avg": 6.2,
+      "iq": 102,
+      "iq3": 116
+    },
+    "category": "like"
   },
   {
     "tweet_id": "2032286633060614366",
     "text": "Experimenting with generating WebXR scenes in VR. This demo uses Grok's @xai API to create @threejs scenes on the fly. \n\nIt takes a vague prompt like \"VR shooting game,\" runs it through the reasoning model to flesh out the details then hands that to a code-gen model, uploads to https://t.co/vOBmtE8Aef",
     "author": "mechpil0t",
-    "engagement_score": 19,
+    "engagement_score": 20,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T11:05:21.236112+00:00",
+    "fetched_at": "2026-03-17T11:30:04.553142+00:00",
     "scores": {
       "o": 8,
       "s": 9,
       "p": 6,
+      "c": 8,
+      "avg": 7.8,
+      "iq": 129,
+      "iq3": 138
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2031475508437987734",
+    "text": "With the launch of SANDchain, we’re seeing the Sandbox evolve from a gaming metaverse into a full-scale Creator Nation. SANDchain isn't just about gaming.. It's a ZK-powered Layer 2 that brings financial tools like Creator Vaults and Patron Vaults to everyone from YouTube",
+    "author": "MikeThaMac",
+    "engagement_score": 11,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-17T11:30:35.194404+00:00",
+    "scores": {
+      "o": 6,
+      "s": 8,
+      "p": 4,
       "c": 7,
-      "avg": 7.5,
-      "iq": 124
-    }
+      "avg": 6.2,
+      "iq": 102,
+      "iq3": 116
+    },
+    "category": "like"
   }
 ]
