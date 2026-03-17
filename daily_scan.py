@@ -13,20 +13,22 @@ Süreç:
   6. Kabul edilenleri scan_results.json'a, reddedilenleri scan_rejected.json'a yaz
 
 Kategori Mantığı:
-  QUOTE_RT  — orijinal analiz/içgörü içeren tweet (O>=7, uzun metin, IQ3>=110)
+  QUOTE_RT  — orijinal analiz/içgörü içeren tweet (O>=7, IQ3>=110, len>=80)
               Amacımız: kendi sesimizden yorum ekleyerek profilde görünmek
   RT        — haber/demo/yüksek engagement içerik (eng>=200 VEYA URL+kısa+S>=7)
               Amacımız: alanla ilgili haberi sessizce amplify etmek
-  REPLY     — geliştirici/uygulayıcı paylaşımı (1. kişi + URL + reply açık)
+  REPLY     — geliştirici/uygulayıcı paylaşımı (1. kişi + reply açık + IQ3>=99)
               Amacımız: direkt konuşma başlatmak, toplulukta görünmek
-  LIKE      — kalan kaliteli içerik (IQ3>=82, fallback)
+  LIKE      — kalan kaliteli içerik (fallback)
 
 Çıktı:
     scan_results.json  — kabul edilen tweetler (IQ3 + detay puanlar + kategori)
     scan_rejected.json — reddedilen tweetler (neden dahil)
 """
+# BUG FIX #3: import re dosyanın başında olmalı, fonksiyon tanımlamaları arasında değil
 import json
 import os
+import re as _re
 import sys
 import time
 from datetime import datetime, timezone
@@ -60,7 +62,6 @@ _IQ3_R1 = 115   # Tur 1: IQ3 >= 115 (avg O+S+C >= 7.0)
 _IQ3_R2 = 99    # Tur 2: IQ3 >= 99  (avg >= 6.0) — ek sorgular
 _IQ3_R3 = 99    # Tur 3: IQ3 >= 99  — farklı sorgular
 _IQ3_R4 = 82    # Tur 4: IQ3 >= 82  (avg >= 5.0) — ret havuzundan kurtarma
-_MIN_ACCEPTED = 15  # Bu kadar kabul edilemezse 2. tur başlar
 
 # ── Ana sorgular: konuya göre 8 grup ──────────────────────────────────────────
 _QUERIES = [
@@ -96,6 +97,16 @@ _BROAD_QUERIES = [
     "(avatar OR VRM OR digital-twin OR interoperability) -is:retweet -is:reply lang:en",
 ]
 
+# BUG FIX #3: regex module-level sabit olarak tanımlanmalı (fonksiyon içinde değil)
+# 1. şahıs kelime sınırlı regex — \b ile "your" içindeki "our"u yakalamaz
+_FIRST_PERSON_RE = _re.compile(
+    r"\bi\b|\bi'm\b|\bi've\b|\bi'll\b|\bi'd\b"
+    r"|\bmy\b|\bmine\b"
+    r"|\bwe\b|\bwe're\b|\bwe've\b"
+    r"|\bour\b",
+    _re.IGNORECASE,
+)
+
 
 def _engagement(tweet) -> int:
     m = getattr(tweet, "public_metrics", {}) or {}
@@ -116,30 +127,18 @@ def _score_detail(text: str) -> dict:
         return {"o": 0, "s": 0, "p": 0, "c": 0, "avg": 0.0, "iq": 0, "iq3": 0}
 
 
-import re as _re
-
-# 1. şahıs kelime sınırlı regex — "your" içindeki "our"u yakalamaz
-_FIRST_PERSON_RE = _re.compile(
-    r"\bi\b|\bi'm\b|\bi've\b|\bi'll\b|\bi'd\b"
-    r"|\bmy\b|\bmine\b"
-    r"|\bwe\b|\bwe're\b|\bwe've\b"
-    r"|\bour\b",       # \b: kelime sınırı — "your" içindeki "our"u YOK sayar
-    _re.IGNORECASE,
-)
-
-
 def _classify(t: dict) -> str:
     """Tweet'i kategorize et: quote_rt | rt | reply | like.
 
-    Kural hiyerarşisi:
+    Kural hiyerarşisi (sıralı — ilk eşleşen kazanır):
     1. QUOTE_RT: Orijinal analiz/içgörü içeren → kendi sesimizle yorum ekleyeceğiz
-       - O >= 7 ve IQ3 >= 110  (özgün, yüksek kalite)
-       - Metin uzunluğu >= 80 karakter (gerçek içerik var, sadece URL değil)
+       - O >= 7 ve IQ3 >= 110 (özgün, yüksek kalite)
+       - Metin uzunluğu >= 80 karakter (gerçek içerik var)
        → URL olsa da olur — iyi tweet URL içerebilir
     2. RT: Haber/demo/yüksek engagement → sessizce amplify
        - eng >= 200 (zaten viral)
        - VEYA metin kısa (<140 kar) + URL var + S >= 7 (link paylaşımı)
-    3. REPLY: Geliştirici/uygulayıcı paylaşımı → konuşma başlatmak
+    3. REPLY: Geliştirici/uygulayıcı paylaşımı → konuşma başlat
        - reply_settings == "everyone"
        - Metin 1. şahıs içeriyor (kelime sınırlı regex — "your" hariç)
        - IQ3 >= 99
@@ -151,12 +150,13 @@ def _classify(t: dict) -> str:
     iq3  = scores.get("iq3", 0)
     text = t.get("text", "")
     eng  = t.get("engagement_score", 0)
-    has_url = "http" in text
+    has_url  = "http" in text
     text_len = len(text)
+    # BUG FIX #4 (eski): \b ile kelime sınırlı — "your" içindeki "our"u yakalamaz
     is_first_person = bool(_FIRST_PERSON_RE.search(text))
     reply_open = t.get("reply_settings", "everyone") == "everyone"
 
-    # 1. QUOTE_RT — özgün analiz içeren tweet → kendi yorumumuzla paylaş
+    # 1. QUOTE_RT — özgün analiz → kendi yorumumuzla paylaş
     if o >= 7 and iq3 >= 110 and text_len >= 80:
         return "quote_rt"
 
@@ -166,7 +166,7 @@ def _classify(t: dict) -> str:
     if has_url and text_len < 140 and s >= 7:
         return "rt"
 
-    # 3. REPLY — geliştirici/kişisel paylaşım → konuşma başlat
+    # 3. REPLY — kişisel/geliştirici paylaşımı → konuşma başlat
     if reply_open and is_first_person and iq3 >= 99:
         return "reply"
 
@@ -228,7 +228,7 @@ def _fetch_query(client, query: str, seen_ids: set) -> list:
 
 
 def _score_and_filter(tweets: list, iq3_threshold: int, rejected_log: list) -> list:
-    """Tweeleri puanla, IQ3 eşiği altındakileri rejected_log'a yaz."""
+    """Tweetleri puanla, IQ3 eşiği altındakileri rejected_log'a yaz."""
     if not GROQ_API_KEY:
         print("  GROQ_API_KEY not set — quality scoring skipped (all pass).")
         for t in tweets:
@@ -285,10 +285,14 @@ def run_daily_scan() -> list:
         sys.exit(1)
 
     client = tweepy.Client(bearer_token=BEARER_TOKEN, wait_on_rate_limit=True)
-    seen_ids: set = set()           # tüm çekilen tweet ID'leri (tekrar önleme)
+    seen_ids: set = set()            # tüm çekilen tweet ID'leri (tekrar önleme)
     rejected_log: list = []
     buckets = {"quote_rt": [], "rt": [], "reply": [], "like": []}
-    seen_in_buckets: set = set()    # kovalara atılmış tweet ID'leri
+    seen_in_buckets: set = set()     # kovalara atılmış tweet ID'leri
+
+    # BUG FIX #1 (Tour 4): Tüm turlardan gelen puanlı tweetleri biriktir
+    # Tour 4'te bu havuzdan IQ3>=82 olanları kurtaracağız — dir() kullanmak gerek yok
+    all_raw_pool: list = []
 
     # ── TUR 1: Ana sorgular — IQ3 >= 115 ──────────────────────────────────────
     print(f"\n{'='*60}")
@@ -302,6 +306,8 @@ def run_daily_scan() -> list:
     raw1.sort(key=lambda t: t["engagement_score"], reverse=True)
     pool_size = min(len(raw1), _SAVE_TOP * 2)
     accepted1 = _score_and_filter(raw1[:pool_size], _IQ3_R1, rejected_log)
+    # Puanlama yapıldı, tüm havuza ekle (scores artık kayıtlı)
+    all_raw_pool.extend(raw1[:pool_size])
     _fill_buckets(accepted1, buckets, seen_in_buckets)
 
     total_accepted = sum(len(v) for v in buckets.values())
@@ -310,8 +316,10 @@ def run_daily_scan() -> list:
           f"RT:{len(buckets['rt'])}/{_QUOTA['rt']} "
           f"Reply:{len(buckets['reply'])}/{_QUOTA['reply']}")
 
-    # ── TUR 2: Ek sorgular — yeterli değilse ──────────────────────────────────
-    if not _quotas_full(buckets) and total_accepted < _MIN_ACCEPTED:
+    # ── TUR 2: Ek sorgular — BUG FIX #2: AND → kotalar dolmamışsa çalış ──────
+    # Eski: `and total_accepted < _MIN_ACCEPTED` koşulu Tur 2'yi gereksiz kısıtlıyordu.
+    # 16 tweet kabul edilip reply kotası 8/20'de kalsa bile Tur 2 çalışmıyordu.
+    if not _quotas_full(buckets):
         print(f"\n{'='*60}")
         print(f"TUR 2 — Ek sorgular (IQ3>={_IQ3_R2})")
         print('='*60)
@@ -322,6 +330,7 @@ def run_daily_scan() -> list:
 
         raw2.sort(key=lambda t: t["engagement_score"], reverse=True)
         accepted2 = _score_and_filter(raw2[:_SAVE_TOP], _IQ3_R2, rejected_log)
+        all_raw_pool.extend(raw2[:_SAVE_TOP])
         _fill_buckets(accepted2, buckets, seen_in_buckets)
 
         total_accepted = sum(len(v) for v in buckets.values())
@@ -342,6 +351,7 @@ def run_daily_scan() -> list:
 
         raw3.sort(key=lambda t: t["engagement_score"], reverse=True)
         accepted3 = _score_and_filter(raw3[:_SAVE_TOP], _IQ3_R3, rejected_log)
+        all_raw_pool.extend(raw3[:_SAVE_TOP])
         _fill_buckets(accepted3, buckets, seen_in_buckets)
 
         total_accepted = sum(len(v) for v in buckets.values())
@@ -350,27 +360,22 @@ def run_daily_scan() -> list:
               f"RT:{len(buckets['rt'])}/{_QUOTA['rt']} "
               f"Reply:{len(buckets['reply'])}/{_QUOTA['reply']}")
 
-    # ── TUR 4: Ret havuzundan kurtarma — eşiği daha da düşür ─────────────────
+    # ── TUR 4: Kurtarma — eşiği daha da düşür ────────────────────────────────
+    # BUG FIX #1: dir() kullanan kırık rescue mantığı düzeltildi.
+    # Artık all_raw_pool (tüm turlardan biriktirilmiş, zaten puanlı) kullanılıyor.
+    # Boş döngü (for entry in rejected_log: pass) silindi.
     if not _quotas_full(buckets):
         print(f"\n{'='*60}")
-        print(f"TUR 4 — Ret havuzundan kurtarma (IQ3>={_IQ3_R4})")
+        print(f"TUR 4 — Kurtarma: tüm havuzdan IQ3>={_IQ3_R4} eşiğiyle")
         print('='*60)
-        # Daha önce reddedilenleri yeniden değerlendir (sadece daha düşük eşikle geçirme)
-        rescue_candidates = []
-        for entry in rejected_log:
-            # rejected_log'da tam tweet objesi yok, sadece özet var; bu tur için
-            # tüm raw havuzlarında IQ3 >= 82 olanları çekelim
-            pass
-
-        # Tur 1-3'te puanlanmış ama eşiği geçemeyen tweetleri kurtarmak için:
-        # raw havuzunu yeniden tara (zaten scored)
-        all_raw_scored = [
-            t for t in (raw1[:pool_size] if 'raw1' in dir() else [])
+        rescue_candidates = [
+            t for t in all_raw_pool
             if t.get("scores", {}).get("iq3", 0) >= _IQ3_R4
             and t["tweet_id"] not in seen_in_buckets
         ]
-        all_raw_scored.sort(key=lambda t: t["engagement_score"], reverse=True)
-        _fill_buckets(all_raw_scored, buckets, seen_in_buckets)
+        rescue_candidates.sort(key=lambda t: t["engagement_score"], reverse=True)
+        print(f"  Kurtarma havuzu: {len(rescue_candidates)} tweet (IQ3>={_IQ3_R4})")
+        _fill_buckets(rescue_candidates, buckets, seen_in_buckets)
 
         total_accepted = sum(len(v) for v in buckets.values())
         print(f"\nTur 4 sonuç: kabul={total_accepted} | "
@@ -378,8 +383,7 @@ def run_daily_scan() -> list:
               f"RT:{len(buckets['rt'])}/{_QUOTA['rt']} "
               f"Reply:{len(buckets['reply'])}/{_QUOTA['reply']}")
 
-    # ── Sonuç: Tüm kategoryileri birleştir ───────────────────────────────────
-    # Sıralama: QRT → RT → Reply → Like (raporda mantıklı görünmesi için)
+    # ── Sonuç: Tüm kategorileri birleştir ────────────────────────────────────
     all_accepted = (
         buckets["quote_rt"]
         + buckets["rt"]
@@ -410,7 +414,8 @@ def run_daily_scan() -> list:
     if top:
         best = top[0]
         s = best.get("scores", {})
-        print(f"  En iyi: @{best['author']} IQ3={s.get('iq3','?')} IQ={s.get('iq','?')} eng={best['engagement_score']} cat={best.get('category','?')}")
+        print(f"  En iyi: @{best['author']} IQ3={s.get('iq3','?')} IQ={s.get('iq','?')} "
+              f"eng={best['engagement_score']} cat={best.get('category','?')}")
     print('='*60)
     return top
 

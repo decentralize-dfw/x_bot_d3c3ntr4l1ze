@@ -90,6 +90,16 @@ _SCAM_PATTERNS = re.compile(
     | \b(get\s+(you|me)\s+off(\s+in\s+under)?|try\s+(her|him)\s+out\s+here)\b
     | \bmy\s+digital\s+twin\s+(is\s+waiting|never\s+does|can\s+get)\b
     | \b(talking\s+in\s+my\s+voice|giving\s+you\s+attention\s+i|you\s+know\s+where\s+the\s+link\s+is|don.t\s+be\s+shy)\b
+    # BUG FIX #7: AI model companion hesapları — "try on clothes" + "AI model" kalıbı
+    # Örnek: "@shadowsouli — I'm AI model Ayle! If there's any clothes you'd like me to try on"
+    # Filtre: "AI model" + (try on | leave a comment | cute | acting cute) kombinasyonu
+    | \bai\s+model\b.{0,120}\b(try\s+on|leave\s+a\s+comment|acting\s+cute|my\s+look)\b
+    | \b(acting\s+cute|try\s+on\s+for\s+you|dress\s+me\s+up|rate\s+my\s+outfit)\b.{0,80}\bai\b
+    # "Download [app] now and own the spotlight" — self-promo CTA
+    | \bdownload\b.{0,40}\b(now\s+and\s+(own|shine|stand\s+out)|the\s+app\s+now)\b
+    # "Create your AI avatar with [app], switch your vibe" — AI avatar companion shili
+    | \bcreate\s+your\s+(ai\s+avatar|digital\s+twin)\s+with\b
+    | \bswitch\s+your\s+vibe.{0,60}\bdigital\s+twin\b
     # Koordineli GM/morning + proje shill kalıpları (shill farm)
     | \b(while\s+most\s+people\s+(scroll|sleep)|a\s+few\s+are\s+(building|earning|positioning))\b
     | \b(quietly\s+creating\s+a\s+space|positioning\s+(early|yourself)\s+(in\s+)?web3|early\s+in\s+web3)\b

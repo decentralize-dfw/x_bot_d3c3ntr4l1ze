@@ -144,6 +144,10 @@ def run_following_scan() -> dict:
         # v1.1: .id_str / .screen_name  |  v2: .id / .username
         uid   = str(getattr(user, "id_str", None) or getattr(user, "id", ""))
         uname = getattr(user, "screen_name", None) or getattr(user, "username", "unknown")
+        # BUG FIX #8: uid boşsa API'ye gönderme — 400 hatası alınır
+        if not uid:
+            logger.warning(f"Skipping user with empty id: @{uname}")
+            continue
         tweets = _get_user_tweets(bearer_client, uid, since)
         for tweet in tweets:
             all_tweets.append({

@@ -197,13 +197,15 @@ def record_failed(content_id, content_type, tweet_text=None, error_msg=None,
 
 
 def get_recent_tweet_texts(days=COOLDOWN_DAYS):
+    # BUG FIX #9: tweet_text None olursa `None.strip()` → AttributeError.
+    # `or ""` ile None → "" dönüşümü sağlanıyor; `e["tweet_text"]` da .get() ile güvenli.
     entries = load_archive()
     cutoff = _utcnow() - timedelta(days=days)
     return [
-        e["tweet_text"]
+        e.get("tweet_text", "")
         for e in entries
         if _parse_dt(e["posted_at"]) > cutoff
-        and e.get("tweet_text", "").strip()
+        and (e.get("tweet_text") or "").strip()
     ]
 
 
