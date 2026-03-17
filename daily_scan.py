@@ -1,16 +1,19 @@
 """
 daily_scan.py
 -------------
-AŞAMA 1: Günlük Tarama (d3c3ntr4l1z3_strategy.docx §03).
+AŞAMA 1: Günlük Tarama.
 
-Niche sorgularla Twitter'ı tara, yüksek engagement tweet'leri bul,
-scan_results.json'a kaydet. reply/quote/like/retweet modları bu sonuçları kullanır.
-
-Kullanım:
-    python daily_scan.py
+Süreç:
+  1. 8 sorgu grubu ile tweet çek (her biri 20 sonuç)
+  2. Her tweet için spam + konu filtresi uygula
+  3. Geçenleri LLM ile puanla (4 eksen → ortalama → IQ)
+  4. IQ < eşik altındakileri at (varsayılan: avg >= 7.0 = IQ 115)
+  5. Yeterli tweet bulunamazsa ek sorgularla devam et
+  6. Kabul edilenleri scan_results.json'a, reddedilenleri scan_rejected.json'a yaz
 
 Çıktı:
-    scan_results.json — {tweet_id, text, author, engagement_score, fetched_at}
+    scan_results.json  — kabul edilen tweetler (IQ + detay puanlar dahil)
+    scan_rejected.json — reddedilen tweetler (neden dahil)
 """
 import json
 import os
@@ -24,39 +27,46 @@ from utils.spam_filter import is_spam as _is_scam, is_off_topic as _is_off_topic
 
 BEARER_TOKEN = os.environ.get("BEARERTOKEN")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-SCAN_PATH = os.path.join(os.path.dirname(__file__), "scan_results.json")
+SCAN_PATH     = os.path.join(os.path.dirname(__file__), "scan_results.json")
+REJECTED_PATH = os.path.join(os.path.dirname(__file__), "scan_rejected.json")
 
 # Minimum engagement eşiği (likes + retweets*3)
 _MIN_ENGAGEMENT = 10
 # Her sorgu için max sonuç
 _MAX_RESULTS = 20
-# Kaydetmek istediğimiz toplam tweet sayısı
+# Kaydetmek istediğimiz kabul edilen tweet sayısı
 _SAVE_TOP = 30
-# Kalite eşiği — min bu kadar tweet bulunmazsa fallback eşiği devreye girer
-_QUALITY_MIN = 7.0
-_QUALITY_FALLBACK = 5.0
-_MIN_QUALITY_COUNT = 15  # bu kadar tweet bulunamazsa fallback devreye girer
+# IQ eşiği (avg * 16.5) — bu altı kabul edilmez
+_IQ_MIN = 115          # avg >= 7.0
+_IQ_FALLBACK = 99      # avg >= 6.0 — fallback turunda
+_MIN_ACCEPTED = 15     # bu kadar kabul edilemezse fallback tur başlar
 
+# ── Ana sorgular: konuya göre 8 grup ──────────────────────────────────────────
 _QUERIES = [
-    # Ultra-spesifik: WebXR / OpenXR teknik içerik
+    # 1. WebXR / OpenXR — çekirdek teknik içerik
     "webxr -is:retweet -is:reply lang:en",
-    # Spatial computing / immersive web teknik terimler
-    "(#SpatialComputing OR openxr OR #ImmersiveWeb OR #3DGS) -is:retweet -is:reply lang:en",
-    # VR/XR — sadece geliştirici/teknik bağlamda (eğlence/spor değil)
-    "(#VirtualReality OR #MixedReality OR #XR) (developer OR SDK OR browser OR scene OR spatial OR research) -is:retweet -is:reply lang:en",
-    # WebXR + metaverse teknik — kripto/NFT hariç
-    "(#WebXR OR immersive-web OR gaussian-splat) -(NFT OR memecoin OR airdrop OR token OR coin) -is:retweet -is:reply lang:en",
+    # 2. Spatial computing / immersive web
+    "(#SpatialComputing OR openxr OR #ImmersiveWeb OR #3DGS OR spatial-web) -is:retweet -is:reply lang:en",
+    # 3. VR/XR — geliştirici/teknik bağlam (eğlence değil)
+    "(#VirtualReality OR #MixedReality OR #XR) (developer OR SDK OR browser OR scene OR spatial OR research OR design) -is:retweet -is:reply lang:en",
+    # 4. Virtual fashion / digital fashion / metaverse design
+    "(#VirtualFashion OR #DigitalFashion OR #MetaverseDesign OR #VirtualArchitecture OR #DigitalCouture) -is:retweet -is:reply lang:en",
+    # 5. Digital art / generative art / NFT art (scam değil)
+    "(#DigitalArt OR #GenerativeArt OR #NFTArt OR #AIArt) -(mint OR whitelist OR presale OR giveaway OR airdrop) -is:retweet -is:reply lang:en",
+    # 6. Smart cities / future cities / digital twin / avatar
+    "(#SmartCities OR #FutureCities OR #DigitalTwin OR #AvatarDesign OR #VRM OR #Interoperability) -is:retweet -is:reply lang:en",
+    # 7. Metaverse / virtual world — kripto shill hariç
+    "(#Metaverse OR #VirtualWorld OR #SpatialWeb OR #3DWorldBuilding) -(XOOB OR Permaweb OR permacast OR 0G OR memecoin OR airdrop) -is:retweet -is:reply lang:en",
+    # 8. WebXR + gaussian splat + volumetric
+    "(#WebXR OR gaussian-splat OR volumetric OR #PointCloud OR haptic) -is:retweet -is:reply lang:en",
 ]
 
-# Yeterli kaliteli tweet bulunamazsa bu ek sorgular denenir
+# Yeterli tweet bulunamazsa (fallback tur)
 _EXTENDED_QUERIES = [
-    "(volumetric OR haptic OR holographic OR openxr) -is:retweet -is:reply lang:en",
-    "(spatial-audio OR spatial-computing OR webgl) developer -is:retweet -is:reply lang:en",
+    "(#VirtualDesign OR #MetaverseArt OR #OnChainArt OR #GenerativeAI) -is:retweet -is:reply lang:en",
+    "(spatial-computing OR immersive-web OR openxr OR webgl) developer -is:retweet -is:reply lang:en",
+    "(#AIArt OR #DigitalIdentity OR #VRDesign OR #XRDesign) -is:retweet -is:reply lang:en",
 ]
-
-
-# Scam/spam filtresi utils/spam_filter.py'da merkezi olarak tanımlıdır.
-# _is_scam = utils.spam_filter.is_spam (yukarıda import edildi)
 
 
 def _engagement(tweet) -> int:
@@ -66,20 +76,20 @@ def _engagement(tweet) -> int:
     return 0
 
 
-def _score_quality(text: str) -> float:
-    """Tweet kalitesini LLM ile puanla (0-10). GROQ key yoksa geç (9.0 döner)."""
+def _score_detail(text: str) -> dict:
+    """LLM ile detaylı puanlama. GROQ key yoksa pass-through döndür."""
     if not GROQ_API_KEY:
-        return 9.0
+        return {"o": 9, "s": 9, "p": 9, "c": 9, "avg": 9.0, "iq": 148}
     try:
-        from core.llm import score_tweet_quality
-        return score_tweet_quality(text)
+        from core.llm import score_tweet_detail
+        return score_tweet_detail(text)
     except Exception as e:
-        print(f"  quality score error: {e}")
-        return 5.0
+        print(f"  score_detail error: {e}")
+        return {"o": 0, "s": 0, "p": 0, "c": 0, "avg": 0.0, "iq": 0}
 
 
 def _fetch_query(client, query: str, seen_ids: set) -> list:
-    """Tek sorgu çalıştır, spam filtrele, sonuçları döndür."""
+    """Tek sorgu çalıştır, spam+konu filtrele, ham sonuçları döndür."""
     results = []
     try:
         resp = client.search_recent_tweets(
@@ -91,22 +101,24 @@ def _fetch_query(client, query: str, seen_ids: set) -> list:
             sort_order="relevancy",
         )
         if not resp.data:
-            print(f"Query returned no results: {query[:60]}...")
+            print(f"  No results: {query[:55]}...")
             return results
 
         users = {u.id: u.username for u in (resp.includes.get("users") or [])}
 
+        spam_count = offtopic_count = eng_count = 0
         for tweet in resp.data:
             if tweet.id in seen_ids:
                 continue
             eng = _engagement(tweet)
             if eng < _MIN_ENGAGEMENT:
+                eng_count += 1
                 continue
             if _is_scam(tweet.text):
-                print(f"  SCAM filtered: {tweet.text[:60]}...")
+                spam_count += 1
                 continue
             if _is_off_topic(tweet.text):
-                print(f"  OFF-TOPIC filtered: {tweet.text[:60]}...")
+                offtopic_count += 1
                 continue
             reply_settings = getattr(tweet, "reply_settings", "everyone") or "everyone"
             results.append({
@@ -118,25 +130,41 @@ def _fetch_query(client, query: str, seen_ids: set) -> list:
                 "fetched_at": datetime.now(timezone.utc).isoformat(),
             })
             seen_ids.add(tweet.id)
-        print(f"Query OK: {len(resp.data)} results ({len(results)} passed spam) — {query[:50]}...")
+
+        print(
+            f"  Query: {len(resp.data)} raw → "
+            f"{spam_count} spam, {offtopic_count} off-topic, {eng_count} low-eng, "
+            f"{len(results)} passed | {query[:45]}..."
+        )
     except Exception as e:
-        print(f"Query failed: {e} — {query[:50]}...")
+        print(f"  Query failed: {e} — {query[:45]}...")
     return results
 
 
-def _apply_quality_filter(tweets: list, threshold: float) -> list:
-    """Kalite skoru threshold üstündekileri döndür."""
+def _score_and_filter(tweets: list, iq_threshold: int, rejected_log: list) -> list:
+    """Tweeleri puanla, IQ eşiği altındakileri rejected_log'a yaz."""
     if not GROQ_API_KEY:
-        print("GROQ_API_KEY not set — quality filter skipped, spam filter only.")
+        print("  GROQ_API_KEY not set — quality scoring skipped (all pass).")
+        for t in tweets:
+            t["scores"] = {"o": 9, "s": 9, "p": 9, "c": 9, "avg": 9.0, "iq": 148}
         return tweets
+
     passed = []
     for t in tweets:
-        score = _score_quality(t["text"])
-        if score >= threshold:
-            t["quality_score"] = round(score, 1)
+        detail = _score_detail(t["text"])
+        t["scores"] = detail
+        if detail["iq"] >= iq_threshold:
             passed.append(t)
         else:
-            print(f"  QUALITY {score:.1f}/10 filtered: @{t['author']} {t['text'][:50]}...")
+            rejected_log.append({
+                "author": t["author"],
+                "text": t["text"][:120],
+                "reason": f"LOW_IQ:{detail['iq']} (avg:{detail['avg']} O:{detail['o']} S:{detail['s']} P:{detail['p']} C:{detail['c']})",
+            })
+            print(
+                f"  REJECT IQ={detail['iq']} avg={detail['avg']} "
+                f"@{t['author']}: {t['text'][:45]}..."
+            )
     return passed
 
 
@@ -146,43 +174,62 @@ def run_daily_scan() -> list:
         sys.exit(1)
 
     client = tweepy.Client(bearer_token=BEARER_TOKEN, wait_on_rate_limit=True)
-    all_tweets = []
-    seen_ids = set()
+    all_candidates = []
+    seen_ids: set = set()
+    rejected_log: list = []
 
-    # Ana sorgular
+    # ── Tur 1: Ana sorgular ────────────────────────────────────────────────────
+    print(f"\n{'='*60}")
+    print("TUR 1 — Ana sorgular")
+    print('='*60)
     for query in _QUERIES:
-        all_tweets.extend(_fetch_query(client, query, seen_ids))
+        all_candidates.extend(_fetch_query(client, query, seen_ids))
         time.sleep(2)
 
-    # Engagement'a göre sırala, kalite skoru için top N'i tut
-    all_tweets.sort(key=lambda t: t["engagement_score"], reverse=True)
-    candidates = all_tweets[:_SAVE_TOP * 2]  # Fazlasını skora sok, elenenler telafi edilir
+    # Engagement sırası → kalite için adayları hazırla
+    all_candidates.sort(key=lambda t: t["engagement_score"], reverse=True)
+    to_score = all_candidates[:_SAVE_TOP * 2]
 
-    # Kalite filtresi (IQ >= 9 beklentisi → min_score >= 7.0 ile karşılanır)
-    print(f"\nScoring quality for {len(candidates)} candidates (threshold={_QUALITY_MIN})...")
-    quality_passed = _apply_quality_filter(candidates, _QUALITY_MIN)
+    print(f"\nPuanlama (IQ eşiği={_IQ_MIN}, {len(to_score)} aday)...")
+    accepted = _score_and_filter(to_score, _IQ_MIN, rejected_log)
 
-    # Yeterli tweet bulunamadıysa ek sorgular dene
-    if len(quality_passed) < _MIN_QUALITY_COUNT and _EXTENDED_QUERIES:
-        print(f"\nOnly {len(quality_passed)} tweets passed quality — running extended queries...")
+    # ── Tur 2: Yeterli değilse ek sorgular (fallback eşiği) ────────────────────
+    if len(accepted) < _MIN_ACCEPTED:
+        print(f"\n{'='*60}")
+        print(f"TUR 2 — Fallback (yalnızca {len(accepted)} kabul edildi, hedef={_MIN_ACCEPTED})")
+        print('='*60)
+        extra = []
         for query in _EXTENDED_QUERIES:
-            all_tweets.extend(_fetch_query(client, query, seen_ids))
+            extra.extend(_fetch_query(client, query, seen_ids))
             time.sleep(2)
-        # Yeni gelenleri fallback eşiğiyle ekle
-        new_candidates = [t for t in all_tweets if t["tweet_id"] not in {x["tweet_id"] for x in quality_passed}]
-        new_candidates.sort(key=lambda t: t["engagement_score"], reverse=True)
-        print(f"Fallback quality scoring (threshold={_QUALITY_FALLBACK}) for {len(new_candidates)} new candidates...")
-        fallback_passed = _apply_quality_filter(new_candidates[:_SAVE_TOP], _QUALITY_FALLBACK)
-        quality_passed.extend(fallback_passed)
 
-    # Son sıralama ve kayıt
-    quality_passed.sort(key=lambda t: t["engagement_score"], reverse=True)
-    top = quality_passed[:_SAVE_TOP]
+        accepted_ids = {t["tweet_id"] for t in accepted}
+        new_pool = [t for t in extra if t["tweet_id"] not in accepted_ids]
+        new_pool.sort(key=lambda t: t["engagement_score"], reverse=True)
+
+        print(f"\nFallback puanlama (IQ eşiği={_IQ_FALLBACK}, {len(new_pool)} yeni aday)...")
+        fallback_accepted = _score_and_filter(new_pool[:_SAVE_TOP], _IQ_FALLBACK, rejected_log)
+        accepted.extend(fallback_accepted)
+
+    # ── Sonuç ──────────────────────────────────────────────────────────────────
+    accepted.sort(key=lambda t: t["engagement_score"], reverse=True)
+    top = accepted[:_SAVE_TOP]
 
     with open(SCAN_PATH, "w", encoding="utf-8") as f:
         json.dump(top, f, indent=2, ensure_ascii=False)
 
-    print(f"\nDaily scan complete: {len(top)} tweets saved to scan_results.json")
+    with open(REJECTED_PATH, "w", encoding="utf-8") as f:
+        json.dump(rejected_log, f, indent=2, ensure_ascii=False)
+
+    print(f"\n{'='*60}")
+    print(f"TARAMA TAMAMLANDI")
+    print(f"  Kabul: {len(top)} tweet → scan_results.json")
+    print(f"  Ret:   {len(rejected_log)} tweet → scan_rejected.json")
+    if top:
+        best = top[0]
+        s = best.get("scores", {})
+        print(f"  En iyi: @{best['author']} IQ={s.get('iq','?')} eng={best['engagement_score']}")
+    print('='*60)
     return top
 
 

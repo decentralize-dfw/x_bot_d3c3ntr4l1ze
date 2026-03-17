@@ -3,12 +3,14 @@ daily_report.py
 ---------------
 Günlük tarama sonrası PDF bilan üret.
 
-scan_results.json'dan şunları seçer:
-  - 5 Quote RT adayı  (içerik zengin, yüksek engagement)
-  - 5 Retweet adayı   (yüksek engagement, kısa ve net)
-  - 20 Reply adayı    (reply_settings=everyone, çeşitli yazarlar)
+Yapı:
+  0. PUANLAMA ÖZETİ  — kaç tweet tarandı, kaçı kabul/ret edildi
+  1. RET LİSTESİ     — reddedilen tweetler + neden
+  2. QUOTE RT        — 5 aday, IQ skoru, "Ne yazılacak:" taslak
+  3. RETWEET         — 5 aday, IQ skoru
+  4. REPLY           — 20 aday, IQ skoru, "Ne yazılacak:" taslak
 
-Her Quote RT ve Reply için LLM taslak üretir (GROQ_API_KEY gerekli).
+IQ = avg_score * 16.5  (10 ortalama = 165 IQ)
 
 Çıktı: bilan_quotidienne/YYYY-MM-DD.pdf
 """
@@ -18,42 +20,50 @@ from datetime import datetime, timezone
 
 from fpdf import FPDF
 
-SCAN_PATH = os.path.join(os.path.dirname(__file__), "scan_results.json")
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "bilan_quotidienne")
+SCAN_PATH     = os.path.join(os.path.dirname(__file__), "scan_results.json")
+REJECTED_PATH = os.path.join(os.path.dirname(__file__), "scan_rejected.json")
+OUTPUT_DIR    = os.path.join(os.path.dirname(__file__), "bilan_quotidienne")
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
-# Sayfa genişliği hesabı (A4 = 210mm, sol+sağ margin 10mm)
-_PAGE_W = 190  # mm — tüm cell/multi_cell çağrılarında bu kullanılır
+_PAGE_W = 190  # A4 — sol+sağ margin 10mm
 
+
+# ── Veri yükleme ──────────────────────────────────────────────────────────────
 
 def _load_scan() -> list:
     try:
         with open(SCAN_PATH, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception as e:
-        print(f"Could not load scan_results.json: {e}")
+        print(f"scan_results.json yüklenemedi: {e}")
         return []
 
 
+def _load_rejected() -> list:
+    try:
+        with open(REJECTED_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+
+# ── Aday seçimi ───────────────────────────────────────────────────────────────
+
+def _iq(t: dict) -> int:
+    return t.get("scores", {}).get("iq", 0)
+
+
 def _select_quote_rt(tweets: list, n: int = 5) -> list:
-    """Quote RT adayları: içerik zengin (uzun metin) + yüksek engagement."""
-    scored = sorted(
-        tweets,
-        key=lambda t: t["engagement_score"] + len(t["text"]) // 15,
-        reverse=True,
-    )
-    return scored[:n]
+    return sorted(tweets, key=lambda t: t["engagement_score"] + len(t["text"]) // 15, reverse=True)[:n]
 
 
 def _select_rt(tweets: list, exclude_ids: set, n: int = 5) -> list:
-    """RT adayları: saf engagement sıralaması, zaten seçilmişler hariç."""
     candidates = [t for t in tweets if t["tweet_id"] not in exclude_ids]
     return sorted(candidates, key=lambda t: t["engagement_score"], reverse=True)[:n]
 
 
 def _select_reply(tweets: list, exclude_ids: set, n: int = 20) -> list:
-    """Reply adayları: reply_settings=everyone, yazar çeşitliliği öncelikli."""
     candidates = [
         t for t in tweets
         if t["tweet_id"] not in exclude_ids
@@ -77,13 +87,13 @@ def _select_reply(tweets: list, exclude_ids: set, n: int = 20) -> list:
     return result[:n]
 
 
+# ── PDF yardımcıları ──────────────────────────────────────────────────────────
+
 def _safe(text: str) -> str:
-    """PDF için latin-1 uyumlu tek satır metin."""
     return text.replace("\n", " ").encode("latin-1", errors="replace").decode("latin-1")
 
 
 def _safe_wrap(text: str) -> str:
-    """PDF multi_cell için latin-1 uyumlu, satır sonları korunur."""
     return text.encode("latin-1", errors="replace").decode("latin-1")
 
 
@@ -94,7 +104,7 @@ def _generate_reply_draft(tweet_text: str) -> str:
         from core.llm import generate_reply_comment
         return generate_reply_comment(tweet_text)
     except Exception as e:
-        print(f"  draft reply failed: {e}")
+        print(f"  reply draft failed: {e}")
         return ""
 
 
@@ -105,7 +115,7 @@ def _generate_quote_draft(tweet_text: str) -> str:
         from core.llm import generate_quote_commentary
         return generate_quote_commentary(tweet_text)
     except Exception as e:
-        print(f"  draft quote failed: {e}")
+        print(f"  quote draft failed: {e}")
         return ""
 
 
@@ -138,15 +148,32 @@ def _section_header(pdf: _DailyPDF, title: str, rgb: tuple) -> None:
     pdf.ln(3)
 
 
-def _tweet_block(pdf: _DailyPDF, i: int, t: dict, draft: str = "") -> None:
-    """Tek tweet bloğu: başlık → tweet metni → [taslak] → link."""
+def _iq_bar_label(iq: int) -> str:
+    if iq >= 148:  return "EXCELLENT"
+    if iq >= 132:  return "GOOD"
+    if iq >= 115:  return "OK"
+    if iq >= 99:   return "LOW"
+    return "REJECT"
 
-    # ── Başlık ──
+
+def _tweet_block(pdf: _DailyPDF, i: int, t: dict, draft: str = "") -> None:
+    scores = t.get("scores", {})
+    iq  = scores.get("iq",  "?")
+    avg = scores.get("avg", "?")
+    o   = scores.get("o",   "?")
+    s   = scores.get("s",   "?")
+    p   = scores.get("p",   "?")
+    c   = scores.get("c",   "?")
+    label = _iq_bar_label(iq if isinstance(iq, int) else 0)
+
+    # ── Başlık satırı ──
     pdf.set_font("Helvetica", "B", 9)
     pdf.set_fill_color(245, 245, 245)
-    pdf.cell(_PAGE_W, 6,
-             _safe(f"#{i}  @{t['author']}   eng:{t['engagement_score']}"),
-             new_x="LMARGIN", new_y="NEXT", fill=True)
+    header_line = _safe(
+        f"#{i}  @{t['author']}   eng:{t['engagement_score']}"
+        f"   |   IQ:{iq} [{label}]  avg:{avg}  O:{o} S:{s} P:{p} C:{c}"
+    )
+    pdf.cell(_PAGE_W, 6, header_line, new_x="LMARGIN", new_y="NEXT", fill=True)
 
     # ── Tweet metni ──
     pdf.set_font("Helvetica", "", 9)
@@ -154,55 +181,62 @@ def _tweet_block(pdf: _DailyPDF, i: int, t: dict, draft: str = "") -> None:
     pdf.multi_cell(_PAGE_W, 5, _safe_wrap(t["text"]),
                    new_x="LMARGIN", new_y="NEXT")
 
-    # ── Taslak (reply veya quote) ──
+    # ── Bot cevabı / taslak ──
     if draft:
         pdf.ln(1)
         pdf.set_font("Helvetica", "B", 8)
-        pdf.set_text_color(80, 60, 0)
-        pdf.cell(_PAGE_W, 5, "Ne yazilacak:",
+        pdf.set_text_color(0, 80, 0)
+        pdf.cell(_PAGE_W, 5, ">> BOT YAZACAK:",
                  new_x="LMARGIN", new_y="NEXT")
         pdf.set_font("Helvetica", "", 9)
-        pdf.set_fill_color(255, 250, 230)
+        pdf.set_text_color(0, 60, 0)
+        pdf.set_fill_color(230, 255, 230)
         pdf.multi_cell(_PAGE_W, 5, _safe_wrap(draft),
                        new_x="LMARGIN", new_y="NEXT", fill=True)
+        pdf.set_text_color(0, 0, 0)
+    elif not GROQ_API_KEY:
+        pdf.set_font("Helvetica", "I", 8)
+        pdf.set_text_color(150, 100, 0)
+        pdf.cell(_PAGE_W, 5, "(GROQ_API_KEY yok — taslak uretilmedi)",
+                 new_x="LMARGIN", new_y="NEXT")
+        pdf.set_text_color(0, 0, 0)
 
-    # ── Tweet linki ──
+    # ── Link ──
     pdf.ln(1)
     pdf.set_font("Helvetica", "I", 8)
     pdf.set_text_color(40, 80, 180)
     url = f"https://x.com/{t['author']}/status/{t['tweet_id']}"
-    pdf.multi_cell(_PAGE_W, 5, url,
-                   new_x="LMARGIN", new_y="NEXT", link=url)
+    pdf.multi_cell(_PAGE_W, 5, url, new_x="LMARGIN", new_y="NEXT", link=url)
     pdf.set_text_color(0, 0, 0)
     pdf.ln(3)
 
 
 def generate_daily_report() -> str:
-    """PDF rapor üret, dosya yolunu döndür."""
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    tweets = _load_scan()
+    tweets   = _load_scan()
+    rejected = _load_rejected()
 
     quote_rt = _select_quote_rt(tweets, 5)
-    used = {t["tweet_id"] for t in quote_rt}
+    used     = {t["tweet_id"] for t in quote_rt}
 
     rt_tweets = _select_rt(tweets, used, 5)
     used.update(t["tweet_id"] for t in rt_tweets)
 
     reply_tweets = _select_reply(tweets, used, 20)
 
-    # ── Taslakları önceden üret ──
-    print("Generating quote drafts...")
+    # ── Taslakları üret ──
+    print("Quote taslakları uretiliyor...")
     quote_drafts = []
     for t in quote_rt:
         d = _generate_quote_draft(t["text"])
-        print(f"  @{t['author']}: {d[:60] if d else '(no key)'}")
+        print(f"  @{t['author']}: {d[:70] if d else '(bos)'}")
         quote_drafts.append(d)
 
-    print("Generating reply drafts...")
+    print("Reply taslakları uretiliyor...")
     reply_drafts = []
     for t in reply_tweets:
         d = _generate_reply_draft(t["text"])
-        print(f"  @{t['author']}: {d[:60] if d else '(no key)'}")
+        print(f"  @{t['author']}: {d[:70] if d else '(bos)'}")
         reply_drafts.append(d)
 
     # ── PDF ──
@@ -211,20 +245,46 @@ def generate_daily_report() -> str:
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
 
-    # Quote RT
-    _section_header(pdf, f"QUOTE RETWEET — {len(quote_rt)}/5 adaylar", (40, 80, 160))
+    # 0. PUANLAMA ÖZETİ
+    _section_header(pdf, "PUANLAMA OZETI", (60, 60, 60))
+    pdf.set_font("Helvetica", "", 9)
+    total_scanned = len(tweets) + len(rejected)
+    pdf.multi_cell(
+        _PAGE_W, 5,
+        _safe(
+            f"Taranan: {total_scanned} tweet\n"
+            f"Kabul (IQ>=115): {len(tweets)} tweet\n"
+            f"Ret: {len(rejected)} tweet\n"
+            f"IQ olcegi: avg*16.5  (10 ortalama = 165 IQ)  |  "
+            f"Esik: IQ>=115 (avg>=7.0)  |  Fallback: IQ>=99 (avg>=6.0)"
+        ),
+        new_x="LMARGIN", new_y="NEXT",
+    )
+    pdf.ln(4)
+
+    # 1. RET LİSTESİ (varsa)
+    if rejected:
+        _section_header(pdf, f"REDDEDILENLER — {len(rejected)} tweet", (180, 50, 50))
+        pdf.set_font("Helvetica", "", 8)
+        for r in rejected:
+            line = _safe(f"@{r.get('author','?')}  {r.get('reason','?')}  |  {r.get('text','')[:80]}...")
+            pdf.multi_cell(_PAGE_W, 4, line, new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(4)
+
+    # 2. QUOTE RT
+    _section_header(pdf, f"QUOTE RETWEET — {len(quote_rt)}/5 aday", (40, 80, 160))
     for i, (t, draft) in enumerate(zip(quote_rt, quote_drafts), 1):
         _tweet_block(pdf, i, t, draft)
     pdf.ln(4)
 
-    # Retweet (taslak yok)
-    _section_header(pdf, f"RETWEET — {len(rt_tweets)}/5 adaylar", (50, 130, 70))
+    # 3. RETWEET
+    _section_header(pdf, f"RETWEET — {len(rt_tweets)}/5 aday", (50, 130, 70))
     for i, t in enumerate(rt_tweets, 1):
         _tweet_block(pdf, i, t)
     pdf.ln(4)
 
-    # Reply
-    _section_header(pdf, f"REPLY — {len(reply_tweets)}/20 adaylar", (160, 80, 40))
+    # 4. REPLY
+    _section_header(pdf, f"REPLY — {len(reply_tweets)}/20 aday", (160, 80, 40))
     for i, (t, draft) in enumerate(zip(reply_tweets, reply_drafts), 1):
         _tweet_block(pdf, i, t, draft)
 
@@ -232,10 +292,10 @@ def generate_daily_report() -> str:
     pdf.ln(2)
     pdf.set_font("Helvetica", "B", 9)
     pdf.set_fill_color(230, 230, 230)
-    pdf.set_text_color(0, 0, 0)
     summary = _safe(
-        f"  Tarama: {len(tweets)} tweet  |  "
+        f"  Tarama: {total_scanned} tweet  |  "
         f"QuoteRT:{len(quote_rt)}  RT:{len(rt_tweets)}  Reply:{len(reply_tweets)}  |  "
+        f"Ret:{len(rejected)}  |  "
         f"{datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M UTC')}"
     )
     pdf.cell(_PAGE_W, 7, summary, new_x="LMARGIN", new_y="NEXT", fill=True)
@@ -243,7 +303,7 @@ def generate_daily_report() -> str:
     date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     output_path = os.path.join(OUTPUT_DIR, f"{date_str}.pdf")
     pdf.output(output_path)
-    print(f"Daily report generated: {output_path}")
+    print(f"Rapor olusturuldu: {output_path}")
     return output_path
 
 

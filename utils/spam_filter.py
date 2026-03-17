@@ -107,21 +107,40 @@ _SCAM_PATTERNS = re.compile(
     re.IGNORECASE | re.VERBOSE,
 )
 
-# ── Konu geçerlilik filtresi — en az bir teknik XR/spatial keyword zorunlu ───
+# ── Konu geçerlilik filtresi — en az bir keyword zorunlu ──────────────────────
+# Kullanıcının belirlediği niche: WebXR, metaverse, virtual fashion,
+# virtual architecture, digital art, smart cities, avatar, VRM,
+# digital twin, interoperability, NFT art, generative AI, 3D world building.
 _TOPIC_REQUIRED = re.compile(
     r"\b("
+    # XR / VR / AR core
     r"webxr|openxr|"
-    r"spatial\s+(computing|audio|web|mapping|presence)|"
+    r"vr\b|virtual\s+reality|vr\s+headsets?|mixed\s+reality|augmented\s+reality|"
+    r"spatial\s+(computing|audio|web|mapping|presence|design)|"
     r"immersive\s+(web|tech|experience|technology)|"
-    r"virtual\s+reality|vr\s+headsets?|"
-    r"mixed\s+reality|augmented\s+reality|"
-    r"gaussian\s+spl[ai]t|3dgs\b|"
-    r"haptic|volumetric|holograph|"
-    r"webgl|three[.\s]?js|babylon[.\s]?js|a-frame\b|"
-    r"hmd\b|point\s+cloud|"
+    r"gaussian\s+spl[ai]t|3dgs\b|haptic|volumetric|holograph|"
+    r"webgl|three[.\s]?js|babylon[.\s]?js|a-frame\b|hmd\b|point\s+cloud|"
     r"xr\s+(development|developer|scene|space|headset|experience|app)|"
     r"immersive-web|spatial-web|"
-    r"vr\s+(development|developer|scene|game|app|experience)"
+    r"vr\s+(development|developer|scene|game|app|experience)|"
+    # Metaverse / virtual world
+    r"metaverse|virtual\s+(world|space|city|cities|gallery|museum|event|studio)|"
+    # Virtual fashion / architecture / design
+    r"virtual\s+(fashion|architecture|design)|"
+    r"digital\s+(fashion|couture)|"
+    r"metaverse\s+(design|fashion|architecture|art)|"
+    # Digital art / generative / NFT art
+    r"digital\s+art|generative\s+(art|ai)|ai\s+(art|generated|design|artist|model|agent|tool)|"
+    r"nft\s*(art|drop|artist|collection|creator)|on.chain\s+(art|ownership|identity|asset)|"
+    # Smart cities / future cities
+    r"smart\s+cit(y|ies)|future\s+(city|cities)|urban\s+(digital|tech|design)|"
+    # Avatar / VRM / interoperability / digital twin
+    r"avatar\b|vrm\b|interoperability|digital\s+twin|"
+    # 3D world building
+    r"3d\s+(world|design|art|building|scene|space|model|web)|"
+    r"world.?build(ing|er)|"
+    # Spatial web / point cloud
+    r"spatial\s+web|point\s+cloud"
     r")\b",
     re.IGNORECASE,
 )
