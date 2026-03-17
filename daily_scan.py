@@ -14,12 +14,13 @@ Kullanım:
 """
 import json
 import os
-import re
 import sys
 import time
 from datetime import datetime, timezone
 
 import tweepy
+
+from utils.spam_filter import is_spam as _is_scam
 
 BEARER_TOKEN = os.environ.get("BEARERTOKEN")
 SCAN_PATH = os.path.join(os.path.dirname(__file__), "scan_results.json")
@@ -39,59 +40,8 @@ _QUERIES = [
 ]
 
 
-# ── Scam / spam sinyal listesi ────────────────────────────────────────────────
-_SCAM_PATTERNS = re.compile(
-    r"""
-    # NFT mint / drop spam
-    \b(mint|minting|presale|whitelist|wl\s+spot|free\s+mint|claim\s+your)\b
-    # Pump sinyalleri
-    | \b(100x|1000x|mooning|to\s+the\s+moon|next\s+gem|hidden\s+gem|ape\s+in|dyor)\b
-    # Airdrop / giveaway
-    | \b(airdrop|giveaway|free\s+tokens?|win\s+\d|drop\s+your\s+wallet|enter\s+to\s+win)\b
-    # Follower farming
-    | \b(follow\s+(&|and)\s+(rt|retweet)|rt\s+to\s+(win|enter)|like\s+and\s+follow)\b
-    # Finansal spam
-    | \b(buy\s+now|last\s+chance|limited\s+supply|floor\s+price|bullish|bearish|ath\b)\b
-    # Proje isim kalıpları (8bit X, baby X, ape X, pepe X, doge X vb.)
-    | \b(8bit|babydoge|babyape|pepe\s+coin|shib\b|degens?\b|based\s+dev|doxed\s+team)\b
-    # Boot sequence / hype intro kalıbı
-    | boot\s+sequence|gathering[\s,]+ready
-    # Wallet/contract spam
-    | \b(ca:|contract\s+address|0x[0-9a-f]{6,})\b
-    # Token ticker ($XOOB, $KVAI vb.) — proje shill klasiği
-    | \$[A-Z]{2,8}\b
-    # Yield farming / token farming
-    | \b(farming|yield\s+farm|liquidity\s+pool|staking\s+reward)\b
-    # Wallet bağlantı spamı (Kvants tipi)
-    | \b(link\s+(your\s+)?(evm\s+)?wallet|connect\s+(your\s+)?wallet|evm\s+wallet)\b
-    # VIP / upgrade shill
-    | \b(vip\s+access|unlock\s+vip|upgrade\s+(your|to)\s+(vip|access))\b
-    # Çok sayıda 🚀 veya 💎 (3+) — scam klasiği
-    | (?:🚀){3,}|(?:💎){3,}|(?:🔥){4,}
-    """,
-    re.IGNORECASE | re.VERBOSE,
-)
-
-# Maksimum izin verilen hashtag sayısı — 5+ olan tweet'ler genellikle spam
-_MAX_HASHTAGS = 5
-# Minimum kelime sayısı — çok kısa tweet'ler anlamsız
-_MIN_WORDS = 8
-
-
-def _is_scam(text: str) -> bool:
-    """Scam / spam sinyali taşıyan tweet'leri elek."""
-    if _SCAM_PATTERNS.search(text):
-        return True
-    # Hashtag bombardımanı
-    if text.count("#") > _MAX_HASHTAGS:
-        return True
-    # Çok kısa içerik
-    if len(text.split()) < _MIN_WORDS:
-        return True
-    # URL olmadan mention spam (3+ @mention = muhtemelen reply farming)
-    if len(re.findall(r"@\w+", text)) >= 3:
-        return True
-    return False
+# Scam/spam filtresi utils/spam_filter.py'da merkezi olarak tanımlıdır.
+# _is_scam = utils.spam_filter.is_spam (yukarıda import edildi)
 
 
 def _engagement(tweet) -> int:
