@@ -110,11 +110,6 @@
     "posted_at": "2026-03-10T13:35:05.760615"
   },
   {
-    "content_id": "retail-0",
-    "content_type": "evening_text",
-    "posted_at": "2026-03-10T15:20:52.315623"
-  },
-  {
     "content_id": "c2w2-00",
     "content_type": "evening_controversial",
     "posted_at": "2026-03-10T16:23:35.012700"
@@ -624,6 +619,14 @@
     "posted_at": "2026-03-17T18:27:56.161764+00:00",
     "tweet_text": "AWARDS / MENTIONS\nCreatorverse Buildathon by Parcel x PangeaDAO, Music Venue, 2022, Winner\nCreatorverse Buildathon by Parcel x 💿💿💿",
     "tweet_id": "2033973624093237674",
+    "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
+  },
+  {
+    "content_id": "retail-0",
+    "content_type": "evening_controversial",
+    "posted_at": "2026-03-17T20:17:27.459395+00:00",
+    "tweet_text": "Notably, the store features four distinct architectural designs and four unique DJ music sets, which, when combined, create 16 💿💿💿",
+    "tweet_id": "2034001186206986654",
     "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
   }
 ]
