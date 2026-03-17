@@ -56,36 +56,52 @@ def _call_llm(prompt: str, max_tokens: int = 120, temperature: float = 0.9) -> s
 
 
 def score_tweet_quality(tweet_text: str) -> float:
-    """Tweet'i LLM'e puanlat (1-10 × 3 eksen). Ortalama 6 altıysa reddet."""
+    """Tweet'i LLM'e puanlat (1-10 × 4 eksen). En düşük skoru döndür — hepsi 9+ olmalı.
+
+    4 eksen:
+      ORIGINALITY  — okuyucunun daha önce duymadığı bir şey mi söylüyor?
+      SPECIFICITY  — belirsiz değil, somut bir iddia var mı?
+      PROVOCATION  — okuyucunun kafasında bir soru bırakıyor mu?
+      CLARITY      — konu bağlamı olmadan da ne hakkında olduğu net mi?
+    """
     if not GROQ_API_KEY:
-        return 7.0
+        return 9.0
     prompt = (
-        "Rate this tweet on exactly 3 axes, each 1-10:\n"
-        "1. ORIGINALITY: Does it say something the reader hasn't thought before?\n"
-        "2. SPECIFICITY: Does it make a precise, non-generic claim?\n"
-        "3. PROVOCATION: Does it leave an unanswerable question in the reader's mind?\n\n"
+        "Rate this tweet on exactly 4 axes, each scored 1-10:\n"
+        "1. ORIGINALITY: Does it say something the reader hasn't encountered before?\n"
+        "2. SPECIFICITY: Does it make a precise, non-generic, non-vague claim?\n"
+        "3. PROVOCATION: Does it leave an unanswerable question in the reader's mind?\n"
+        "4. CLARITY: Without any context, can the reader immediately identify the specific "
+        "subject/technology/problem this tweet is about? "
+        "(Score 1 if it uses vague pronouns like 'they' or abstract subjects with no referent. "
+        "Score 10 if the subject is named explicitly and concretely in the first few words.)\n\n"
         f'Tweet: "{tweet_text}"\n\n'
-        'Respond ONLY with JSON: {"originality": N, "specificity": N, "provocation": N}'
+        'Respond ONLY with JSON: {"originality": N, "specificity": N, "provocation": N, "clarity": N}'
     )
     try:
-        raw = _call_llm(prompt, max_tokens=40, temperature=0.2)
+        raw = _call_llm(prompt, max_tokens=50, temperature=0.2)
         try:
             scores = json.loads(raw.strip())
         except (json.JSONDecodeError, ValueError):
             match = re.search(r'\{.*\}', raw, re.DOTALL)
             if not match:
-                return 7.0
+                return 0.0
             scores = json.loads(match.group())
-        avg = sum([
-            scores.get("originality", 7),
-            scores.get("specificity", 7),
-            scores.get("provocation", 7),
-        ]) / 3
-        print(f"Quality score: {avg:.1f}/10 — O:{scores.get('originality')} S:{scores.get('specificity')} P:{scores.get('provocation')}")
-        return avg
+        min_score = min(
+            scores.get("originality", 0),
+            scores.get("specificity", 0),
+            scores.get("provocation", 0),
+            scores.get("clarity", 0),
+        )
+        print(
+            f"Quality score (min): {min_score}/10 — "
+            f"O:{scores.get('originality')} S:{scores.get('specificity')} "
+            f"P:{scores.get('provocation')} C:{scores.get('clarity')}"
+        )
+        return float(min_score)
     except Exception as e:
         print(f"Quality scoring failed: {e}")
-        return 7.0
+        return 0.0
 
 
 def is_semantically_duplicate(candidate: str) -> bool:
@@ -173,9 +189,11 @@ def generate_viral_tweet(chunk: str, source_name: str, context_tweets: list) -> 
         "Step 1 — What is the most counterintuitive thing the source material reveals?\n"
         "Step 2 — What does mainstream assume that is demonstrably wrong?\n"
         "Step 3 — Choose a format from above. Write the tweet.\n\n"
+        "CLARITY RULE: Name the specific technology, platform, or industry in the first 5 words. "
+        "Never 'they', 'it', 'this' without explicit referent. Zero-context reader must immediately know the subject.\n"
         "Length: 80–260 characters. No artificial padding. Stop when the point lands.\n"
         f"{context_str}"
-        f"Source ({source_name}):\n{chunk}\n\n"
+        f"Source ({source_name}) — use as CONTEXT and INSPIRATION, not as text to paraphrase:\n{chunk}\n\n"
         "Output ONLY the final tweet text."
     )
     return _call_llm(prompt, max_tokens=180, temperature=0.92)
@@ -208,10 +226,12 @@ def generate_controversial_tweet(chunk: str, source_name: str, context_tweets: l
         "Step 1 — Find ONE widely held assumption in this space that is quietly wrong.\n"
         "Step 2 — What is actually true, and why does it make people uncomfortable to say?\n"
         "Step 3 — Choose a format. Write the tweet.\n\n"
+        "CLARITY RULE: Name the specific technology, platform, or industry in the first 5 words. "
+        "Never 'they', 'it', 'this' without explicit referent. Zero-context reader must immediately know the subject.\n"
         "Tone: precision over provocation. IQ 150 thinking, not hot take. "
         "80–260 chars. Stop when it lands.\n\n"
         f"{context_str}"
-        f"Source ({source_name}):\n{chunk}\n\n"
+        f"Source ({source_name}) — use as CONTEXT and INSPIRATION, not as text to paraphrase:\n{chunk}\n\n"
         "Output ONLY the final tweet text."
     )
     return _call_llm(prompt, max_tokens=180, temperature=0.94)
@@ -478,11 +498,16 @@ def generate_viral_mix_tweet(target_tweets: list, manifesto_chunk: str, source_n
         "Step 3 — Choose ONE format from above. Write the tweet.\n\n"
         "BAD: 'NEWS: New wallet research...' — restates headline, zero insight\n"
         "BAD: 'Rethink trust models.' — vague slogan\n"
+        "BAD: 'It's like they've figured out how to bottle contemplation.' — who is 'they'? what context?\n"
         "GOOD: 'Every wallet preserving UX is protecting the part that keeps users dependent.' — reveals a mechanism\n"
         "GOOD: 'VR retention collapsed because studios kept building tourist attractions, not places to inhabit.' — diagnosis\n\n"
+        "CLARITY RULE: Name the specific technology, platform, or industry in the first 5 words. "
+        "Never use vague subjects ('they', 'it', 'this') without referent. "
+        "A reader with zero context must know immediately what this is about.\n\n"
         "No 'NEWS:' prefix. No 'we'. No links. Expert thinking out loud. "
         "Stop when the point lands — no artificial padding.\n"
-        f"Our manifesto ({source_name}):\n{manifesto_chunk}\n\n"
+        f"Our manifesto ({source_name}) — use this as CONTEXT and INSPIRATION ONLY, "
+        f"not as text to paraphrase verbatim:\n{manifesto_chunk}\n\n"
         "Output ONLY the final tweet text — not the steps."
     )
     return _call_llm(prompt, max_tokens=180, temperature=0.92).strip('"\'')

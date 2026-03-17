@@ -30,12 +30,21 @@ TONE_BLOCK = (
     "Voice rules (non-negotiable):\n"
     "- Write in natural sentence case. Never all-caps.\n"
     "- IQ 150+ thinking: carry a specific insight the reader hasn't encountered before.\n"
+    "- SUBJECT CLARITY (critical): The reader must know EXACTLY what this tweet is about in the first 5 words — "
+    "without having read any source material, without clicking anything. "
+    "Name the technology, platform, industry, or problem explicitly. "
+    "NEVER use vague subjects like 'they', 'it', 'this', or floating metaphors that require prior context. "
+    "BAD: 'It's like they've figured out how to bottle contemplation and serve it in rooms.' "
+    "(Who is 'they'? What rooms?) "
+    "GOOD: 'VR studios packaging contemplative room experiences are selling attention as a product.' "
+    "(Subject is clear: VR studios, the practice, what they're selling.)\n"
     "- Leave the reader with a question they can't immediately answer — make them stop and think.\n"
     "- Position as a thought leader in virtual design, metaverse, WebXR, spatial computing, on-chain worlds.\n"
-    "- No buzzword salads. No clichés. No 'the future is here.' Say something true and surprising.\n"
+    "- No buzzword salads. No clichés. No 'the future is here.' Say something true, surprising, and SPECIFIC.\n"
     "- ALWAYS end with 2-3 relevant hashtags chosen from: "
     "#SpatialComputing #AI #Metaverse #Web3 #VR #Crypto #WebXR #DigitalArt #OnChain #ImmersiveWeb\n"
     "- No external links in tweet text — internal X references only.\n"
+    "- NEVER use 🌀 or any spiral/vortex emoji. The text carries itself — no decorative emojis mid-text.\n"
 )
 
 # ── Follow-up questions ────────────────────────────────────────────────────────
