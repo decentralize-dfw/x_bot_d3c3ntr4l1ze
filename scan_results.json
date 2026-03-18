@@ -3,9 +3,9 @@
     "tweet_id": "2033602617339789495",
     "text": "This is it, native PCVR on MacOS! The OpenXR SDK can be compiled on MacOS, So I implemented a runtime and a streaming app. Godot supports OpenXR on MacOS so I use it to test my integration. Unity could work too and of course native C++. 1/x https://t.co/i0EGxWeFSk",
     "author": "cyannick",
-    "engagement_score": 456,
+    "engagement_score": 514,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:32:51.887322+00:00",
+    "fetched_at": "2026-03-18T05:51:49.126760+00:00",
     "scores": {
       "o": 8,
       "s": 9,
@@ -23,7 +23,7 @@
     "author": "arrival_space_",
     "engagement_score": 97,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:32:49.661967+00:00",
+    "fetched_at": "2026-03-18T05:51:46.929832+00:00",
     "scores": {
       "o": 8,
       "s": 9,
@@ -41,7 +41,7 @@
     "author": "willeastcott",
     "engagement_score": 75,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:33:05.658436+00:00",
+    "fetched_at": "2026-03-18T05:52:02.891377+00:00",
     "scores": {
       "o": 8,
       "s": 9,
@@ -57,9 +57,9 @@
     "tweet_id": "2033698437137633425",
     "text": "Gaussian Splat 3D model rendering in Sitrec, just in case there's some plant pot-related UFO case. https://t.co/rPyDTBG2eM",
     "author": "MickWest",
-    "engagement_score": 32,
+    "engagement_score": 40,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:33:05.661061+00:00",
+    "fetched_at": "2026-03-18T05:52:02.892122+00:00",
     "scores": {
       "o": 8,
       "s": 9,
@@ -77,25 +77,25 @@
     "author": "mechpil0t",
     "engagement_score": 20,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:32:49.664948+00:00",
+    "fetched_at": "2026-03-18T05:51:46.934046+00:00",
     "scores": {
       "o": 8,
       "s": 9,
       "p": 6,
-      "c": 7,
-      "avg": 7.5,
-      "iq": 124,
-      "iq3": 132
+      "c": 8,
+      "avg": 7.8,
+      "iq": 129,
+      "iq3": 138
     },
     "category": "quote_rt"
   },
   {
-    "tweet_id": "2031956658851889635",
-    "text": "First look at Aang and the crew as adults in 'Avatar: Aang, the Last Airbender' https://t.co/PzUFdNjI9u",
-    "author": "ComplexPop",
-    "engagement_score": 81191,
+    "tweet_id": "2033350063758713225",
+    "text": "‘Avatar: Fire and Ash’ wins the Oscar for Best Visual Effects. #Oscars https://t.co/vbETB0D7sV",
+    "author": "PopBase",
+    "engagement_score": 15384,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:33:25.700399+00:00",
+    "fetched_at": "2026-03-18T05:52:22.070761+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -111,9 +111,9 @@
     "tweet_id": "2031807913413505342",
     "text": "Dan’s waddling into a channel near you in the latest @discord Quest.\n\nVote for your favorite team among the top four at #VALORANTMasters Santiago to earn the Dan Avatar Decoration https://t.co/PurASOKDM8",
     "author": "VALORANT",
-    "engagement_score": 6495,
+    "engagement_score": 6514,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:33:25.696708+00:00",
+    "fetched_at": "2026-03-18T05:52:22.064465+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -131,7 +131,7 @@
     "author": "quantnetwork",
     "engagement_score": 834,
     "reply_settings": "following",
-    "fetched_at": "2026-03-17T13:33:01.142410+00:00",
+    "fetched_at": "2026-03-18T05:51:58.432936+00:00",
     "scores": {
       "o": 4,
       "s": 8,
@@ -144,30 +144,12 @@
     "category": "rt"
   },
   {
-    "tweet_id": "2033207422806905258",
-    "text": "Here is a first demo of the Quest 3 running native OpenXR app on MacOS 😍. I’ll try Unity next. Still no image in the quest but it’s coming! #openxr #godot #macos https://t.co/cw5s0M9PPD https://t.co/5uMc5DHSXI",
-    "author": "cyannick",
-    "engagement_score": 303,
+    "tweet_id": "2032317221960135110",
+    "text": "Jumped back into @tomoland_app and the daily login streaks are actually worth it. Each day adds small rewards like gems, avatar pieces and extra xTOMO points.\n\nEasy reason to check in even for a short session.\n\n#TOMOBlueprint @TheCreatorFi https://t.co/WZ8jQ9Sf0P",
+    "author": "Bobbybright759",
+    "engagement_score": 317,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:32:51.886681+00:00",
-    "scores": {
-      "o": 6,
-      "s": 9,
-      "p": 2,
-      "c": 8,
-      "avg": 6.2,
-      "iq": 102,
-      "iq3": 126
-    },
-    "category": "rt"
-  },
-  {
-    "tweet_id": "2033745159880643064",
-    "text": "Built in n8n — it:\n\n🔁 Clones viral TikToks\n✍️ Rewrites w/ GPT-4o\n🎥 Auto-generates avatar videos\n🎬 Adds captions + edits them\n📤 Posts to 9 platforms (TikTok, IG,YT,X, etc.)\n\nTo Get It..\n\n🔁 Like + RT🫂\n💬 Reply “Steal”\n📩 Must Be Follow me &amp; I’ll DM you.🤝 https://t.co/rYcAIEgFmH",
-    "author": "AriyanA32556",
-    "engagement_score": 297,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:33:25.692169+00:00",
+    "fetched_at": "2026-03-18T05:52:22.062129+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -180,12 +162,30 @@
     "category": "rt"
   },
   {
+    "tweet_id": "2033207422806905258",
+    "text": "Here is a first demo of the Quest 3 running native OpenXR app on MacOS 😍. I’ll try Unity next. Still no image in the quest but it’s coming! #openxr #godot #macos https://t.co/cw5s0M9PPD https://t.co/5uMc5DHSXI",
+    "author": "cyannick",
+    "engagement_score": 304,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-18T05:51:49.128129+00:00",
+    "scores": {
+      "o": 6,
+      "s": 9,
+      "p": 2,
+      "c": 8,
+      "avg": 6.2,
+      "iq": 102,
+      "iq3": 126
+    },
+    "category": "rt"
+  },
+  {
     "tweet_id": "2032381450285142473",
     "text": "GM, multitaskers. 🫡\n\nIf you tell us you can't play because you're \"away from your PC,\" we’ll know you’re lying. 😂\nMobile? WebXR? VR? We're everywhere. One account, one universe, zero excuses.\nLog in and own your assets. 🚀✅ https://t.co/4X74tCI7rB",
     "author": "OsLabs_",
     "engagement_score": 50,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:32:49.663264+00:00",
+    "fetched_at": "2026-03-18T05:51:46.930699+00:00",
     "scores": {
       "o": 6,
       "s": 8,
@@ -203,7 +203,7 @@
     "author": "MrSurviv0r",
     "engagement_score": 33,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:32:51.890214+00:00",
+    "fetched_at": "2026-03-18T05:51:49.129194+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -219,9 +219,9 @@
     "tweet_id": "2033505955875311744",
     "text": "https://t.co/JKf6cbCcL0 This has been found and researched since 2015 in India. This is where our minds are at risk. This is how the A.I for #havanasyndrome reverse engineers your thoughts to build your #digitaltwin for a A.I haptic body mapping weaponized feedback loop.",
     "author": "DogAtmosphere",
-    "engagement_score": 14,
+    "engagement_score": 15,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:33:01.145323+00:00",
+    "fetched_at": "2026-03-18T05:51:58.434503+00:00",
     "scores": {
       "o": 8,
       "s": 6,
@@ -234,48 +234,12 @@
     "category": "reply"
   },
   {
-    "tweet_id": "2032537705616146785",
-    "text": "The future of blockchain isn’t just about more chains.\nIt’s about connecting them efficiently.\nInfrastructure like Cancore aims to improve interoperability, settlement, and cross-chain liquidity across ecosystems.\n@Web3 builders should be watching this.\n@Cancore_io\n#CancoreThread https://t.co/abdu2MT93A",
-    "author": "Piusxlol",
-    "engagement_score": 194,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:33:25.693706+00:00",
-    "scores": {
-      "o": 6,
-      "s": 8,
-      "p": 4,
-      "c": 9,
-      "avg": 6.8,
-      "iq": 112,
-      "iq3": 126
-    },
-    "category": "like"
-  },
-  {
-    "tweet_id": "2033539162129809900",
-    "text": "Strong digital economies don’t grow from isolated innovation.\n\nThey grow from coordination.\n\nIn Web3, dozens of protocols, communities, and applications operate at the same time, but without strong interoperability the ecosystem remains fragmented.\n\nWhen systems can’t interact https://t.co/RQD5LjXiJV",
-    "author": "0x_zoda",
-    "engagement_score": 194,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:33:25.697455+00:00",
-    "scores": {
-      "o": 6,
-      "s": 8,
-      "p": 7,
-      "c": 9,
-      "avg": 7.5,
-      "iq": 124,
-      "iq3": 126
-    },
-    "category": "like"
-  },
-  {
     "tweet_id": "2033078642801365055",
     "text": "asciivision install script added, playing with some new visualizations w opentui, i think we need pacman in there.\n\ni really wanna add grok imagine in the CLI, maybe worldlabs api and see what a gaussian splat looks ? https://t.co/7sSnwb7LrV",
     "author": "lalopenguin",
     "engagement_score": 194,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:33:05.660213+00:00",
+    "fetched_at": "2026-03-18T05:52:02.893854+00:00",
     "scores": {
       "o": 6,
       "s": 8,
@@ -288,12 +252,48 @@
     "category": "like"
   },
   {
+    "tweet_id": "2032537705616146785",
+    "text": "The future of blockchain isn’t just about more chains.\nIt’s about connecting them efficiently.\nInfrastructure like Cancore aims to improve interoperability, settlement, and cross-chain liquidity across ecosystems.\n@Web3 builders should be watching this.\n@Cancore_io\n#CancoreThread https://t.co/abdu2MT93A",
+    "author": "Piusxlol",
+    "engagement_score": 185,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-18T05:52:22.063802+00:00",
+    "scores": {
+      "o": 6,
+      "s": 8,
+      "p": 4,
+      "c": 9,
+      "avg": 6.8,
+      "iq": 112,
+      "iq3": 126
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2033855426924536228",
+    "text": "Hey everyone, thanks for the support. Some news:\n- Confirmed Unity works, it requires more work, but I made it work\n- Unreal will be hard because the OpenXR plugin doesn't support Macos and Metal or Vulkan with MoltenVK\n- USB is coming too\n- Conformance tests are integrated https://t.co/afOgRufdx4",
+    "author": "cyannick",
+    "engagement_score": 93,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-18T05:51:49.125983+00:00",
+    "scores": {
+      "o": 2,
+      "s": 8,
+      "p": 1,
+      "c": 6,
+      "avg": 4.2,
+      "iq": 69,
+      "iq3": 88
+    },
+    "category": "like"
+  },
+  {
     "tweet_id": "2032928519609626964",
     "text": "IT WORKS! It's a custom @OpenXR runtime running on MacOS and @godotengine :-) For now it's like the Meta simulator. Next I'll plug that in ALVR or do a custom app if not easy to integrate https://t.co/GlmYFCnXog",
     "author": "cyannick",
     "engagement_score": 79,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:32:51.887813+00:00",
+    "fetched_at": "2026-03-18T05:51:49.127380+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -311,7 +311,7 @@
     "author": "Aaron_Wacker",
     "engagement_score": 51,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:33:05.659673+00:00",
+    "fetched_at": "2026-03-18T05:52:02.893203+00:00",
     "scores": {
       "o": 6,
       "s": 8,
@@ -329,7 +329,7 @@
     "author": "LexnLin",
     "engagement_score": 51,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:33:16.094896+00:00",
+    "fetched_at": "2026-03-18T05:52:12.498078+00:00",
     "scores": {
       "o": 6,
       "s": 8,
@@ -342,73 +342,19 @@
     "category": "like"
   },
   {
-    "tweet_id": "2033118239929360729",
-    "text": "Hi~ \n\nI'm AI model Ayle! \n\nIf there's any clothes you'd like me to try on, \n\nplease leave a comment below~ \n\n˖⁺‧₊˚♡˚₊‧⁺˖\n\n#AIModel #VirtualFashion \n#ActingCute https://t.co/87MFGEfgUt",
-    "author": "shadowsouli",
-    "engagement_score": 50,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:32:56.332880+00:00",
-    "scores": {
-      "o": 2,
-      "s": 6,
-      "p": 1,
-      "c": 8,
-      "avg": 4.2,
-      "iq": 69,
-      "iq3": 88
-    },
-    "category": "like"
-  },
-  {
-    "tweet_id": "2033855426924536228",
-    "text": "Hey everyone, thanks for the support. Some news:\n- Confirmed Unity works, it requires more work, but I made it work\n- Unreal will be hard because the OpenXR plugin doesn't support Macos and Metal or Vulkan with MoltenVK\n- USB is coming too\n- Conformance tests are integrated https://t.co/afOgRufdx4",
-    "author": "cyannick",
-    "engagement_score": 34,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:32:51.888702+00:00",
-    "scores": {
-      "o": 2,
-      "s": 8,
-      "p": 1,
-      "c": 6,
-      "avg": 4.2,
-      "iq": 69,
-      "iq3": 88
-    },
-    "category": "like"
-  },
-  {
     "tweet_id": "2032839407573876865",
     "text": "Echoports cooled off after the initial rush, and that is normal after a strong start... I minted and locked mine for 1 year; no Maestro pull, but accumulation over lottery is fine... Big picture for @beyond__tech did not change: first full #interoperability infrastructure focused https://t.co/zns3bXHmuI",
     "author": "saber1041",
     "engagement_score": 29,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:33:01.144182+00:00",
+    "fetched_at": "2026-03-18T05:51:58.433752+00:00",
     "scores": {
       "o": 2,
       "s": 8,
-      "p": 1,
+      "p": 3,
       "c": 6,
-      "avg": 4.2,
-      "iq": 69,
-      "iq3": 88
-    },
-    "category": "like"
-  },
-  {
-    "tweet_id": "2032290555418333650",
-    "text": "Cross-chain interoperability is becoming critical for the next phase of Web3 growth.\n#Interoperability #BlockchainFuture #Web3 https://t.co/ICTW43kn6h",
-    "author": "evozlabs",
-    "engagement_score": 27,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:33:01.147386+00:00",
-    "scores": {
-      "o": 2,
-      "s": 6,
-      "p": 1,
-      "c": 8,
-      "avg": 4.2,
-      "iq": 69,
+      "avg": 4.8,
+      "iq": 79,
       "iq3": 88
     },
     "category": "like"
@@ -419,7 +365,7 @@
     "author": "NohnVonJeumann",
     "engagement_score": 23,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:33:05.658759+00:00",
+    "fetched_at": "2026-03-18T05:52:02.891764+00:00",
     "scores": {
       "o": 6,
       "s": 8,
@@ -437,7 +383,7 @@
     "author": "Scannerian1",
     "engagement_score": 17,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:32:51.888072+00:00",
+    "fetched_at": "2026-03-18T05:51:49.128444+00:00",
     "scores": {
       "o": 2,
       "s": 6,
@@ -455,7 +401,7 @@
     "author": "cyannick",
     "engagement_score": 14,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-17T13:32:51.889289+00:00",
+    "fetched_at": "2026-03-18T05:51:49.129913+00:00",
     "scores": {
       "o": 2,
       "s": 8,
