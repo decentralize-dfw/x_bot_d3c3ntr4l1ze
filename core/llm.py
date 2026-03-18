@@ -411,35 +411,35 @@ def generate_thread_reply(main_tweet: str) -> str | None:
 
 
 def generate_reply_comment(original_tweet: str) -> str:
-    """LLM: target tweet'e REPLY — tweet'in kendi içeriğine özgü, kısa, doğal."""
+    """LLM: target tweet'e REPLY — yapıcı, samimi, uzman sesle; soğuk/eleştirel değil."""
 
-    # Her çağrıda farklı yaklaşım — ama HEP orijinal tweet içeriğine bağlı
     styles = [
         (
             "Add ONE specific fact or technical detail about exactly what they described "
-            "that makes their point more precise. Sound like someone who builds in this space. "
-            "Statement only. No question. Lowercase ok."
+            "that makes their point more precise and useful. Sound like a collaborator, not a critic. "
+            "Warm and direct. Statement only. Lowercase ok."
         ),
         (
-            "Challenge ONE specific assumption in what they said. "
-            "Name the exact thing you're pushing back on — not a vague counter. "
-            "Direct, not preachy. 'in my experience...' or 'that breaks when...' style."
+            "Genuinely build on what they said — take their idea one concrete step further. "
+            "Show that you've thought about the same problem and have something useful to add. "
+            "'we ran into this too and...' or 'what made it click for us was...' style."
         ),
         (
-            "Agree, but add the uncomfortable technical implication they glossed over. "
-            "Dry, specific. Like muttering 'yeah, and that also means...' "
-            "Name the concrete tradeoff or consequence."
+            "Acknowledge their point warmly, then add the practical implication they might find useful. "
+            "Collegial, not lecturing. Like a peer sharing a useful experience: "
+            "'yeah, and the other thing that follows from this is...' "
+            "Name the concrete benefit or next step."
         ),
         (
-            "As someone who has shipped something similar: name the specific friction "
-            "they'll hit, or the tradeoff they're not seeing yet. No buzzwords. "
-            "Can start with 'the part nobody mentions is' or 'this breaks when' or similar."
+            "As someone who has shipped something similar: share a specific lesson learned "
+            "that's directly relevant to what they described. Generous and constructive. "
+            "Can start with 'we found that...' or 'the thing that helped us was...' or similar."
         ),
         (
-            "Reframe what they said in one sharper sentence that makes the same point more precisely. "
-            "Not a question. Not 'but what if'. "
-            "Example: tweet says 'VR failed' → 'it didn't fail. it built for tourists, not residents.' "
-            "Stay on THEIR topic — don't pivot to a different technology."
+            "Reframe what they said in one sharper, more optimistic sentence that makes "
+            "the same point land harder. Not a correction — an amplification. "
+            "Example: tweet says 'VR retention is hard' → 'people return to places, not experiences — "
+            "build a place.' Stay on THEIR topic — don't pivot to a different technology."
         ),
     ]
 
@@ -447,7 +447,8 @@ def generate_reply_comment(original_tweet: str) -> str:
 
     prompt = (
         "You are @decentralize___, a studio building 3D virtual worlds on-chain. "
-        "Replying to someone's tweet. Sound like a real expert, not a bot.\n\n"
+        "Replying to someone's tweet. Sound like a warm, knowledgeable peer — not a bot, not a critic.\n\n"
+        "TONE: constructive, collegial, friendly. You are adding value, not judging.\n\n"
         "HARD RULES:\n"
         "- Your reply must be DIRECTLY about the technology/claim/situation in the original tweet\n"
         "- NEVER introduce topics that aren't in the original tweet\n"
@@ -455,7 +456,7 @@ def generate_reply_comment(original_tweet: str) -> str:
         "  unless the original tweet is specifically about those)\n"
         "- NEVER start with 'but what if' or 'what if'\n"
         "- NO hashtags\n"
-        "- NO sycophancy ('great point', 'love this', 'totally agree')\n"
+        "- NO hollow sycophancy ('great point', 'love this', 'totally agree' without substance)\n"
         "- Under 120 chars\n\n"
         f"STYLE FOR THIS REPLY:\n{style}\n\n"
         f'Original tweet: "{original_tweet}"\n\n'
@@ -465,18 +466,19 @@ def generate_reply_comment(original_tweet: str) -> str:
 
 
 def generate_quote_commentary(original_tweet: str) -> str:
-    """LLM: target tweet'e quote commentary — tweet içeriğine özgü, keskin görüş."""
+    """LLM: target tweet'e quote commentary — yapıcı, samimi, uzman sesle."""
     voice_ctx = get_voice_context(n=3)
     banned = get_recent_patterns(n=8)
 
     angles = [
-        "Sharpen their point — write a more precise, more honest version of what they said "
-        "about the specific technology they mentioned.",
-        "Find the gap — name one thing their logic is quietly skipping, specific to what they described.",
-        "Add the missing dimension — the part they completely missed that changes the picture, "
-        "directly related to their specific claim.",
-        "Respectfully disagree — name the specific assumption they're making about the technology "
-        "they mentioned that you think is wrong. One sentence, concrete reason.",
+        "Sharpen their point — write a more precise, more useful version of what they said "
+        "about the specific technology they mentioned. Make their idea stronger, not weaker.",
+        "Extend their logic — take the specific point they made and show where it leads next. "
+        "Add the layer they were building toward but didn't say yet.",
+        "Add the missing dimension — something directly related to their specific claim "
+        "that makes the full picture more useful or actionable for the reader.",
+        "Offer a constructive reframe — if their framing has a blind spot, name a more complete "
+        "way to see the same thing. Respectful and generous in tone, specific in content.",
     ]
     angle = _rnd.choice(angles)
 
@@ -487,12 +489,13 @@ def generate_quote_commentary(original_tweet: str) -> str:
         f"{banned}"
         f"Someone just said:\n\"{original_tweet}\"\n\n"
         f"Your task: {angle}\n\n"
+        "TONE: Be a generous, knowledgeable collaborator. Build with them, not against them.\n\n"
         "HARD RULES:\n"
         "- Your commentary must be SPECIFICALLY about what they said — their technology, their claim\n"
         "- Do NOT pivot to unrelated topics or generic studio beliefs\n"
         "  (don't add 'permanence', 'on-chain', 'data decay' unless the tweet is about those)\n"
-        "- No 'RT @'. No 'great point'. No sycophancy.\n"
-        "- No buzzword salads. Say something specific to their tweet.\n"
+        "- No 'RT @'. No hollow praise ('great point'). No sycophancy.\n"
+        "- No buzzword salads. Say something specific and useful.\n"
         "- NO hashtags\n"
         "- 40–180 chars. Stop when the point lands.\n\n"
         "Output ONLY the commentary text."

@@ -238,6 +238,64 @@ def is_too_similar(candidate, days=COOLDOWN_DAYS, threshold=0.35):
     return False
 
 
+def is_content_saturated(candidate: str, similarity_threshold: float = 0.10, max_matches: int = 5,
+                         days: int = COOLDOWN_DAYS) -> bool:
+    """İçerik doygunluğu kontrolü: arşivde benzer_threshold üstünde max_matches'tan
+    fazla tweet varsa True döner (konu aşırı işlenmiş demektir).
+
+    Mevcut is_too_similar tek bir güçlü eşleşmeye bakar (0.35);
+    bu fonksiyon ise düşük-orta benzerlikte (0.10) çok sayıda (>5) eşleşmeye bakar.
+    """
+    candidate_keys = _keywords(candidate)
+    if not candidate_keys:
+        return False
+    match_count = 0
+    for text in get_recent_tweet_texts(days=days):
+        other_keys = _keywords(text)
+        if not other_keys:
+            continue
+        intersection = candidate_keys & other_keys
+        union = candidate_keys | other_keys
+        similarity = len(intersection) / len(union)
+        if similarity > similarity_threshold:
+            match_count += 1
+            if match_count > max_matches:
+                print(f"Content saturation: {match_count}+ matches above {similarity_threshold:.0%} — topic over-covered.")
+                return True
+    return False
+
+
+_SUGGESTED_FILE = os.path.join(os.path.dirname(__file__), "suggested_tweets.json")
+
+
+def _load_suggested() -> list:
+    try:
+        with open(_SUGGESTED_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+
+def record_suggested(tweet_ids: list) -> None:
+    """Raporda önerilen tweet ID'lerini kaydeder (tekrar önermemek için)."""
+    entries = _load_suggested()
+    existing_ids = {e["tweet_id"] for e in entries}
+    now = _utcnow().isoformat()
+    for tid in tweet_ids:
+        if str(tid) not in existing_ids:
+            entries.append({"tweet_id": str(tid), "suggested_at": now})
+    tmp = _SUGGESTED_FILE + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(entries, f, indent=2, ensure_ascii=False)
+    os.replace(tmp, _SUGGESTED_FILE)
+
+
+def is_already_suggested(tweet_id: str) -> bool:
+    """Bu tweet daha önce raporda önerildi mi?"""
+    entries = _load_suggested()
+    return any(e["tweet_id"] == str(tweet_id) for e in entries)
+
+
 def cleanup_old_entries(days=COOLDOWN_DAYS):
     entries = load_archive()
     cutoff = _utcnow() - timedelta(days=days)

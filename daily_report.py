@@ -57,8 +57,14 @@ def _by_category(tweets: list, category: str, n: int) -> list:
 
     daily_scan.py tarafından atanmış "category" alanını kullanır.
     Kategori boşsa boş liste döner — başka kategorilerden çalmaz.
+    Daha önce raporda önerilmiş tweet'ler filtrelenir (tekrar önerilmez).
     """
-    primary = [t for t in tweets if t.get("category") == category]
+    import tweet_archive as _ta
+    primary = [
+        t for t in tweets
+        if t.get("category") == category
+        and not _ta.is_already_suggested(t.get("tweet_id", ""))
+    ]
     return sorted(primary, key=lambda t: t.get("scores", {}).get("iq3", 0), reverse=True)[:n]
 
 
@@ -300,6 +306,17 @@ def generate_daily_report() -> str:
     output_path = os.path.join(OUTPUT_DIR, f"{date_str}.pdf")
     pdf.output(output_path)
     print(f"Rapor olusturuldu: {output_path}")
+
+    # Raporda önerilen tweet ID'lerini kaydet — bir sonraki raporda tekrar önerilmesin
+    import tweet_archive as _ta
+    suggested_ids = [
+        t["tweet_id"] for t in (quote_rt + rt_tweets + reply_tweets)
+        if t.get("tweet_id")
+    ]
+    if suggested_ids:
+        _ta.record_suggested(suggested_ids)
+        print(f"Onerilen {len(suggested_ids)} tweet ID'si kaydedildi.")
+
     return output_path
 
 
