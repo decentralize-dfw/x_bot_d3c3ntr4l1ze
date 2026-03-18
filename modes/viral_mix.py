@@ -372,22 +372,8 @@ def post_viral_mix_tweet():
     tweet_text = post_with_retry(_gen) if GROQ_API_KEY else None
 
     if not tweet_text:
-        try:
-            words = content.split()
-            chunk = content
-            if len(words) > 100:
-                start = random.randint(0, len(words) - 100)
-                chunk = " ".join(words[start : start + 100])
-            tweet_text = generate_viral_tweet(chunk, name, [])
-        except Exception as e2:
-            logger.error(f"generate_viral_tweet fallback error: {e2}")
-
-    if not tweet_text:
-        sentences = [
-            s.strip() for s in re.split(r"(?<=[.!?])\s+", content)
-            if 70 < len(s.strip()) < 240 and not s.strip().isupper()
-        ]
-        tweet_text = random.choice(sentences) if sentences else content[:240]
+        logger.warning("post_with_retry failed after all attempts — skipping viral_mix tweet to avoid context-less post.")
+        return
 
     tweet_text = format_tweet(trim_for_format(tweet_text))
     logger.info(f"Posting viral mix tweet ({len(tweet_text)} chars): {tweet_text[:80]}...")

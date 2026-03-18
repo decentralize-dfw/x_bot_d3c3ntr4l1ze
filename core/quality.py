@@ -10,13 +10,12 @@ import tweet_archive
 from core.llm import score_tweet_quality, is_semantically_duplicate
 
 
-# BUG FIX #19: Default threshold 9.0 → 6.0
-# 9.0 = tüm 4 eksen 9+/10 zorunlu. viral_mix her gün 5 denemede pass edemez,
-# fallback'e düşer. 6.0 production-safe minimum (her eksen en az 6/10).
+# Threshold 6.0 → 7.5: 6.0 let tweets with low CLARITY (2-3/10) pass when other
+# axes scored high. 7.5 ensures all axes — especially CLARITY — must be solid.
 def post_with_retry(
     generator_fn,
     max_attempts: int = 5,
-    quality_threshold: float = 6.0,
+    quality_threshold: float = 7.5,
 ) -> str | None:
     """Tweet üretim + kalite + dedup döngüsü — tek merkezi implementation.
 
