@@ -24,7 +24,7 @@ def post_with_retry(
     Kabul koşulları:
       - Her eksen (O/S/P/C) >= quality_threshold (varsayılan 9.0)
       - IQ >= 150
-      - İçerik doygunluğu yok (arşivde 10% üstünde 5'ten fazla benzer tweet)
+      - Arşivdeki herhangi bir tweet'e %50'den fazla benzemiyor (Jaccard)
     Returns: tweet text veya None (max_attempts sonunda geçemezse)
     """
     for attempt in range(max_attempts):
@@ -34,10 +34,7 @@ def post_with_retry(
                 print(f"Attempt {attempt+1}: text too short, retrying...")
                 continue
             if tweet_archive.is_too_similar(text):
-                print(f"Attempt {attempt+1}: too similar (Jaccard), retrying...")
-                continue
-            if tweet_archive.is_content_saturated(text):
-                print(f"Attempt {attempt+1}: content saturated (5+ matches >10%), retrying...")
+                print(f"Attempt {attempt+1}: too similar (Jaccard >50%), retrying...")
                 continue
             if tweet_archive.is_theme_in_cooldown(text):
                 print(f"Attempt {attempt+1}: theme in cooldown, retrying...")

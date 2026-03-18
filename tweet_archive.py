@@ -220,8 +220,10 @@ def get_recent_tweet_ids(hours=48):
     ]
 
 
-def is_too_similar(candidate, days=COOLDOWN_DAYS, threshold=0.35):
-    """Jaccard keyword similarity ile yakın zamanda atılan tweet'lere benzerlik kontrolü."""
+def is_too_similar(candidate, days=COOLDOWN_DAYS, threshold=0.50):
+    """Jaccard keyword similarity ile yakın zamanda atılan tweet'lere benzerlik kontrolü.
+    Yeni tweet arşivdeki herhangi bir tweet'e %50'den fazla benziyorsa reddedilir.
+    """
     candidate_keys = _keywords(candidate)
     if not candidate_keys:
         return False
@@ -235,33 +237,6 @@ def is_too_similar(candidate, days=COOLDOWN_DAYS, threshold=0.35):
         if similarity >= threshold:
             print(f"Similarity check: {similarity:.2f} >= {threshold} — too similar to recent tweet.")
             return True
-    return False
-
-
-def is_content_saturated(candidate: str, similarity_threshold: float = 0.10, max_matches: int = 5,
-                         days: int = COOLDOWN_DAYS) -> bool:
-    """İçerik doygunluğu kontrolü: arşivde benzer_threshold üstünde max_matches'tan
-    fazla tweet varsa True döner (konu aşırı işlenmiş demektir).
-
-    Mevcut is_too_similar tek bir güçlü eşleşmeye bakar (0.35);
-    bu fonksiyon ise düşük-orta benzerlikte (0.10) çok sayıda (>5) eşleşmeye bakar.
-    """
-    candidate_keys = _keywords(candidate)
-    if not candidate_keys:
-        return False
-    match_count = 0
-    for text in get_recent_tweet_texts(days=days):
-        other_keys = _keywords(text)
-        if not other_keys:
-            continue
-        intersection = candidate_keys & other_keys
-        union = candidate_keys | other_keys
-        similarity = len(intersection) / len(union)
-        if similarity > similarity_threshold:
-            match_count += 1
-            if match_count > max_matches:
-                print(f"Content saturation: {match_count}+ matches above {similarity_threshold:.0%} — topic over-covered.")
-                return True
     return False
 
 
