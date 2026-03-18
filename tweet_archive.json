@@ -638,5 +638,21 @@
     "tweet_id": "2034238424341737796",
     "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail",
     "media_url": "https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives/main/a126.png"
+  },
+  {
+    "content_id": "news_4d22c1604a2c",
+    "content_type": "news",
+    "posted_at": "2026-03-18T13:39:54.826891+00:00",
+    "tweet_text": "NEWS: Microsoft expands Fabric IQ to unify agent understanding.",
+    "tweet_id": "2034263528740122629",
+    "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
+  },
+  {
+    "content_id": "news_4d22c1604a2c_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-18T13:39:55.918866+00:00",
+    "tweet_text": "when agents operate from different realities, decision breakdowns are inevitable, but what happens when a unified context layer is introduce",
+    "tweet_id": "2034263533374861478",
+    "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
   }
 ]
