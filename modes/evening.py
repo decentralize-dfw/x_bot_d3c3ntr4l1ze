@@ -137,13 +137,8 @@ def post_evening_tweet():
     tweet_text = post_with_retry(_gen) if GROQ_API_KEY else None
 
     if not tweet_text:
-        sentences = [
-            s.strip() for s in re.split(r"(?<=[.!?])\s+", content)
-            if 70 < len(s.strip()) < 240
-            and not s.strip().isupper()
-            and "\n" not in s.strip()[:30]
-        ]
-        tweet_text = random.choice(sentences) if sentences else content[:240]
+        logger.warning("post_with_retry failed after all attempts — skipping evening tweet to avoid context-less post.")
+        return
 
     tweet_text = format_tweet(trim_for_format(tweet_text))
 
@@ -212,13 +207,8 @@ def post_controversial_evening_tweet():
     tweet_text = post_with_retry(_gen) if GROQ_API_KEY else None
 
     if not tweet_text:
-        sentences = [
-            s.strip() for s in re.split(r"(?<=[.!?])\s+", content)
-            if 70 < len(s.strip()) < 240
-            and not s.strip().isupper()
-            and "\n" not in s.strip()[:30]
-        ]
-        tweet_text = random.choice(sentences) if sentences else content[:240]
+        logger.warning("post_with_retry failed after all attempts — skipping controversial tweet to avoid context-less post.")
+        return
 
     tweet_text = format_tweet(trim_for_format(tweet_text))
 

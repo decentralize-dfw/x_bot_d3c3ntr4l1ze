@@ -220,8 +220,10 @@ def get_recent_tweet_ids(hours=48):
     ]
 
 
-def is_too_similar(candidate, days=COOLDOWN_DAYS, threshold=0.35):
-    """Jaccard keyword similarity ile yakın zamanda atılan tweet'lere benzerlik kontrolü."""
+def is_too_similar(candidate, days=COOLDOWN_DAYS, threshold=0.50):
+    """Jaccard keyword similarity ile yakın zamanda atılan tweet'lere benzerlik kontrolü.
+    Yeni tweet arşivdeki herhangi bir tweet'e %50'den fazla benziyorsa reddedilir.
+    """
     candidate_keys = _keywords(candidate)
     if not candidate_keys:
         return False
@@ -236,6 +238,37 @@ def is_too_similar(candidate, days=COOLDOWN_DAYS, threshold=0.35):
             print(f"Similarity check: {similarity:.2f} >= {threshold} — too similar to recent tweet.")
             return True
     return False
+
+
+_SUGGESTED_FILE = os.path.join(os.path.dirname(__file__), "suggested_tweets.json")
+
+
+def _load_suggested() -> list:
+    try:
+        with open(_SUGGESTED_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+
+def record_suggested(tweet_ids: list) -> None:
+    """Raporda önerilen tweet ID'lerini kaydeder (tekrar önermemek için)."""
+    entries = _load_suggested()
+    existing_ids = {e["tweet_id"] for e in entries}
+    now = _utcnow().isoformat()
+    for tid in tweet_ids:
+        if str(tid) not in existing_ids:
+            entries.append({"tweet_id": str(tid), "suggested_at": now})
+    tmp = _SUGGESTED_FILE + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(entries, f, indent=2, ensure_ascii=False)
+    os.replace(tmp, _SUGGESTED_FILE)
+
+
+def is_already_suggested(tweet_id: str) -> bool:
+    """Bu tweet daha önce raporda önerildi mi?"""
+    entries = _load_suggested()
+    return any(e["tweet_id"] == str(tweet_id) for e in entries)
 
 
 def cleanup_old_entries(days=COOLDOWN_DAYS):

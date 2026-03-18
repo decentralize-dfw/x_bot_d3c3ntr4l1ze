@@ -112,8 +112,7 @@ def post_morning_tweet():
         except Exception as e:
             logger.error(f"Caption generation error: {e}")
     if not display_text:
-        sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", desc) if 30 < len(s.strip()) <= 137]
-        display_text = sentences[0] if sentences else (desc[:134] + "..." if len(desc) > 137 else desc)
+        display_text = name  # name alone is safe; attached media provides the visual context
 
     inner = trim_for_format(f"{type_label} {name}\n\n{display_text}")
     tweet_text = format_tweet(inner)
