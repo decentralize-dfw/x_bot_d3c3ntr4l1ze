@@ -680,5 +680,22 @@
     "tweet_id": "2034589551348330605",
     "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail",
     "media_url": "https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives/main/quadragesimo-core%20cpu%20equipped%20quantum%20satellite%20intelligence%20tech%20-2nd%20gen%20genius%20contracts%20based.jpg"
+  },
+  {
+    "content_id": "news_9c675b97639d",
+    "content_type": "news",
+    "posted_at": "2026-03-19T13:37:29.276502+00:00",
+    "tweet_text": "NEWS: Xiaomi released MiMo-V2-Pro, a 1-trillion parameter foundation model.",
+    "tweet_id": "2034625306292564414",
+    "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
+  },
+  {
+    "content_id": "news_9c675b97639d_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-19T13:37:30.074684+00:00",
+    "tweet_text": "Xiaomi's MiMo-V2-Pro model could redefine the economics of autonomous spatial computing, but will its proprietary API hinder widespread adop",
+    "theme": "spatial_computing",
+    "tweet_id": "2034625309568369049",
+    "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
   }
 ]
