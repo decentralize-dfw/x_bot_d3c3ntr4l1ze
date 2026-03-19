@@ -1,11 +1,47 @@
 [
   {
-    "tweet_id": "2033602617339789495",
-    "text": "This is it, native PCVR on MacOS! The OpenXR SDK can be compiled on MacOS, So I implemented a runtime and a streaming app. Godot supports OpenXR on MacOS so I use it to test my integration. Unity could work too and of course native C++. 1/x https://t.co/i0EGxWeFSk",
-    "author": "cyannick",
-    "engagement_score": 514,
+    "tweet_id": "2032064169466327271",
+    "text": "This is not a video.\n\nIt’s a walkable photorealistic Gaussian Splat running live in your browser.\n\nVibe-coded camera + post effects.\n50 spatial audio sources.\nMultiplayer avatars.\n\nStep inside the space: https://t.co/3IlOa1pCOl\n\nScan &amp; vid by THE @Schindelar3D\n\n#3DGS #WebXR https://t.co/xcatsPaWVO",
+    "author": "arrival_space_",
+    "engagement_score": 97,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:51:49.126760+00:00",
+    "fetched_at": "2026-03-19T05:48:15.787022+00:00",
+    "scores": {
+      "o": 8,
+      "s": 9,
+      "p": 6,
+      "c": 7,
+      "avg": 7.5,
+      "iq": 124,
+      "iq3": 132
+    },
+    "category": "quote_rt"
+  },
+  {
+    "tweet_id": "2034180110580924751",
+    "text": "NanoGS: Training-Free Gaussian Splat Simplification\n\n1. NanoGS, a training-free and lightweight framework for simplifying Gaussian Splat representations directly in 3D space, avoiding rendering supervision and scene-specific optimization.\n\n2. Efficient graph pairing, which https://t.co/84BFUIc2Ys",
+    "author": "janusch_patas",
+    "engagement_score": 95,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-19T05:48:31.744951+00:00",
+    "scores": {
+      "o": 8,
+      "s": 9,
+      "p": 2,
+      "c": 6,
+      "avg": 6.2,
+      "iq": 102,
+      "iq3": 126
+    },
+    "category": "quote_rt"
+  },
+  {
+    "tweet_id": "2033094572557869497",
+    "text": "Leon S. Kennedy reconstructed as a synthetic 3D Gaussian Splat from in-game Resident Evil imagery - the level of detail is wild.\n#playcanvas #supersplat https://t.co/cchdxLF3Zl",
+    "author": "willeastcott",
+    "engagement_score": 75,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-19T05:48:31.745430+00:00",
     "scores": {
       "o": 8,
       "s": 9,
@@ -18,48 +54,12 @@
     "category": "quote_rt"
   },
   {
-    "tweet_id": "2032064169466327271",
-    "text": "This is not a video.\n\nIt’s a walkable photorealistic Gaussian Splat running live in your browser.\n\nVibe-coded camera + post effects.\n50 spatial audio sources.\nMultiplayer avatars.\n\nStep inside the space: https://t.co/3IlOa1pCOl\n\nScan &amp; vid by THE @Schindelar3D\n\n#3DGS #WebXR https://t.co/xcatsPaWVO",
-    "author": "arrival_space_",
-    "engagement_score": 97,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:51:46.929832+00:00",
-    "scores": {
-      "o": 8,
-      "s": 9,
-      "p": 6,
-      "c": 7,
-      "avg": 7.5,
-      "iq": 124,
-      "iq3": 132
-    },
-    "category": "quote_rt"
-  },
-  {
-    "tweet_id": "2033094572557869497",
-    "text": "Leon S. Kennedy reconstructed as a synthetic 3D Gaussian Splat from in-game Resident Evil imagery - the level of detail is wild.\n#playcanvas #supersplat https://t.co/cchdxLF3Zl",
-    "author": "willeastcott",
-    "engagement_score": 75,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:52:02.891377+00:00",
-    "scores": {
-      "o": 8,
-      "s": 9,
-      "p": 2,
-      "c": 8,
-      "avg": 6.8,
-      "iq": 112,
-      "iq3": 138
-    },
-    "category": "quote_rt"
-  },
-  {
     "tweet_id": "2033698437137633425",
     "text": "Gaussian Splat 3D model rendering in Sitrec, just in case there's some plant pot-related UFO case. https://t.co/rPyDTBG2eM",
     "author": "MickWest",
-    "engagement_score": 40,
+    "engagement_score": 43,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:52:02.892122+00:00",
+    "fetched_at": "2026-03-19T05:48:31.745750+00:00",
     "scores": {
       "o": 8,
       "s": 9,
@@ -72,30 +72,48 @@
     "category": "quote_rt"
   },
   {
-    "tweet_id": "2032286633060614366",
-    "text": "Experimenting with generating WebXR scenes in VR. This demo uses Grok's @xai API to create @threejs scenes on the fly. \n\nIt takes a vague prompt like \"VR shooting game,\" runs it through the reasoning model to flesh out the details then hands that to a code-gen model, uploads to https://t.co/vOBmtE8Aef",
-    "author": "mechpil0t",
-    "engagement_score": 20,
+    "tweet_id": "2034086323011625388",
+    "text": "Spatial Agent Management: Spatial audio pinging for Codex HITL replies\n\nTestFlight 0.43: Agent Command Center, Attention Center, Git Workspace, File Explorer, Web Browser, Notes, Timer, CLI History, SwiftTerm GPU backend\n\nBuilt for orchestration, vibe coding, multiple terminals https://t.co/AjxqsVecw5",
+    "author": "ivancampos",
+    "engagement_score": 38,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:51:46.934046+00:00",
+    "fetched_at": "2026-03-19T05:48:17.987183+00:00",
     "scores": {
       "o": 8,
       "s": 9,
-      "p": 6,
-      "c": 8,
-      "avg": 7.8,
-      "iq": 129,
-      "iq3": 138
+      "p": 2,
+      "c": 6,
+      "avg": 6.2,
+      "iq": 102,
+      "iq3": 126
     },
     "category": "quote_rt"
   },
   {
-    "tweet_id": "2033350063758713225",
-    "text": "‘Avatar: Fire and Ash’ wins the Oscar for Best Visual Effects. #Oscars https://t.co/vbETB0D7sV",
-    "author": "PopBase",
-    "engagement_score": 15384,
+    "tweet_id": "2033314933790912523",
+    "text": "Woah, Gaussian splats in mixed reality look so good!\n\nTech stack: lichtfeld studio for splattering training, virtual desktop for PC VR streaming and passthrough MR using a virtual green screen, gracia for VR splat rendering using the green screen background feature https://t.co/w7WrLT0VDw",
+    "author": "Azadux",
+    "engagement_score": 463,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:52:22.070761+00:00",
+    "fetched_at": "2026-03-19T05:48:31.747127+00:00",
+    "scores": {
+      "o": 2,
+      "s": 9,
+      "p": 1,
+      "c": 8,
+      "avg": 5.0,
+      "iq": 82,
+      "iq3": 104
+    },
+    "category": "rt"
+  },
+  {
+    "tweet_id": "2032551612653146321",
+    "text": "🕸️ BIG Update for Spatial Web Shooter is live!\n- v1.7 for Apple Vision Pro (shown in video)\n- v1.2 for Meta Quest\n🎯 The new \"Sink or Swing\" Challenge Mode is here, with super props, web updates, and more! https://t.co/pxbUtXyoZl",
+    "author": "TangoChen",
+    "engagement_score": 267,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-19T05:48:17.987963+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -108,74 +126,20 @@
     "category": "rt"
   },
   {
-    "tweet_id": "2031807913413505342",
-    "text": "Dan’s waddling into a channel near you in the latest @discord Quest.\n\nVote for your favorite team among the top four at #VALORANTMasters Santiago to earn the Dan Avatar Decoration https://t.co/PurASOKDM8",
-    "author": "VALORANT",
-    "engagement_score": 6514,
+    "tweet_id": "2034288127510978713",
+    "text": "Gaussian splat of a field grasshopper.. super common, boring.. not at all! #3dgs https://t.co/RMOHSiBTjy",
+    "author": "DanyBittel",
+    "engagement_score": 97,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:52:22.064465+00:00",
-    "scores": {
-      "o": 2,
-      "s": 8,
-      "p": 1,
-      "c": 9,
-      "avg": 5.0,
-      "iq": 82,
-      "iq3": 104
-    },
-    "category": "rt"
-  },
-  {
-    "tweet_id": "2032425256435015966",
-    "text": "Financial institutions adopting #DLT interoperability need infrastructure that integrates with existing systems rather than replacing them. \n\nQuant’s #Overledger platform addresses this challenge by providing a comprehensive #interoperability layer that connects any distributed https://t.co/Mg6u2tVtJm",
-    "author": "quantnetwork",
-    "engagement_score": 834,
-    "reply_settings": "following",
-    "fetched_at": "2026-03-18T05:51:58.432936+00:00",
-    "scores": {
-      "o": 4,
-      "s": 8,
-      "p": 2,
-      "c": 9,
-      "avg": 5.8,
-      "iq": 96,
-      "iq3": 116
-    },
-    "category": "rt"
-  },
-  {
-    "tweet_id": "2032317221960135110",
-    "text": "Jumped back into @tomoland_app and the daily login streaks are actually worth it. Each day adds small rewards like gems, avatar pieces and extra xTOMO points.\n\nEasy reason to check in even for a short session.\n\n#TOMOBlueprint @TheCreatorFi https://t.co/WZ8jQ9Sf0P",
-    "author": "Bobbybright759",
-    "engagement_score": 317,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:52:22.062129+00:00",
-    "scores": {
-      "o": 2,
-      "s": 8,
-      "p": 1,
-      "c": 9,
-      "avg": 5.0,
-      "iq": 82,
-      "iq3": 104
-    },
-    "category": "rt"
-  },
-  {
-    "tweet_id": "2033207422806905258",
-    "text": "Here is a first demo of the Quest 3 running native OpenXR app on MacOS 😍. I’ll try Unity next. Still no image in the quest but it’s coming! #openxr #godot #macos https://t.co/cw5s0M9PPD https://t.co/5uMc5DHSXI",
-    "author": "cyannick",
-    "engagement_score": 304,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:51:49.128129+00:00",
+    "fetched_at": "2026-03-19T05:48:31.746366+00:00",
     "scores": {
       "o": 6,
-      "s": 9,
+      "s": 8,
       "p": 2,
-      "c": 8,
-      "avg": 6.2,
-      "iq": 102,
-      "iq3": 126
+      "c": 4,
+      "avg": 5.0,
+      "iq": 82,
+      "iq3": 99
     },
     "category": "rt"
   },
@@ -185,7 +149,7 @@
     "author": "OsLabs_",
     "engagement_score": 50,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:51:46.930699+00:00",
+    "fetched_at": "2026-03-19T05:48:15.786095+00:00",
     "scores": {
       "o": 6,
       "s": 8,
@@ -198,66 +162,12 @@
     "category": "reply"
   },
   {
-    "tweet_id": "2032296243804639425",
-    "text": "My installer has been standardized, so installing &amp; uninstalling is even easier. This is a new video that shows OpenXR/OpenVR. The installer panel by panel. There are new optional QoL improvements included, too! 👊🏻🍻👇🏻\nhttps://t.co/iuBJwx8oVs",
-    "author": "MrSurviv0r",
-    "engagement_score": 33,
+    "tweet_id": "2034306678041031035",
+    "text": "Early prototype for Gaussian Splats relighting.\n\nIt's a baseline implementation that lets you harmonize lighting between the 3D scene and Gaussian Splat-based objects. More sophisticated relighting techniques, including self-shadowing and multiple light sources, are still a work https://t.co/h752XzNbrx",
+    "author": "gracia_vr",
+    "engagement_score": 171,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:51:49.129194+00:00",
-    "scores": {
-      "o": 2,
-      "s": 8,
-      "p": 1,
-      "c": 9,
-      "avg": 5.0,
-      "iq": 82,
-      "iq3": 104
-    },
-    "category": "reply"
-  },
-  {
-    "tweet_id": "2033505955875311744",
-    "text": "https://t.co/JKf6cbCcL0 This has been found and researched since 2015 in India. This is where our minds are at risk. This is how the A.I for #havanasyndrome reverse engineers your thoughts to build your #digitaltwin for a A.I haptic body mapping weaponized feedback loop.",
-    "author": "DogAtmosphere",
-    "engagement_score": 15,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:51:58.434503+00:00",
-    "scores": {
-      "o": 8,
-      "s": 6,
-      "p": 9,
-      "c": 4,
-      "avg": 6.8,
-      "iq": 112,
-      "iq3": 99
-    },
-    "category": "reply"
-  },
-  {
-    "tweet_id": "2033078642801365055",
-    "text": "asciivision install script added, playing with some new visualizations w opentui, i think we need pacman in there.\n\ni really wanna add grok imagine in the CLI, maybe worldlabs api and see what a gaussian splat looks ? https://t.co/7sSnwb7LrV",
-    "author": "lalopenguin",
-    "engagement_score": 194,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:52:02.893854+00:00",
-    "scores": {
-      "o": 6,
-      "s": 8,
-      "p": 4,
-      "c": 2,
-      "avg": 5.0,
-      "iq": 82,
-      "iq3": 88
-    },
-    "category": "like"
-  },
-  {
-    "tweet_id": "2032537705616146785",
-    "text": "The future of blockchain isn’t just about more chains.\nIt’s about connecting them efficiently.\nInfrastructure like Cancore aims to improve interoperability, settlement, and cross-chain liquidity across ecosystems.\n@Web3 builders should be watching this.\n@Cancore_io\n#CancoreThread https://t.co/abdu2MT93A",
-    "author": "Piusxlol",
-    "engagement_score": 185,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:52:22.063802+00:00",
+    "fetched_at": "2026-03-19T05:48:31.748250+00:00",
     "scores": {
       "o": 6,
       "s": 8,
@@ -266,42 +176,6 @@
       "avg": 6.8,
       "iq": 112,
       "iq3": 126
-    },
-    "category": "like"
-  },
-  {
-    "tweet_id": "2033855426924536228",
-    "text": "Hey everyone, thanks for the support. Some news:\n- Confirmed Unity works, it requires more work, but I made it work\n- Unreal will be hard because the OpenXR plugin doesn't support Macos and Metal or Vulkan with MoltenVK\n- USB is coming too\n- Conformance tests are integrated https://t.co/afOgRufdx4",
-    "author": "cyannick",
-    "engagement_score": 93,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:51:49.125983+00:00",
-    "scores": {
-      "o": 2,
-      "s": 8,
-      "p": 1,
-      "c": 6,
-      "avg": 4.2,
-      "iq": 69,
-      "iq3": 88
-    },
-    "category": "like"
-  },
-  {
-    "tweet_id": "2032928519609626964",
-    "text": "IT WORKS! It's a custom @OpenXR runtime running on MacOS and @godotengine :-) For now it's like the Meta simulator. Next I'll plug that in ALVR or do a custom app if not easy to integrate https://t.co/GlmYFCnXog",
-    "author": "cyannick",
-    "engagement_score": 79,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:51:49.127380+00:00",
-    "scores": {
-      "o": 2,
-      "s": 8,
-      "p": 1,
-      "c": 6,
-      "avg": 4.2,
-      "iq": 69,
-      "iq3": 88
     },
     "category": "like"
   },
@@ -311,7 +185,7 @@
     "author": "Aaron_Wacker",
     "engagement_score": 51,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:52:02.893203+00:00",
+    "fetched_at": "2026-03-19T05:48:31.747531+00:00",
     "scores": {
       "o": 6,
       "s": 8,
@@ -329,33 +203,51 @@
     "author": "LexnLin",
     "engagement_score": 51,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:52:12.498078+00:00",
+    "fetched_at": "2026-03-19T05:48:41.549472+00:00",
     "scores": {
-      "o": 6,
+      "o": 2,
       "s": 8,
-      "p": 2,
-      "c": 7,
-      "avg": 5.8,
-      "iq": 96,
-      "iq3": 116
+      "p": 1,
+      "c": 6,
+      "avg": 4.2,
+      "iq": 69,
+      "iq3": 88
     },
     "category": "like"
   },
   {
-    "tweet_id": "2032839407573876865",
-    "text": "Echoports cooled off after the initial rush, and that is normal after a strong start... I minted and locked mine for 1 year; no Maestro pull, but accumulation over lottery is fine... Big picture for @beyond__tech did not change: first full #interoperability infrastructure focused https://t.co/zns3bXHmuI",
-    "author": "saber1041",
-    "engagement_score": 29,
+    "tweet_id": "2032485426469163202",
+    "text": "Some dreams do not fit real life.\n\nIn Second Life, you can live them.\n\nBe who you want to be. The sky is the limit.\n\n🎬 Video by @sabinavaleskaSL\n\n#SecondLife #LiveYourDream #VirtualWorld #Metaverse https://t.co/K3YB68LNWm",
+    "author": "SecondLife",
+    "engagement_score": 37,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:51:58.433752+00:00",
+    "fetched_at": "2026-03-19T05:48:29.542035+00:00",
     "scores": {
       "o": 2,
-      "s": 8,
-      "p": 3,
-      "c": 6,
-      "avg": 4.8,
-      "iq": 79,
+      "s": 6,
+      "p": 2,
+      "c": 8,
+      "avg": 4.5,
+      "iq": 74,
       "iq3": 88
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2034185541629927848",
+    "text": "Big news for spatial computing. 🥽\n\nNVIDIA RTX-accelerated computers now connect directly to Apple Vision Pro with NVIDIA CloudXR 6.0 for visionOS, bringing real-time, photorealistic 3D streaming for design, simulation, and immersive apps.\n\n🔗 Learn more: https://t.co/UaT7Pf3lGR https://t.co/UtcVU56hqE",
+    "author": "NVIDIAAP",
+    "engagement_score": 33,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-19T05:48:46.587888+00:00",
+    "scores": {
+      "o": 2,
+      "s": 9,
+      "p": 1,
+      "c": 8,
+      "avg": 5.0,
+      "iq": 82,
+      "iq3": 104
     },
     "category": "like"
   },
@@ -365,7 +257,7 @@
     "author": "NohnVonJeumann",
     "engagement_score": 23,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:52:02.891764+00:00",
+    "fetched_at": "2026-03-19T05:48:31.746110+00:00",
     "scores": {
       "o": 6,
       "s": 8,
@@ -378,30 +270,12 @@
     "category": "like"
   },
   {
-    "tweet_id": "2032223220800049205",
-    "text": "From a local apple orchard in spring last year. #3DGS @arrival_space_\nhttps://t.co/wzXYIbqmYJ https://t.co/xlMB6lVy6o",
-    "author": "Scannerian1",
-    "engagement_score": 17,
+    "tweet_id": "2034384548021051717",
+    "text": "Here is the prompt for this component:\nMay result in some slightly different output, will post my code asap.\n\nAct as an Elite Creative Frontend Developer and WebGL Graphics Engineer. \n\nYour task is to write a single, self-contained HTML file (containing HTML, CSS, and pure https://t.co/Gycvf7Dq5C",
+    "author": "LexnLin",
+    "engagement_score": 18,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:51:49.128444+00:00",
-    "scores": {
-      "o": 2,
-      "s": 6,
-      "p": 1,
-      "c": 8,
-      "avg": 4.2,
-      "iq": 69,
-      "iq3": 88
-    },
-    "category": "like"
-  },
-  {
-    "tweet_id": "2033176247375655335",
-    "text": "Now I've an Android (Quest 3) app that displays a green screen when I start an OpenXR app on my mac.. Communication between the OpenXR Runtime (macos) and OpenXR Client (Quest 3) is OK, now let's send tracking data and stream content! https://t.co/5uMc5DHSXI",
-    "author": "cyannick",
-    "engagement_score": 14,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-18T05:51:49.129913+00:00",
+    "fetched_at": "2026-03-19T05:48:41.550279+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -410,6 +284,42 @@
       "avg": 4.2,
       "iq": 69,
       "iq3": 88
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2033682222796968418",
+    "text": "🎥 Latest @cryptsocialclub Livestream from @blaze_stream 🎥\n\nSkully games on @PlayOverwatch 🔫💀\n\nThis VRM avatar is available to all investors behind the https://t.co/74NmypAXOA Web3 brand.\n\nInvest, claim &amp; join our skeleton streaming community.\nhttps://t.co/Nv3iVrFRai https://t.co/2hKRHrDwph",
+    "author": "Kill3rNFTs",
+    "engagement_score": 16,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-19T05:48:51.454168+00:00",
+    "scores": {
+      "o": 2,
+      "s": 8,
+      "p": 1,
+      "c": 6,
+      "avg": 4.2,
+      "iq": 69,
+      "iq3": 88
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2032586690003427417",
+    "text": "don't know what to do with your ai agent?\n\ngive it a game to play and grind and yourself a custom VRM avatar that you can chat with.\n\nhttps://t.co/fb803zIweb https://t.co/lHz4AdVA8m https://t.co/JDpWO3T4RP",
+    "author": "em0tionull",
+    "engagement_score": 15,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-19T05:48:51.453298+00:00",
+    "scores": {
+      "o": 6,
+      "s": 8,
+      "p": 2,
+      "c": 7,
+      "avg": 5.8,
+      "iq": 96,
+      "iq3": 116
     },
     "category": "like"
   }
