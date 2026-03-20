@@ -723,5 +723,22 @@
     "tweet_id": "2034951218531885468",
     "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail",
     "media_url": "https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives/main/a133.png"
+  },
+  {
+    "content_id": "news_b76c7f5e5884",
+    "content_type": "news",
+    "posted_at": "2026-03-20T13:32:57.132085+00:00",
+    "tweet_text": "NEWS: Anthropic launched Claude Code Channels.",
+    "tweet_id": "2034986552628002873",
+    "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
+  },
+  {
+    "content_id": "news_b76c7f5e5884_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-20T13:32:57.804161+00:00",
+    "tweet_text": "Anthropic's Claude Code Channels fundamentally shifts developer-AI interaction from synchronous to asynchronous, but what does this mean for",
+    "theme": "ai_design",
+    "tweet_id": "2034986555454930969",
+    "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
   }
 ]
