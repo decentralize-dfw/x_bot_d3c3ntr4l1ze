@@ -1,29 +1,11 @@
 [
   {
-    "tweet_id": "2032064169466327271",
-    "text": "This is not a video.\n\nIt’s a walkable photorealistic Gaussian Splat running live in your browser.\n\nVibe-coded camera + post effects.\n50 spatial audio sources.\nMultiplayer avatars.\n\nStep inside the space: https://t.co/3IlOa1pCOl\n\nScan &amp; vid by THE @Schindelar3D\n\n#3DGS #WebXR https://t.co/xcatsPaWVO",
-    "author": "arrival_space_",
-    "engagement_score": 97,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-19T05:48:15.787022+00:00",
-    "scores": {
-      "o": 8,
-      "s": 9,
-      "p": 6,
-      "c": 7,
-      "avg": 7.5,
-      "iq": 124,
-      "iq3": 132
-    },
-    "category": "quote_rt"
-  },
-  {
     "tweet_id": "2034180110580924751",
     "text": "NanoGS: Training-Free Gaussian Splat Simplification\n\n1. NanoGS, a training-free and lightweight framework for simplifying Gaussian Splat representations directly in 3D space, avoiding rendering supervision and scene-specific optimization.\n\n2. Efficient graph pairing, which https://t.co/84BFUIc2Ys",
     "author": "janusch_patas",
-    "engagement_score": 95,
+    "engagement_score": 122,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-19T05:48:31.744951+00:00",
+    "fetched_at": "2026-03-20T05:46:58.970963+00:00",
     "scores": {
       "o": 8,
       "s": 9,
@@ -41,15 +23,15 @@
     "author": "willeastcott",
     "engagement_score": 75,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-19T05:48:31.745430+00:00",
+    "fetched_at": "2026-03-20T05:46:58.971423+00:00",
     "scores": {
       "o": 8,
       "s": 9,
       "p": 2,
-      "c": 7,
-      "avg": 6.5,
-      "iq": 107,
-      "iq3": 132
+      "c": 8,
+      "avg": 6.8,
+      "iq": 112,
+      "iq3": 138
     },
     "category": "quote_rt"
   },
@@ -59,7 +41,7 @@
     "author": "MickWest",
     "engagement_score": 43,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-19T05:48:31.745750+00:00",
+    "fetched_at": "2026-03-20T05:46:58.972006+00:00",
     "scores": {
       "o": 8,
       "s": 9,
@@ -75,9 +57,9 @@
     "tweet_id": "2034086323011625388",
     "text": "Spatial Agent Management: Spatial audio pinging for Codex HITL replies\n\nTestFlight 0.43: Agent Command Center, Attention Center, Git Workspace, File Explorer, Web Browser, Notes, Timer, CLI History, SwiftTerm GPU backend\n\nBuilt for orchestration, vibe coding, multiple terminals https://t.co/AjxqsVecw5",
     "author": "ivancampos",
-    "engagement_score": 38,
+    "engagement_score": 39,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-19T05:48:17.987183+00:00",
+    "fetched_at": "2026-03-20T05:46:45.359987+00:00",
     "scores": {
       "o": 8,
       "s": 9,
@@ -90,30 +72,48 @@
     "category": "quote_rt"
   },
   {
+    "tweet_id": "2034727407241109560",
+    "text": "A colleague with augmented reality expertise photoscanned Phoenix, built a 3D model, and turned it into a WebXR experience. You can literally place her in your surroundings and walk around her.\nThe SpaceX Starlink rocket in the back is a nice touch too 🚀\n\nFull credits to https://t.co/BLS0iulSvf",
+    "author": "Junni",
+    "engagement_score": 13,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-20T05:46:43.080374+00:00",
+    "scores": {
+      "o": 8,
+      "s": 9,
+      "p": 2,
+      "c": 9,
+      "avg": 7.0,
+      "iq": 116,
+      "iq3": 143
+    },
+    "category": "quote_rt"
+  },
+  {
     "tweet_id": "2033314933790912523",
     "text": "Woah, Gaussian splats in mixed reality look so good!\n\nTech stack: lichtfeld studio for splattering training, virtual desktop for PC VR streaming and passthrough MR using a virtual green screen, gracia for VR splat rendering using the green screen background feature https://t.co/w7WrLT0VDw",
     "author": "Azadux",
     "engagement_score": 463,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-19T05:48:31.747127+00:00",
+    "fetched_at": "2026-03-20T05:46:58.972690+00:00",
     "scores": {
-      "o": 2,
+      "o": 6,
       "s": 9,
-      "p": 1,
+      "p": 2,
       "c": 8,
-      "avg": 5.0,
-      "iq": 82,
-      "iq3": 104
+      "avg": 6.2,
+      "iq": 102,
+      "iq3": 126
     },
     "category": "rt"
   },
   {
-    "tweet_id": "2032551612653146321",
-    "text": "🕸️ BIG Update for Spatial Web Shooter is live!\n- v1.7 for Apple Vision Pro (shown in video)\n- v1.2 for Meta Quest\n🎯 The new \"Sink or Swing\" Challenge Mode is here, with super props, web updates, and more! https://t.co/pxbUtXyoZl",
-    "author": "TangoChen",
-    "engagement_score": 267,
+    "tweet_id": "2033991510879047709",
+    "text": "Big news for spatial computing. 🥽\n\nNVIDIA RTX-accelerated computers now connect directly to Apple Vision Pro with NVIDIA CloudXR 6.0 for visionOS, bringing real-time, photorealistic 3D streaming for design, simulation, and immersive apps.\n\n🔗 Learn more: https://t.co/6jXxHMa3Uu https://t.co/HUaSFCZo2r",
+    "author": "NVIDIAworkstatn",
+    "engagement_score": 295,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-19T05:48:17.987963+00:00",
+    "fetched_at": "2026-03-20T05:47:12.767613+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -126,12 +126,30 @@
     "category": "rt"
   },
   {
+    "tweet_id": "2034306678041031035",
+    "text": "Early prototype for Gaussian Splats relighting.\n\nIt's a baseline implementation that lets you harmonize lighting between the 3D scene and Gaussian Splat-based objects. More sophisticated relighting techniques, including self-shadowing and multiple light sources, are still a work https://t.co/h752XzNbrx",
+    "author": "gracia_vr",
+    "engagement_score": 218,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-20T05:46:58.973795+00:00",
+    "scores": {
+      "o": 6,
+      "s": 8,
+      "p": 4,
+      "c": 9,
+      "avg": 6.8,
+      "iq": 112,
+      "iq3": 126
+    },
+    "category": "rt"
+  },
+  {
     "tweet_id": "2034288127510978713",
     "text": "Gaussian splat of a field grasshopper.. super common, boring.. not at all! #3dgs https://t.co/RMOHSiBTjy",
     "author": "DanyBittel",
-    "engagement_score": 97,
+    "engagement_score": 107,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-19T05:48:31.746366+00:00",
+    "fetched_at": "2026-03-20T05:46:58.971695+00:00",
     "scores": {
       "o": 6,
       "s": 8,
@@ -149,7 +167,7 @@
     "author": "OsLabs_",
     "engagement_score": 50,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-19T05:48:15.786095+00:00",
+    "fetched_at": "2026-03-20T05:46:43.079373+00:00",
     "scores": {
       "o": 6,
       "s": 8,
@@ -162,20 +180,38 @@
     "category": "reply"
   },
   {
-    "tweet_id": "2034306678041031035",
-    "text": "Early prototype for Gaussian Splats relighting.\n\nIt's a baseline implementation that lets you harmonize lighting between the 3D scene and Gaussian Splat-based objects. More sophisticated relighting techniques, including self-shadowing and multiple light sources, are still a work https://t.co/h752XzNbrx",
-    "author": "gracia_vr",
-    "engagement_score": 171,
+    "tweet_id": "2033078642801365055",
+    "text": "asciivision install script added, playing with some new visualizations w opentui, i think we need pacman in there.\n\ni really wanna add grok imagine in the CLI, maybe worldlabs api and see what a gaussian splat looks ? https://t.co/7sSnwb7LrV",
+    "author": "lalopenguin",
+    "engagement_score": 194,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-19T05:48:31.748250+00:00",
+    "fetched_at": "2026-03-20T05:46:58.974428+00:00",
     "scores": {
       "o": 6,
       "s": 8,
       "p": 4,
-      "c": 9,
-      "avg": 6.8,
-      "iq": 112,
-      "iq3": 126
+      "c": 2,
+      "avg": 5.0,
+      "iq": 82,
+      "iq3": 88
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2034540648699769194",
+    "text": "🔥 56+ Avatar Collections. One identity. Endless worlds.\n\n@TheSandboxGame is unlocking true #interoperability — play on mobile as your favorite character or celebrity NFT with The Sandbox NEXT\n\n👉 Pre-register now: https://t.co/CDH11dVm3e\nUse code HJRCMJRJ 💫 https://t.co/CuDPXJTN0z https://t.co/ct0TYPiLtr",
+    "author": "borgetsebastien",
+    "engagement_score": 103,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-20T05:47:17.594999+00:00",
+    "scores": {
+      "o": 4,
+      "s": 6,
+      "p": 2,
+      "c": 8,
+      "avg": 5.0,
+      "iq": 82,
+      "iq3": 99
     },
     "category": "like"
   },
@@ -185,7 +221,7 @@
     "author": "Aaron_Wacker",
     "engagement_score": 51,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-19T05:48:31.747531+00:00",
+    "fetched_at": "2026-03-20T05:46:58.973080+00:00",
     "scores": {
       "o": 6,
       "s": 8,
@@ -203,7 +239,7 @@
     "author": "LexnLin",
     "engagement_score": 51,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-19T05:48:41.549472+00:00",
+    "fetched_at": "2026-03-20T05:47:07.547567+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -216,30 +252,12 @@
     "category": "like"
   },
   {
-    "tweet_id": "2032485426469163202",
-    "text": "Some dreams do not fit real life.\n\nIn Second Life, you can live them.\n\nBe who you want to be. The sky is the limit.\n\n🎬 Video by @sabinavaleskaSL\n\n#SecondLife #LiveYourDream #VirtualWorld #Metaverse https://t.co/K3YB68LNWm",
-    "author": "SecondLife",
-    "engagement_score": 37,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-19T05:48:29.542035+00:00",
-    "scores": {
-      "o": 2,
-      "s": 6,
-      "p": 2,
-      "c": 8,
-      "avg": 4.5,
-      "iq": 74,
-      "iq3": 88
-    },
-    "category": "like"
-  },
-  {
     "tweet_id": "2034185541629927848",
     "text": "Big news for spatial computing. 🥽\n\nNVIDIA RTX-accelerated computers now connect directly to Apple Vision Pro with NVIDIA CloudXR 6.0 for visionOS, bringing real-time, photorealistic 3D streaming for design, simulation, and immersive apps.\n\n🔗 Learn more: https://t.co/UaT7Pf3lGR https://t.co/UtcVU56hqE",
     "author": "NVIDIAAP",
-    "engagement_score": 33,
+    "engagement_score": 34,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-19T05:48:46.587888+00:00",
+    "fetched_at": "2026-03-20T05:47:12.766746+00:00",
     "scores": {
       "o": 2,
       "s": 9,
@@ -252,30 +270,12 @@
     "category": "like"
   },
   {
-    "tweet_id": "2032283265021710757",
-    "text": "Sometimes in the process of playing around with workflows you make beautiful things unexpectedly (mid gaussian splat training) https://t.co/IyyrJO3wLO",
-    "author": "NohnVonJeumann",
-    "engagement_score": 23,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-19T05:48:31.746110+00:00",
-    "scores": {
-      "o": 6,
-      "s": 8,
-      "p": 4,
-      "c": 7,
-      "avg": 6.2,
-      "iq": 102,
-      "iq3": 116
-    },
-    "category": "like"
-  },
-  {
     "tweet_id": "2034384548021051717",
     "text": "Here is the prompt for this component:\nMay result in some slightly different output, will post my code asap.\n\nAct as an Elite Creative Frontend Developer and WebGL Graphics Engineer. \n\nYour task is to write a single, self-contained HTML file (containing HTML, CSS, and pure https://t.co/Gycvf7Dq5C",
     "author": "LexnLin",
-    "engagement_score": 18,
+    "engagement_score": 25,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-19T05:48:41.550279+00:00",
+    "fetched_at": "2026-03-20T05:47:07.548336+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -293,7 +293,7 @@
     "author": "Kill3rNFTs",
     "engagement_score": 16,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-19T05:48:51.454168+00:00",
+    "fetched_at": "2026-03-20T05:47:17.595863+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -306,20 +306,38 @@
     "category": "like"
   },
   {
-    "tweet_id": "2032586690003427417",
-    "text": "don't know what to do with your ai agent?\n\ngive it a game to play and grind and yourself a custom VRM avatar that you can chat with.\n\nhttps://t.co/fb803zIweb https://t.co/lHz4AdVA8m https://t.co/JDpWO3T4RP",
-    "author": "em0tionull",
-    "engagement_score": 15,
+    "tweet_id": "2034694749701971997",
+    "text": "Students at @GeorgeMasonU are building entirely new worlds in the university’s first virtual reality art classroom.  \n\nThe new School of Art course lets students design immersive 3D environments using emerging digital tools. Learn more: https://t.co/2HRJii1pcU https://t.co/cOc3E0dVra",
+    "author": "GeorgeMasonNews",
+    "engagement_score": 13,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-19T05:48:51.453298+00:00",
+    "fetched_at": "2026-03-20T05:47:12.765062+00:00",
     "scores": {
       "o": 6,
       "s": 8,
       "p": 2,
-      "c": 7,
-      "avg": 5.8,
-      "iq": 96,
-      "iq3": 116
+      "c": 9,
+      "avg": 6.2,
+      "iq": 102,
+      "iq3": 126
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2033934366234014135",
+    "text": "🌐 Virtual Worlds, Real Risks: Are consumers protected in the #Metaverse? (ANEC &amp; DIN Consumer Council webinar)\n📅 26 March 2026 | ⏰ 15:00-16:00 (CET)\n\nThe Metaverse and Extended Reality technologies are becoming part of consumers' everyday lives, yet little research has https://t.co/PkvgWLKQNN",
+    "author": "anectweet",
+    "engagement_score": 11,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-20T05:47:14.986175+00:00",
+    "scores": {
+      "o": 6,
+      "s": 8,
+      "p": 4,
+      "c": 9,
+      "avg": 6.8,
+      "iq": 112,
+      "iq3": 126
     },
     "category": "like"
   }
