@@ -697,5 +697,21 @@
     "theme": "spatial_computing",
     "tweet_id": "2034625309568369049",
     "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
+  },
+  {
+    "content_id": "news_1824a25b4833",
+    "content_type": "news",
+    "posted_at": "2026-03-20T09:20:32.389898+00:00",
+    "tweet_text": "NEWS: Kentucky's crypto kiosk bill may outlaw self-custody.",
+    "tweet_id": "2034923031056064601",
+    "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
+  },
+  {
+    "content_id": "news_1824a25b4833_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-20T09:20:33.132918+00:00",
+    "tweet_text": "Kentucky's crypto kiosk bill may quietly redefine the relationship between users and their private keys, begging the question: what happens ",
+    "tweet_id": "2034923034155557370",
+    "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
   }
 ]
