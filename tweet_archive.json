@@ -757,5 +757,15 @@
     "theme": "ownership",
     "tweet_id": "2035283765245755405",
     "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
+  },
+  {
+    "content_id": "fig-12",
+    "content_type": "artwork",
+    "posted_at": "2026-03-21T11:06:43.435425+00:00",
+    "tweet_text": "On-chain 3D art repositories now store digital provenance for physical paintings like il sbagliato di rompipalle, raising questions about ownership verification across mediums #DigitalArt #OnChain #Web3 💿💿💿",
+    "theme": "ownership",
+    "tweet_id": "2035312139716727289",
+    "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail",
+    "media_url": "https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives/main/a98.png"
   }
 ]
