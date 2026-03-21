@@ -740,5 +740,22 @@
     "theme": "ai_design",
     "tweet_id": "2034986555454930969",
     "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
+  },
+  {
+    "content_id": "news_be77b6b7ed79",
+    "content_type": "news",
+    "posted_at": "2026-03-21T09:13:57.407305+00:00",
+    "tweet_text": "NEWS: Bitcoin's volatility has subsided over the last month.",
+    "tweet_id": "2035283762217398752",
+    "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
+  },
+  {
+    "content_id": "news_be77b6b7ed79_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-21T09:13:58.141806+00:00",
+    "tweet_text": "bitcoin's stabilization hints at a shift towards institutional investment in on-chain assets, but what impact will this have on the liquidit",
+    "theme": "ownership",
+    "tweet_id": "2035283765245755405",
+    "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
   }
 ]
