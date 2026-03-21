@@ -767,5 +767,22 @@
     "tweet_id": "2035312139716727289",
     "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail",
     "media_url": "https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives/main/a98.png"
+  },
+  {
+    "content_id": "news_10bb47927703",
+    "content_type": "news",
+    "posted_at": "2026-03-21T13:23:08.756667+00:00",
+    "tweet_text": "NEWS: AMI Labs raised $1.03 billion in a seed round.",
+    "tweet_id": "2035346472636383529",
+    "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
+  },
+  {
+    "content_id": "news_10bb47927703_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-21T13:23:09.436653+00:00",
+    "tweet_text": "World models will revolutionize spatial computing by enabling AI to simulate and understand physical causality, but can they scale to suppor",
+    "theme": "spatial_computing",
+    "tweet_id": "2035346475484365029",
+    "weekly_theme": "virtual space has gravity — ignoring it is why most digital experiences fail"
   }
 ]
