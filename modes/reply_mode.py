@@ -41,7 +41,9 @@ def post_quote_engage():
     client, _ = get_twitter_clients()
 
     logger.info("Fetching candidates for quote-tweet engagement...")
-    candidates = fetch_target_tweets_with_ids(n_targets=_MAX_QUOTES_PER_RUN + 5)
+    # category="reply": scan_results'tan reply kategorisindeki tweetleri seç —
+    # bunlar 1. şahıs + reply_open + IQ3>=99 koşulunu geçmiş, engagement için ideal.
+    candidates = fetch_target_tweets_with_ids(n_targets=_MAX_QUOTES_PER_RUN + 10, category="reply")
     if not candidates:
         logger.warning("No candidates for quote engagement, skipping.")
         return

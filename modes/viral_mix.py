@@ -203,17 +203,27 @@ def _load_scan_results(max_age_hours: int = 12) -> list:
         return []
 
 
-def fetch_target_tweets_with_ids(n_targets: int = 3) -> list:
+def fetch_target_tweets_with_ids(n_targets: int = 3, category: str = None) -> list:
     """Target tweet'leri id + text ile döndür (quote/RT için).
 
     Önce günlük tarama sonuçlarını (scan_results.json) dener (AŞAMA 1).
     Taze değilse Twitter API ile canlı arama yapar.
+
+    category: scan_results'tan belirli bir kategoriden seç ("reply", "quote_rt", "rt", "like").
+              None ise tüm kategorilerden rastgele seç.
     NOT: Reply modu için fetch_targets_for_reply() kullan — scan sonuçları yabancı hesaplar.
     """
     # AŞAMA 1: Önce günlük tarama sonuçlarını dene
     scan = _load_scan_results(max_age_hours=12)
     if scan:
-        sample = random.sample(scan, min(n_targets, len(scan)))
+        if category:
+            pool = [r for r in scan if r.get("category") == category]
+            if not pool:
+                logger.info(f"No scan results for category='{category}', using full pool.")
+                pool = scan
+        else:
+            pool = scan
+        sample = random.sample(pool, min(n_targets, len(pool)))
         return [{"id": r["tweet_id"], "text": r["text"], "author": r["author"]} for r in sample]
 
     # Fallback: canlı API araması

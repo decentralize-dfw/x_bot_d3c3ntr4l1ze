@@ -30,8 +30,12 @@ on:
     # TR 11:00 -> UTC 08:00 Pazartesi-Cumartesi — Retweet modu (3 RT/run × 2 run = 6 RT/gün)
     - cron: '0 8 * * 1-6'
     # BUG FIX #16: reply_mode (quote engage) schedule eklendi — daha önce hiç otomatik çalışmıyordu
-    # TR 22:00 -> UTC 19:00 Pazartesi-Cumartesi — Quote engage (5 QT/run)
-    - cron: '0 19 * * 1-6'
+    # 4 run/gün × 5 max QT = 20 QT-engage/gün hedefi (Mon-Sat)
+    # Saat seçimi: retweet/viral_mix/evening tam saatte → biz yarım saatte (çakışmasız)
+    - cron: '30 8 * * 1-6'   # TR 11:30 — sabah run
+    - cron: '30 12 * * 1-6'  # TR 15:30 — öğlen run
+    - cron: '30 16 * * 1-6'  # TR 19:30 — ikindi run
+    - cron: '0 19 * * 1-6'   # TR 22:00 — akşam run (orijinal)
     # BUG FIX #20: quote_tweet (curated targets) hiç schedule'da yoktu
     # TR 13:00 -> UTC 10:00 Her gün (Perşembe hariç — o gün data_viz var) — Curated quote tweet
     - cron: '0 10 * * 0,1,2,3,5,6'
@@ -160,9 +164,10 @@ jobs:
             # BUG FIX #16: retweet_mode schedule eklendi
             echo "Mode: retweet_mode (3 RT/run, Mon-Sat 08:00 UTC)"
             python bot.py retweet_mode
-          elif [ "$SCHEDULE" = "0 19 * * 1-6" ]; then
-            # BUG FIX #16: reply_mode (quote engage) schedule eklendi
-            echo "Mode: reply_mode (5 quote-engage/run, Mon-Sat 19:00 UTC)"
+          elif [ "$SCHEDULE" = "30 8 * * 1-6" ] || [ "$SCHEDULE" = "30 12 * * 1-6" ] || \
+               [ "$SCHEDULE" = "30 16 * * 1-6" ] || [ "$SCHEDULE" = "0 19 * * 1-6" ]; then
+            # 4 run/gün × 5 max QT = 20 QT-engage/gün hedefi
+            echo "Mode: reply_mode (5 quote-engage/run, Mon-Sat)"
             python bot.py reply_mode
           elif [ "$SCHEDULE" = "0 7 * * 1-6" ] || [ "$SCHEDULE" = "0 9 * * 1-6" ] || \
                [ "$SCHEDULE" = "0 11 * * 1-6" ] || [ "$SCHEDULE" = "0 14 * * 1-6" ] || \
