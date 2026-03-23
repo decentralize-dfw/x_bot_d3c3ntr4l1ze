@@ -96,8 +96,11 @@ def run_backfill(days: int = 7) -> None:
 
 
 def print_weekly_report() -> None:
-    """Haftalık engagement özeti — analytics.py gerçek veriyle rapor eder."""
-    from analytics import load_analytics, get_content_type_distribution, get_theme_distribution, engagement_score
+    """Haftalık engagement özeti — analytics.py gerçek veriyle rapor eder.
+    Sonuçları analytics_weekly.json'a da yazar (git'e commit edilir).
+    """
+    from collections import defaultdict
+    from analytics import load_analytics
 
     records = load_analytics()
     if not records:
@@ -113,12 +116,12 @@ def print_weekly_report() -> None:
     print(f"Records with real data: {len(scored)}/{len(records)}")
 
     # En iyi content type
-    from collections import defaultdict
     by_type: dict = defaultdict(list)
     for r in scored:
         by_type[r.get("content_type", "unknown")].append(r.get("engagement_score", 0))
+    sorted_by_type = sorted(by_type.items(), key=lambda x: -sum(x[1]) / len(x[1]))
     print("\nEngagement by content type:")
-    for ct, scores in sorted(by_type.items(), key=lambda x: -sum(x[1])/len(x[1])):
+    for ct, scores in sorted_by_type:
         avg = sum(scores) / len(scores)
         print(f"  {ct:<25} avg={avg:.1f}  n={len(scores)}")
 
@@ -128,6 +131,29 @@ def print_weekly_report() -> None:
     for r in top3:
         print(f"  [{r.get('engagement_score',0):3d}] {r.get('tweet_text','')[:70]}")
     print()
+
+    # JSON dosyasına kaydet — analytics_weekly.json git'e commit edilir
+    report = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "total_records": len(records),
+        "scored_records": len(scored),
+        "by_type": {
+            ct: {"avg": round(sum(s) / len(s), 1), "n": len(s)}
+            for ct, s in sorted_by_type
+        },
+        "top3": [
+            {
+                "score": r.get("engagement_score", 0),
+                "text": r.get("tweet_text", "")[:120],
+                "tweet_id": r.get("tweet_id"),
+                "content_type": r.get("content_type"),
+            }
+            for r in top3
+        ],
+    }
+    with open("analytics_weekly.json", "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=2, ensure_ascii=False)
+    print("Weekly report saved → analytics_weekly.json")
 
 
 if __name__ == "__main__":

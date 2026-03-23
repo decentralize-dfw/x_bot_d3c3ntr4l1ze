@@ -174,8 +174,15 @@ def _classify(t: dict) -> str:
     return "like"
 
 
-def _fetch_query(client, query: str, seen_ids: set) -> list:
-    """Tek sorgu çalıştır, spam+konu filtrele, ham sonuçları döndür."""
+def _fetch_query(client, query: str, seen_ids: set,
+                 sort_order: str = "relevancy",
+                 min_engagement: int = None) -> list:
+    """Tek sorgu çalıştır, spam+konu filtrele, ham sonuçları döndür.
+
+    sort_order: "relevancy" (popüler/kanıtlanmış) veya "recency" (taze/yeni)
+    min_engagement: None → _MIN_ENGAGEMENT kullan; recency için daha düşük değer verilebilir
+    """
+    effective_min = min_engagement if min_engagement is not None else _MIN_ENGAGEMENT
     results = []
     try:
         resp = client.search_recent_tweets(
@@ -184,7 +191,7 @@ def _fetch_query(client, query: str, seen_ids: set) -> list:
             tweet_fields=["public_metrics", "text", "author_id", "reply_settings"],
             expansions=["author_id"],
             user_fields=["username"],
-            sort_order="relevancy",
+            sort_order=sort_order,
         )
         if not resp.data:
             print(f"  No results: {query[:55]}...")
@@ -197,7 +204,7 @@ def _fetch_query(client, query: str, seen_ids: set) -> list:
             if tweet.id in seen_ids:
                 continue
             eng = _engagement(tweet)
-            if eng < _MIN_ENGAGEMENT:
+            if eng < effective_min:
                 eng_count += 1
                 continue
             if _is_scam(tweet.text):
@@ -218,13 +225,80 @@ def _fetch_query(client, query: str, seen_ids: set) -> list:
             seen_ids.add(tweet.id)
 
         print(
-            f"  Query: {len(resp.data)} raw → "
+            f"  [{sort_order[:3]}] Query: {len(resp.data)} raw → "
             f"{spam_count} spam, {offtopic_count} off-topic, {eng_count} low-eng, "
             f"{len(results)} passed | {query[:45]}..."
         )
     except Exception as e:
         print(f"  Query failed: {e} — {query[:45]}...")
     return results
+
+
+def _fetch_home_timeline(seen_ids: set) -> list:
+    """For You feed — Twitter algoritmasının önerdiği niche tweetler.
+
+    Zaten niş+following karışımını döndürüyor. Üstüne spam + off-topic +
+    NICHE_KEYWORDS filtresi uygula. OAuth user-auth gerektirir.
+    """
+    from core.twitter import get_twitter_client_with_bearer
+    from core.voice import NICHE_KEYWORDS
+
+    try:
+        client = get_twitter_client_with_bearer()
+        me = client.get_me()
+        if not me.data:
+            print("  Home timeline: could not get authenticated user")
+            return []
+        resp = client.get_home_timeline(
+            id=me.data.id,
+            max_results=100,
+            tweet_fields=["public_metrics", "text", "author_id", "reply_settings"],
+            expansions=["author_id"],
+            user_fields=["username"],
+            exclude=["retweets", "replies"],
+        )
+        if not resp.data:
+            print("  Home timeline: no data returned")
+            return []
+
+        users = {u.id: u.username for u in (resp.includes.get("users") or [])}
+        results = []
+        skip_niche = skip_spam = skip_offtopic = skip_dup = 0
+        for tweet in resp.data:
+            if tweet.id in seen_ids:
+                skip_dup += 1
+                continue
+            text_lower = tweet.text.lower()
+            if not any(kw in text_lower for kw in NICHE_KEYWORDS):
+                skip_niche += 1
+                continue
+            if _is_scam(tweet.text):
+                skip_spam += 1
+                continue
+            if _is_off_topic(tweet.text):
+                skip_offtopic += 1
+                continue
+            eng = _engagement(tweet)
+            reply_settings = getattr(tweet, "reply_settings", "everyone") or "everyone"
+            results.append({
+                "tweet_id": str(tweet.id),
+                "text": tweet.text,
+                "author": users.get(tweet.author_id, "unknown"),
+                "engagement_score": eng,
+                "reply_settings": reply_settings,
+                "fetched_at": datetime.now(timezone.utc).isoformat(),
+            })
+            seen_ids.add(tweet.id)
+
+        print(
+            f"  Home timeline: {len(resp.data)} raw → "
+            f"{skip_dup} dup, {skip_niche} off-niche, {skip_spam} spam, "
+            f"{skip_offtopic} off-topic, {len(results)} passed"
+        )
+        return results
+    except Exception as e:
+        print(f"  Home timeline fetch failed ({type(e).__name__}): {e}")
+        return []
 
 
 def _score_and_filter(tweets: list, iq3_threshold: int, rejected_log: list) -> list:
@@ -295,12 +369,19 @@ def run_daily_scan() -> list:
     all_raw_pool: list = []
 
     # ── TUR 1: Ana sorgular — IQ3 >= 115 ──────────────────────────────────────
+    # İlk 4 sorgu: relevancy (kanıtlanmış popüler içerik)
+    # Son 4 sorgu: recency (taze içerik, düşük engagement eşiği)
     print(f"\n{'='*60}")
     print(f"TUR 1 — Ana sorgular (IQ3>={_IQ3_R1})")
+    print(f"  [rel=relevancy, rec=recency — karışık tarama]")
     print('='*60)
     raw1 = []
-    for query in _QUERIES:
-        raw1.extend(_fetch_query(client, query, seen_ids))
+    for i, query in enumerate(_QUERIES):
+        if i < 4:
+            raw1.extend(_fetch_query(client, query, seen_ids, sort_order="relevancy"))
+        else:
+            # Recency: yeni tweetler engagement biriktirmedi → eşiği 3'e düşür
+            raw1.extend(_fetch_query(client, query, seen_ids, sort_order="recency", min_engagement=3))
         time.sleep(2)
 
     raw1.sort(key=lambda t: t["engagement_score"], reverse=True)
@@ -316,6 +397,26 @@ def run_daily_scan() -> list:
           f"RT:{len(buckets['rt'])}/{_QUOTA['rt']} "
           f"Reply:{len(buckets['reply'])}/{_QUOTA['reply']}")
 
+    # ── TUR 1.5: Home Timeline (For You feed) ─────────────────────────────────
+    # Twitter algoritmasının zaten niş filtreli önerilerini çek — kullanıcının
+    # ana sayfasındaki taze tweetler buradan gelir.
+    if not _quotas_full(buckets):
+        print(f"\n{'='*60}")
+        print(f"TUR 1.5 — Home Timeline (For You feed, NICHE filtreli)")
+        print('='*60)
+        home_raw = _fetch_home_timeline(seen_ids)
+        if home_raw:
+            home_raw.sort(key=lambda t: t["engagement_score"], reverse=True)
+            accepted_home = _score_and_filter(home_raw, _IQ3_R1, rejected_log)
+            all_raw_pool.extend(home_raw)
+            _fill_buckets(accepted_home, buckets, seen_in_buckets)
+
+            total_accepted = sum(len(v) for v in buckets.values())
+            print(f"\nTur 1.5 sonuç: kabul={total_accepted} | "
+                  f"QRT:{len(buckets['quote_rt'])}/{_QUOTA['quote_rt']} "
+                  f"RT:{len(buckets['rt'])}/{_QUOTA['rt']} "
+                  f"Reply:{len(buckets['reply'])}/{_QUOTA['reply']}")
+
     # ── TUR 2: Ek sorgular — BUG FIX #2: AND → kotalar dolmamışsa çalış ──────
     # Eski: `and total_accepted < _MIN_ACCEPTED` koşulu Tur 2'yi gereksiz kısıtlıyordu.
     # 16 tweet kabul edilip reply kotası 8/20'de kalsa bile Tur 2 çalışmıyordu.
@@ -325,7 +426,8 @@ def run_daily_scan() -> list:
         print('='*60)
         raw2 = []
         for query in _EXTENDED_QUERIES:
-            raw2.extend(_fetch_query(client, query, seen_ids))
+            # Tur 2: recency — Tur 1 relevancy ile popüler içerik alındı, şimdi taze içerik
+            raw2.extend(_fetch_query(client, query, seen_ids, sort_order="recency", min_engagement=3))
             time.sleep(2)
 
         raw2.sort(key=lambda t: t["engagement_score"], reverse=True)
@@ -346,7 +448,8 @@ def run_daily_scan() -> list:
         print('='*60)
         raw3 = []
         for query in _BROAD_QUERIES:
-            raw3.extend(_fetch_query(client, query, seen_ids))
+            # Tur 3: recency — geniş ama taze içerik
+            raw3.extend(_fetch_query(client, query, seen_ids, sort_order="recency", min_engagement=3))
             time.sleep(2)
 
         raw3.sort(key=lambda t: t["engagement_score"], reverse=True)
