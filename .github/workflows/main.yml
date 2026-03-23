@@ -2,6 +2,9 @@ name: Decentralize Design Thinking on Automation
 
 on:
   schedule:
+    # TR 08:30 -> UTC 05:30  — Günlük tweet taraması (scan_results.json günceller)
+    # reply_mode + viral_mix bu cache'i kullanır → canlı search çağrısı yapmaz
+    - cron: '30 5 * * *'
     # TR 10:00 -> UTC 07:00  — Media archive tweet
     - cron: '0 7 * * *'
     # TR 12:00 -> UTC 09:00  — Decrypt.co news tweet
@@ -101,7 +104,10 @@ jobs:
             exit 0
           fi
           echo "Triggered by schedule: '$SCHEDULE'"
-          if [ "$SCHEDULE" = "0 7 * * *" ]; then
+          if [ "$SCHEDULE" = "30 5 * * *" ]; then
+            echo "Mode: daily_scan (günlük tweet taraması — scan_results.json)"
+            python daily_scan.py
+          elif [ "$SCHEDULE" = "0 7 * * *" ]; then
             echo "Mode: morning (media archive)"
             python bot.py morning
           elif [ "$SCHEDULE" = "0 9 * * *" ]; then
@@ -155,6 +161,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add tweet_archive.json
           [ -f analytics_weekly.json ] && git add analytics_weekly.json || true
+          [ -f scan_results.json ] && git add scan_results.json || true
           git diff --cached --quiet && echo "No archive changes to commit." && exit 0
           git commit -m "archive: update tweet history $(date -u +%Y-%m-%d)"
           git push origin ${{ github.ref_name }} || (
