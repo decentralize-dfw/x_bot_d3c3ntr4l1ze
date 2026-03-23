@@ -123,12 +123,7 @@ def post_evening_tweet():
     content = selected.get("content", "")
     name    = selected.get("name", "")
 
-    context_tweets = []
-    if GROQ_API_KEY:
-        try:
-            context_tweets = _fetch_context_tweets(SEARCH_KEYWORDS)
-        except Exception as e:
-            logger.warning(f"Context fetch error: {e}")
+    context_tweets = []  # Canlı Twitter search kaldırıldı — Twitter API kredi tasarrufu
 
     def _gen():
         chunk = _random_chunk(content)
@@ -193,12 +188,7 @@ def post_controversial_evening_tweet():
     content = selected.get("content", "")
     name    = selected.get("name", "")
 
-    context_tweets = []
-    if GROQ_API_KEY:
-        try:
-            context_tweets = _fetch_context_tweets(SEARCH_KEYWORDS)
-        except Exception as e:
-            logger.warning(f"Context fetch error: {e}")
+    context_tweets = []  # Canlı Twitter search kaldırıldı — Twitter API kredi tasarrufu
 
     def _gen():
         chunk = _random_chunk(content)
