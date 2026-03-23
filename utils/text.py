@@ -12,8 +12,10 @@ _TRAILING_JUNK = re.compile(
 )
 
 
-def trim_for_format(text: str, limit: int = 130) -> str:
-    """Word-boundary trim before format_tweet() — keeps total tweet ≤ 140 chars."""
+def trim_for_format(text: str, limit: int = 260) -> str:
+    """Word-boundary trim before format_tweet() — keeps total tweet ≤ 280 chars.
+    format_tweet() appends ' 💿💿💿' (9 chars) → 260 + 9 = 269 ≤ 280.
+    """
     if len(text) <= limit:
         return text
     trimmed = text[:limit]
