@@ -1115,5 +1115,23 @@
     "tweet_id": "2036040028061606326",
     "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable",
     "media_url": "https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives/main/b9.png"
+  },
+  {
+    "content_id": "news_666a161186bb",
+    "content_type": "news",
+    "posted_at": "2026-03-23T13:39:55.599880+00:00",
+    "tweet_text": "NEWS: AI is enabling workers to succeed at tasks beyond their normal area of expertise.",
+    "theme": "ai_design",
+    "tweet_id": "2036075471386144987",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "news_666a161186bb_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-23T13:39:56.385914+00:00",
+    "tweet_text": "what gets lost is that ai-assisted work doesn't replace specialists, but rather enables generalists to tackle complex tasks, raising questio",
+    "theme": "ai_design",
+    "tweet_id": "2036075474586394968",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
   }
 ]
