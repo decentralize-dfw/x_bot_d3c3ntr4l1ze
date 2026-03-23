@@ -1,11 +1,29 @@
 [
   {
+    "tweet_id": "2034842437408137350",
+    "text": "Tegel airport in Berlin (2021) as a gaussian splat\n\nreprocessed a photogrammetry dataset with @lichtfeldstudio's latest IGS+ model. \n\nFun part is that I captured this with a 200mm telephoto from a cesna flying around the airport shortly after it was decommisioned https://t.co/PoDJzgFvbR",
+    "author": "Azadux",
+    "engagement_score": 171,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-23T05:57:00.208855+00:00",
+    "scores": {
+      "o": 8,
+      "s": 9,
+      "p": 2,
+      "c": 7,
+      "avg": 6.5,
+      "iq": 107,
+      "iq3": 132
+    },
+    "category": "quote_rt"
+  },
+  {
     "tweet_id": "2034180110580924751",
     "text": "NanoGS: Training-Free Gaussian Splat Simplification\n\n1. NanoGS, a training-free and lightweight framework for simplifying Gaussian Splat representations directly in 3D space, avoiding rendering supervision and scene-specific optimization.\n\n2. Efficient graph pairing, which https://t.co/84BFUIc2Ys",
     "author": "janusch_patas",
-    "engagement_score": 128,
+    "engagement_score": 129,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-22T05:47:20.875381+00:00",
+    "fetched_at": "2026-03-23T05:57:00.204627+00:00",
     "scores": {
       "o": 8,
       "s": 9,
@@ -18,30 +36,12 @@
     "category": "quote_rt"
   },
   {
-    "tweet_id": "2033425809751560483",
-    "text": "Why walk around a store with a phone when a 360° drone can map everything in minutes?\n\nThis is a Gaussian Splat render of Auki's demo store captured with the Insta360 Antigravity A1.\n\nDigital twins used to take hours. Now it's fast, precise and actually fun.\n\nAUKI is building, https://t.co/ATQ2y72tYU",
-    "author": "marketmaker_hq",
-    "engagement_score": 44,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-22T05:47:20.877837+00:00",
-    "scores": {
-      "o": 8,
-      "s": 9,
-      "p": 6,
-      "c": 8,
-      "avg": 7.8,
-      "iq": 129,
-      "iq3": 138
-    },
-    "category": "quote_rt"
-  },
-  {
     "tweet_id": "2034086323011625388",
     "text": "Spatial Agent Management: Spatial audio pinging for Codex HITL replies\n\nTestFlight 0.43: Agent Command Center, Attention Center, Git Workspace, File Explorer, Web Browser, Notes, Timer, CLI History, SwiftTerm GPU backend\n\nBuilt for orchestration, vibe coding, multiple terminals https://t.co/AjxqsVecw5",
     "author": "ivancampos",
     "engagement_score": 43,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-22T05:47:06.728604+00:00",
+    "fetched_at": "2026-03-23T05:56:46.447258+00:00",
     "scores": {
       "o": 8,
       "s": 9,
@@ -59,7 +59,7 @@
     "author": "MickWest",
     "engagement_score": 43,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-22T05:47:20.875949+00:00",
+    "fetched_at": "2026-03-23T05:57:00.205453+00:00",
     "scores": {
       "o": 8,
       "s": 9,
@@ -72,19 +72,19 @@
     "category": "quote_rt"
   },
   {
-    "tweet_id": "2034310068846706783",
-    "text": "On the one hand, it was easy to see the Metaverse launch as more of a PR stunt than a demo of actually existing tech.\n\nOn the other hand, in contrast to AI pitches, the Metaverse was pitched as “this will make your life better” not pitched as “this’ll make you unemployed or dead”",
-    "author": "libshipwreck",
-    "engagement_score": 43,
+    "tweet_id": "2034727407241109560",
+    "text": "A colleague with augmented reality expertise photoscanned Phoenix, built a 3D model, and turned it into a WebXR experience. You can literally place her in your surroundings and walk around her.\nThe SpaceX Starlink rocket in the back is a nice touch too 🚀\n\nFull credits to https://t.co/BLS0iulSvf",
+    "author": "Junni",
+    "engagement_score": 20,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-22T05:47:35.341037+00:00",
+    "fetched_at": "2026-03-23T05:56:44.264269+00:00",
     "scores": {
       "o": 8,
       "s": 9,
-      "p": 6,
+      "p": 2,
       "c": 9,
-      "avg": 8.0,
-      "iq": 132,
+      "avg": 7.0,
+      "iq": 116,
       "iq3": 143
     },
     "category": "quote_rt"
@@ -95,7 +95,7 @@
     "author": "MaltePrinzler",
     "engagement_score": 339,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-22T05:47:20.878667+00:00",
+    "fetched_at": "2026-03-23T05:57:00.207478+00:00",
     "scores": {
       "o": 6,
       "s": 9,
@@ -111,9 +111,9 @@
     "tweet_id": "2033991510879047709",
     "text": "Big news for spatial computing. 🥽\n\nNVIDIA RTX-accelerated computers now connect directly to Apple Vision Pro with NVIDIA CloudXR 6.0 for visionOS, bringing real-time, photorealistic 3D streaming for design, simulation, and immersive apps.\n\n🔗 Learn more: https://t.co/6jXxHMa3Uu https://t.co/HUaSFCZo2r",
     "author": "NVIDIAworkstatn",
-    "engagement_score": 296,
+    "engagement_score": 297,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-22T05:47:33.130599+00:00",
+    "fetched_at": "2026-03-23T05:57:12.416520+00:00",
     "scores": {
       "o": 2,
       "s": 9,
@@ -129,9 +129,9 @@
     "tweet_id": "2034306678041031035",
     "text": "Early prototype for Gaussian Splats relighting.\n\nIt's a baseline implementation that lets you harmonize lighting between the 3D scene and Gaussian Splat-based objects. More sophisticated relighting techniques, including self-shadowing and multiple light sources, are still a work https://t.co/h752XzNbrx",
     "author": "gracia_vr",
-    "engagement_score": 224,
+    "engagement_score": 225,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-22T05:47:20.876596+00:00",
+    "fetched_at": "2026-03-23T05:57:00.206197+00:00",
     "scores": {
       "o": 6,
       "s": 8,
@@ -144,12 +144,30 @@
     "category": "rt"
   },
   {
+    "tweet_id": "2035558553184870790",
+    "text": "Turned a City into a live 3D world 🌍\n\nCaptured with Portal Camera → transformed on Splat Labs using Gaussian Splatting\n\nReady to create your own 3D scenes?\nExplore: https://t.co/zJ1Me6MVy9 https://t.co/aJpMfFm2J0",
+    "author": "Iamcybernix",
+    "engagement_score": 212,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-23T05:57:00.208154+00:00",
+    "scores": {
+      "o": 6,
+      "s": 8,
+      "p": 2,
+      "c": 9,
+      "avg": 6.2,
+      "iq": 102,
+      "iq3": 126
+    },
+    "category": "rt"
+  },
+  {
     "tweet_id": "2034288127510978713",
     "text": "Gaussian splat of a field grasshopper.. super common, boring.. not at all! #3dgs https://t.co/RMOHSiBTjy",
     "author": "DanyBittel",
     "engagement_score": 112,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-22T05:47:20.875646+00:00",
+    "fetched_at": "2026-03-23T05:57:00.205140+00:00",
     "scores": {
       "o": 6,
       "s": 8,
@@ -162,20 +180,56 @@
     "category": "rt"
   },
   {
+    "tweet_id": "2035539478475858338",
+    "text": "It’s finally live! 🚀 I just launched my new interactive 3D developer portfolio.\n\nI wanted to challenge myself to blend hand-drawn aesthetics with real-time WebGL, custom shaders, and physics-based interactions. Built with @reactjs, @threejs, and @greensock. https://t.co/XPEbCYMVSF",
+    "author": "ITom_Dev",
+    "engagement_score": 126,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-23T05:57:07.587689+00:00",
+    "scores": {
+      "o": 6,
+      "s": 9,
+      "p": 2,
+      "c": 8,
+      "avg": 6.2,
+      "iq": 102,
+      "iq3": 126
+    },
+    "category": "reply"
+  },
+  {
+    "tweet_id": "2035444863458525480",
+    "text": "Come on @xSPECTAR!\n\nLaunch a standalone game that can host project avatars until the full metaverse is ready.\n\n🏧😤😁\n\nWe have some ideas 💡 https://t.co/WTWmKZeZ0X",
+    "author": "ATM_xrpl",
+    "engagement_score": 44,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-23T05:57:14.635782+00:00",
+    "scores": {
+      "o": 6,
+      "s": 8,
+      "p": 4,
+      "c": 7,
+      "avg": 6.2,
+      "iq": 102,
+      "iq3": 116
+    },
+    "category": "reply"
+  },
+  {
     "tweet_id": "2034540648699769194",
     "text": "🔥 56+ Avatar Collections. One identity. Endless worlds.\n\n@TheSandboxGame is unlocking true #interoperability — play on mobile as your favorite character or celebrity NFT with The Sandbox NEXT\n\n👉 Pre-register now: https://t.co/CDH11dVm3e\nUse code HJRCMJRJ 💫 https://t.co/CuDPXJTN0z https://t.co/ct0TYPiLtr",
     "author": "borgetsebastien",
-    "engagement_score": 115,
+    "engagement_score": 119,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-22T05:47:37.969789+00:00",
+    "fetched_at": "2026-03-23T05:57:17.233244+00:00",
     "scores": {
-      "o": 2,
+      "o": 4,
       "s": 6,
-      "p": 1,
+      "p": 2,
       "c": 8,
-      "avg": 4.2,
-      "iq": 69,
-      "iq3": 88
+      "avg": 5.0,
+      "iq": 82,
+      "iq3": 99
     },
     "category": "like"
   },
@@ -183,14 +237,32 @@
     "tweet_id": "2034672807079256379",
     "text": "\"Thinking / Shapes\" ft. Félicia Atkinson, @SatsukiShibano and @YoshioOjima\nneural radiance field / gaussian splat video by @gradeeterna \ntext by @YoshioOjima https://t.co/h5UOdaNPig",
     "author": "visiblecloaks",
-    "engagement_score": 87,
+    "engagement_score": 90,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-22T05:47:20.876992+00:00",
+    "fetched_at": "2026-03-23T05:57:00.206601+00:00",
     "scores": {
       "o": 2,
       "s": 8,
       "p": 1,
       "c": 6,
+      "avg": 4.2,
+      "iq": 69,
+      "iq3": 88
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2034651995320246712",
+    "text": "Different paths. Same journey.\n\nIn Second Life, every step opens a new world to explore.\n\nMany stories. One world.\n\n🎬 Video created by KL Production &amp; @AnyBergan\n\n#SecondLife #VirtualWorld #ExploreMore #Metaverse https://t.co/NhAynPUm3k",
+    "author": "SecondLife",
+    "engagement_score": 34,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-23T05:56:57.985734+00:00",
+    "scores": {
+      "o": 2,
+      "s": 6,
+      "p": 1,
+      "c": 8,
       "avg": 4.2,
       "iq": 69,
       "iq3": 88
@@ -201,35 +273,17 @@
     "tweet_id": "2034185541629927848",
     "text": "Big news for spatial computing. 🥽\n\nNVIDIA RTX-accelerated computers now connect directly to Apple Vision Pro with NVIDIA CloudXR 6.0 for visionOS, bringing real-time, photorealistic 3D streaming for design, simulation, and immersive apps.\n\n🔗 Learn more: https://t.co/UaT7Pf3lGR https://t.co/UtcVU56hqE",
     "author": "NVIDIAAP",
-    "engagement_score": 34,
+    "engagement_score": 33,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-22T05:47:33.129812+00:00",
+    "fetched_at": "2026-03-23T05:57:12.415649+00:00",
     "scores": {
       "o": 2,
-      "s": 9,
+      "s": 8,
       "p": 1,
-      "c": 8,
+      "c": 9,
       "avg": 5.0,
       "iq": 82,
       "iq3": 104
-    },
-    "category": "like"
-  },
-  {
-    "tweet_id": "2034651995320246712",
-    "text": "Different paths. Same journey.\n\nIn Second Life, every step opens a new world to explore.\n\nMany stories. One world.\n\n🎬 Video created by KL Production &amp; @AnyBergan\n\n#SecondLife #VirtualWorld #ExploreMore #Metaverse https://t.co/NhAynPUm3k",
-    "author": "SecondLife",
-    "engagement_score": 34,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-22T05:47:18.382837+00:00",
-    "scores": {
-      "o": 2,
-      "s": 6,
-      "p": 1,
-      "c": 8,
-      "avg": 4.2,
-      "iq": 69,
-      "iq3": 88
     },
     "category": "like"
   },
@@ -239,43 +293,7 @@
     "author": "LexnLin",
     "engagement_score": 25,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-22T05:47:28.359490+00:00",
-    "scores": {
-      "o": 2,
-      "s": 8,
-      "p": 1,
-      "c": 6,
-      "avg": 4.2,
-      "iq": 69,
-      "iq3": 88
-    },
-    "category": "like"
-  },
-  {
-    "tweet_id": "2035561353339928894",
-    "text": "Web3 wins when ecosystems connect.\n\nMixMaxChain is optimized for interoperability and smoother cross-chain experiences, supporting the next wave of high-performance applications.\n\n#MixMax #CrossChain #Interoperability https://t.co/QwFaycoEHN",
-    "author": "mixmax_mc",
-    "engagement_score": 16,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-22T05:47:16.208517+00:00",
-    "scores": {
-      "o": 2,
-      "s": 6,
-      "p": 1,
-      "c": 8,
-      "avg": 4.2,
-      "iq": 69,
-      "iq3": 88
-    },
-    "category": "like"
-  },
-  {
-    "tweet_id": "2033682222796968418",
-    "text": "🎥 Latest @cryptsocialclub Livestream from @blaze_stream 🎥\n\nSkully games on @PlayOverwatch 🔫💀\n\nThis VRM avatar is available to all investors behind the https://t.co/74NmypAXOA Web3 brand.\n\nInvest, claim &amp; join our skeleton streaming community.\nhttps://t.co/Nv3iVrFRai https://t.co/2hKRHrDwph",
-    "author": "Kill3rNFTs",
-    "engagement_score": 16,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-22T05:47:37.970607+00:00",
+    "fetched_at": "2026-03-23T05:57:07.588489+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -293,7 +311,7 @@
     "author": "GeorgeMasonNews",
     "engagement_score": 14,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-22T05:47:33.128203+00:00",
+    "fetched_at": "2026-03-23T05:57:12.413992+00:00",
     "scores": {
       "o": 6,
       "s": 8,
@@ -311,7 +329,7 @@
     "author": "anectweet",
     "engagement_score": 11,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-22T05:47:35.341914+00:00",
+    "fetched_at": "2026-03-23T05:57:14.635280+00:00",
     "scores": {
       "o": 6,
       "s": 8,
