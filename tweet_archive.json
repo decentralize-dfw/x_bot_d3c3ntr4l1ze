@@ -1088,5 +1088,22 @@
     "tweet_id": "2035981919381561586",
     "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable",
     "media_url": "https://arweave.net/mtVypKdrJeN1uLzaNXRsfL6lguxPXCiOB-l2UsENq0g"
+  },
+  {
+    "content_id": "news_b330cd28af0d",
+    "content_type": "news",
+    "posted_at": "2026-03-23T09:30:52.004239+00:00",
+    "tweet_text": "NEWS: CoinDCX denies fraud allegations, citing impersonation scam.",
+    "tweet_id": "2036012793489432798",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "news_b330cd28af0d_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-23T09:30:52.705539+00:00",
+    "tweet_text": "Decentralized identity verification protocols could prevent such impersonation scams in the future, but their implementation raises concerns",
+    "theme": "digital_identity",
+    "tweet_id": "2036012796320628993",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
   }
 ]
