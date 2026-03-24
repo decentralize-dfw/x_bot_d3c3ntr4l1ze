@@ -1169,5 +1169,23 @@
     "tweet_id": "2036402350756159524",
     "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable",
     "media_url": "https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives/main/caneporco-network.JPG"
+  },
+  {
+    "content_id": "news_775c5684b25b",
+    "content_type": "news",
+    "posted_at": "2026-03-24T13:39:00.099201+00:00",
+    "tweet_text": "NEWS: ByteDance released DeerFlow 2.0, an open-source AI agent framework.",
+    "theme": "ai_design",
+    "tweet_id": "2036437626493026419",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "news_775c5684b25b_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-24T13:39:00.911182+00:00",
+    "tweet_text": "decentralized architectures like DeerFlow 2.0 will redefine the trust boundaries in on-chain virtual environments, where localized AI orches",
+    "theme": "ownership",
+    "tweet_id": "2036437629928087716",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
   }
 ]
