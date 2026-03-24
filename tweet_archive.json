@@ -1143,5 +1143,21 @@
     "tweet_id": "2036342938503147831",
     "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable",
     "media_url": "https://video.wixstatic.com/video/54a996_f6870c2274574dd9b08871e4d974273c/1080p/mp4/file.mp4"
+  },
+  {
+    "content_id": "news_9ffd88ea2e17",
+    "content_type": "news",
+    "posted_at": "2026-03-24T09:26:05.397268+00:00",
+    "tweet_text": "NEWS: OKX launched 24/7 trading for 7 US stocks using crypto collateral.",
+    "tweet_id": "2036373979254992906",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "news_9ffd88ea2e17_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-24T09:26:06.126823+00:00",
+    "tweet_text": "crypto collateral unlocking new liquidity streams for traditional assets raises questions about the role of tokenized assets in bridging fin",
+    "tweet_id": "2036373982253887928",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
   }
 ]
