@@ -1224,5 +1224,23 @@
     "tweet_id": "2036764520836895139",
     "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable",
     "media_url": "https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives/main/Analog%25Organic%20Lifeform%20Museum%20%28inspired%20by%20Mozambique.3dm%29.jpg"
+  },
+  {
+    "content_id": "news_3059c96c2e28",
+    "content_type": "news",
+    "posted_at": "2026-03-25T13:39:06.361364+00:00",
+    "tweet_text": "NEWS: OpenAI is shutting down Sora, its AI video model and app.",
+    "theme": "ai_design",
+    "tweet_id": "2036800040652480718",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "news_3059c96c2e28_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-25T13:39:07.593695+00:00",
+    "tweet_text": "what happens to user-generated content when AI platforms abruptly shut down, and who owns the digital legacy of discontinued projects #Metav",
+    "theme": "ai_design",
+    "tweet_id": "2036800045782069437",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
   }
 ]
