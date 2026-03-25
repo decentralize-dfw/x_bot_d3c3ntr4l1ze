@@ -1197,5 +1197,22 @@
     "tweet_id": "2036705136551055844",
     "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable",
     "media_url": "https://arweave.net/Rf3qtKQuPf77zD4uMM97vALX0cCRz9eUR6Fb8RrWYQM"
+  },
+  {
+    "content_id": "news_4e2c4dd87d91",
+    "content_type": "news",
+    "posted_at": "2026-03-25T09:25:11.126490+00:00",
+    "tweet_text": "NEWS: Baltimore sued X and xAI over Grok deepfakes.",
+    "tweet_id": "2036736139491451140",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "news_4e2c4dd87d91_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-25T09:25:11.889672+00:00",
+    "tweet_text": "on-chain identity verification will need to adapt to mitigate deepfake risks in spatial computing environments #Metaverse #Web3",
+    "theme": "ownership",
+    "tweet_id": "2036736142393888989",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
   }
 ]
