@@ -1242,5 +1242,15 @@
     "theme": "ai_design",
     "tweet_id": "2036800045782069437",
     "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "blackcity-vid-10",
+    "content_type": "morning_media",
+    "posted_at": "2026-03-26T07:27:33.253995+00:00",
+    "tweet_text": "[Video Archive] TAR23_Bloom_Test_Radiohead.mp4\n\nRadiohead soundscapes are enhancing bloom tests in WebXR environments, revealing how audio influences spatial rendering #WebXR #SpatialComputing #OnChain 💿💿💿",
+    "theme": "ownership",
+    "tweet_id": "2037068923841970532",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable",
+    "media_url": "https://video.wixstatic.com/video/54a996_1845172bc83342878d5b3ea69f0f1b71/1080p/mp4/file.mp4"
   }
 ]
