@@ -1252,5 +1252,21 @@
     "tweet_id": "2037068923841970532",
     "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable",
     "media_url": "https://video.wixstatic.com/video/54a996_1845172bc83342878d5b3ea69f0f1b71/1080p/mp4/file.mp4"
+  },
+  {
+    "content_id": "news_86a213bd3eb8",
+    "content_type": "news",
+    "posted_at": "2026-03-26T09:28:57.167608+00:00",
+    "tweet_text": "NEWS: US Congressman moves to ban staff from trading on prediction markets.",
+    "tweet_id": "2037099475429449814",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "news_86a213bd3eb8_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-26T09:28:57.752921+00:00",
+    "tweet_text": "the overlooked detail is how such a ban affects market liquidity and predictor diversity, potentially undermining the very purpose of these ",
+    "tweet_id": "2037099477841109061",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
   }
 ]
