@@ -1278,5 +1278,23 @@
     "tweet_id": "2037127701136318465",
     "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable",
     "media_url": "https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives/main/mosk.jpg"
+  },
+  {
+    "content_id": "news_522b36902990",
+    "content_type": "news",
+    "posted_at": "2026-03-26T13:38:54.032981+00:00",
+    "tweet_text": "NEWS: Mistral AI released a free text-to-speech model.",
+    "theme": "ai_design",
+    "tweet_id": "2037162376852640179",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "news_522b36902990_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-26T13:38:55.268078+00:00",
+    "tweet_text": "Mistral AI's release of Voxtral TTS challenges the traditional voice AI business model by giving enterprises control over their own voice mo",
+    "theme": "ownership",
+    "tweet_id": "2037162381957059028",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
   }
 ]
