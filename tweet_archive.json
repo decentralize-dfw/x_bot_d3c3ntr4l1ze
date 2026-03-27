@@ -1333,5 +1333,23 @@
     "tweet_id": "2037489354193477757",
     "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable",
     "media_url": "https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives/main/ozur_dilerim.jpg"
+  },
+  {
+    "content_id": "news_91d038c43556",
+    "content_type": "news",
+    "posted_at": "2026-03-27T13:37:08.244906+00:00",
+    "tweet_text": "NEWS: Intercom's Fin Apex 1.0 AI model outperforms GPT-5.4 and Claude Sonnet 4.6.",
+    "theme": "ai_design",
+    "tweet_id": "2037524320931512741",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "news_91d038c43556_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-27T13:37:08.938315+00:00",
+    "tweet_text": "Intercom's Fin Apex 1.0 AI model's parameter size and base model remain undisclosed, sparking questions about the model's adaptability and p",
+    "theme": "ai_design",
+    "tweet_id": "2037524323833946318",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
   }
 ]
