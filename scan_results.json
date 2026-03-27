@@ -1,37 +1,37 @@
 [
   {
-    "tweet_id": "2037023872575561900",
-    "text": "How to reindustrialize America:\n\n- Copy hardware image from Aliexpress\n- Gaussian splat that bitch\n- Send geometry to @sendcutsend \n- charge 1000% markup to ITARcels",
-    "author": "sudovatnik",
-    "engagement_score": 8,
+    "tweet_id": "2036857487379292613",
+    "text": "Testing @omma_ai  by @splinetool natively on the Vision Pro feels like a turning point.\n\nWebGPU + WebXR + real-time voice commands is pure magic. The \"Aha!\" moment? Editing the experience on-device while testing, refining physics and gestures on the spot.\n\nThe \"Edit → Build → https://t.co/crUAef9bZo",
+    "author": "gaborpribek",
+    "engagement_score": 239,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-26T05:58:57.958524+00:00",
+    "fetched_at": "2026-03-27T05:58:39.198600+00:00",
     "scores": {
       "o": 8,
       "s": 9,
-      "p": 7,
-      "c": 6,
+      "p": 6,
+      "c": 7,
       "avg": 7.5,
       "iq": 124,
-      "iq3": 126
+      "iq3": 132
     },
     "category": "quote_rt"
   },
   {
-    "tweet_id": "2036904458974871944",
-    "text": "Introducing Vibe Coding XR, a new rapid prototyping workflow that empowers Gemini Canvas w/ the XR Blocks framework to turn user prompts into interactive, physics-aware WebXR applications, allowing creators to quickly test intelligent spatial experiences →https://t.co/suwxBMoMvD https://t.co/9eVv5o3fPL",
-    "author": "GoogleResearch",
-    "engagement_score": 1748,
+    "tweet_id": "2037090821649162551",
+    "text": "🔥 LATEST: Google Research launches Vibe Coding XR to turn prompts into interactive WebXR apps.\n\nhttps://t.co/HFvfTGoQAL",
+    "author": "Cointelegraph",
+    "engagement_score": 177,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-26T05:58:42.342205+00:00",
+    "fetched_at": "2026-03-27T05:59:08.617100+00:00",
     "scores": {
-      "o": 6,
-      "s": 9,
-      "p": 2,
-      "c": 8,
-      "avg": 6.2,
-      "iq": 102,
-      "iq3": 126
+      "o": 2,
+      "s": 8,
+      "p": 1,
+      "c": 9,
+      "avg": 5.0,
+      "iq": 82,
+      "iq3": 104
     },
     "category": "rt"
   },
@@ -41,7 +41,7 @@
     "author": "ITom_Dev",
     "engagement_score": 138,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-26T05:59:07.129454+00:00",
+    "fetched_at": "2026-03-27T05:59:01.478289+00:00",
     "scores": {
       "o": 6,
       "s": 9,
@@ -57,9 +57,9 @@
     "tweet_id": "2036467255551066174",
     "text": "Finally it's coming, OpenXR OSX running on the Vision Pro. The Vision Pro is just a client like the Quest and we stream MacOS PCVR into it! https://t.co/K38xIfA2t9",
     "author": "cyannick",
-    "engagement_score": 110,
+    "engagement_score": 113,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-26T05:58:44.590870+00:00",
+    "fetched_at": "2026-03-27T05:58:41.431592+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -72,56 +72,38 @@
     "category": "reply"
   },
   {
-    "tweet_id": "2037016466370027900",
-    "text": "Much noise lately about haptic buttons being “faster.” But independent reviews like RTINGS have shown that our last gen @Razer Viper V3 Pro (which was launched in 2024) has almost the same click latency (0.1ms latency diff) as a new mouse from the competition in 2026.\n \nWe often https://t.co/THCP1EEHuh",
-    "author": "minliangtan",
-    "engagement_score": 53,
+    "tweet_id": "2037199957816381450",
+    "text": "Read Google’s XR + AI research this morning…\n\nfew hours later I had a small VR biology lab running 😅\n\nBuilt with WebXR concepts and testing ideas around @Android XR direction.\n\nDNA models\ninteractive hotspots\nvoice explanations\nVR movement\n\nJust testing ideas and learning how https://t.co/XbkWYbjh80",
+    "author": "Platinum_024",
+    "engagement_score": 9,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-26T05:58:57.959515+00:00",
+    "fetched_at": "2026-03-27T05:59:08.616734+00:00",
+    "scores": {
+      "o": 6,
+      "s": 8,
+      "p": 2,
+      "c": 7,
+      "avg": 5.8,
+      "iq": 96,
+      "iq3": 116
+    },
+    "category": "reply"
+  },
+  {
+    "tweet_id": "2036978944998797730",
+    "text": "Introducing Vibe Coding XR, a new rapid prototyping workflow that empowers Gemini Canvas w/ the XR Blocks framework to turn user prompts into interactive, physics-aware WebXR applications, allowing creators to quickly test intelligent spatial experiences →https://t.co/GZ6XpLxCVD https://t.co/2Q78xw0xHf",
+    "author": "goyalshaliniuk",
+    "engagement_score": 108,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-27T05:58:39.199483+00:00",
     "scores": {
       "o": 6,
       "s": 9,
-      "p": 4,
+      "p": 2,
       "c": 8,
-      "avg": 6.8,
-      "iq": 112,
+      "avg": 6.2,
+      "iq": 102,
       "iq3": 126
-    },
-    "category": "reply"
-  },
-  {
-    "tweet_id": "2035351024689410459",
-    "text": "I'm doing a BIG refactoring in the OpenXR OSX code...\n- Remove SDL3 and embrace native MacOS SDKs for the runtime\n- A SwiftUI mac app for the simulator that shares the same code with the iOS and VisionPro apps, using a Swift package\n- I added a VisionOS project too",
-    "author": "cyannick",
-    "engagement_score": 31,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-26T05:58:44.591597+00:00",
-    "scores": {
-      "o": 2,
-      "s": 8,
-      "p": 1,
-      "c": 9,
-      "avg": 5.0,
-      "iq": 82,
-      "iq3": 104
-    },
-    "category": "reply"
-  },
-  {
-    "tweet_id": "2036965438949892158",
-    "text": "NanoBanana Prompt 👇\n\nHigh-end digital studio portrait, medium shot, sharp focus. Dramatic dual-tone split lighting with neon blue on the left and crimson red on the right. Heavy volumetric smoke fills the dark background. High contrast, moody cyberpunk aesthetic. The subject, https://t.co/X3ZcOA6Dcy https://t.co/nlkoeKzmaH",
-    "author": "HaniaAi12",
-    "engagement_score": 58,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-26T05:58:57.961224+00:00",
-    "scores": {
-      "o": 2,
-      "s": 9,
-      "p": 1,
-      "c": 8,
-      "avg": 5.0,
-      "iq": 82,
-      "iq3": 104
     },
     "category": "like"
   },
@@ -129,9 +111,9 @@
     "tweet_id": "2036442962914083170",
     "text": "Clear XR, available on TestFlight, lets Nvidia RTX 40 and 50 series owners use Apple Vision Pro's foveated streaming feature for OpenXR PC VR games:\n\nhttps://t.co/N9nSzO79Vb",
     "author": "UploadVR",
-    "engagement_score": 51,
+    "engagement_score": 52,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-26T05:58:44.590401+00:00",
+    "fetched_at": "2026-03-27T05:58:41.431117+00:00",
     "scores": {
       "o": 2,
       "s": 9,
@@ -147,9 +129,9 @@
     "tweet_id": "2036104492316258762",
     "text": "Oh btw I revived my @MonoGameTeam game engine, C3DE, ported to the latest MG version, upgraded package, .Net 8, and thanks to Codex...\n- Shading parity on DirectX and OpenGL\n- MacOS first class support\n- New post processing stack\n- Optimized shaders \n- OpenXR support\nand SO much https://t.co/YZmC9ACQuE",
     "author": "cyannick",
-    "engagement_score": 16,
+    "engagement_score": 18,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-26T05:58:44.589918+00:00",
+    "fetched_at": "2026-03-27T05:58:41.430622+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -162,48 +144,48 @@
     "category": "like"
   },
   {
-    "tweet_id": "2036981594645553450",
-    "text": "digital oil painting masterpiece, best quality, ultra-detailed, cinematic volumetric lighting, wide dynamic full body shot, off-center action, long shot distant perspective, a fierce cosmic catwoman with long moonlit white wavy hair luminous and flowing wildly in the wind, https://t.co/lRh70h2RES",
-    "author": "Akitti",
-    "engagement_score": 10,
+    "tweet_id": "2037298757558211061",
+    "text": "The Shane Satterfield Show 09 is NOW FREE on YouTube! Mark Zuckerberg has killed his dream of the Metaverse and VR is dead, the future of skateboarding games looks bloated but bleak, and why Shane rarely goes back and plays old games!\n#VR #metaverse #Meta\nhttps://t.co/ftqqBinquh",
+    "author": "SIFTDgames",
+    "engagement_score": 8,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-26T05:58:57.960230+00:00",
+    "fetched_at": "2026-03-27T05:58:52.633843+00:00",
     "scores": {
       "o": 2,
-      "s": 8,
-      "p": 1,
-      "c": 6,
-      "avg": 4.2,
-      "iq": 69,
-      "iq3": 88
-    },
-    "category": "like"
-  },
-  {
-    "tweet_id": "2037019648252600677",
-    "text": "Had a wonderful #Metaverse experience today visiting Futurist by @xperienzclub, an immersive space built in collaboration with @Looty_Spatial \n\nFantastic artists from all over the world, displayed their creations in ways you just cannot do through normal presentation\n\nBravo team! https://t.co/8O9NfEJ17o https://t.co/82TRYBmCQD",
-    "author": "josh_garrett_kc",
-    "engagement_score": 9,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-26T05:58:55.726599+00:00",
-    "scores": {
-      "o": 2,
-      "s": 8,
-      "p": 1,
+      "s": 6,
+      "p": 8,
       "c": 9,
-      "avg": 5.0,
-      "iq": 82,
-      "iq3": 104
+      "avg": 6.2,
+      "iq": 102,
+      "iq3": 94
     },
     "category": "like"
   },
   {
-    "tweet_id": "2037015897932730577",
-    "text": "Aircraft maintenance teams need real time visibility to prevent delays &amp; safety risks. RTLS with Digital Twin eliminates tool search delays reduces FOD risk and enables audit ready maintenance records. Talk to the Team: https://t.co/v9qtDuw1Pr\n#aerospace #mro #rtls #digitaltwin https://t.co/ljlkWP6Yj7",
-    "author": "LocaXion",
+    "tweet_id": "2037407706898633187",
+    "text": "@konnex_world \nInteroperability is often discussed, but rarely executed well.\nIt’s not just about moving assets —it’s about enabling seamless interaction between ecosystems.\nThat level of integration is what Web3 still lacks.\nCurious to see how @konnex_world evolve in this space.",
+    "author": "Naziru00212",
     "engagement_score": 4,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-26T05:58:53.515347+00:00",
+    "fetched_at": "2026-03-27T05:59:10.852615+00:00",
+    "scores": {
+      "o": 6,
+      "s": 8,
+      "p": 4,
+      "c": 9,
+      "avg": 6.8,
+      "iq": 112,
+      "iq3": 126
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2037374560379527242",
+    "text": "Digital Twin stands for the simulation of a real thing, that uses the best available physical models, sensors, and data updates to mirror the life of its tangible counterpart.\n\n @WevolverApp https://t.co/NAB0etSxjw ht @antgrasso #DigitalTwin #IIoT #IoT https://t.co/6HWXRO8fdt",
+    "author": "TechEqualizer",
+    "engagement_score": 4,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-27T05:58:50.385502+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -221,7 +203,7 @@
     "author": "RiggyBR",
     "engagement_score": 3,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-26T05:59:14.256344+00:00",
+    "fetched_at": "2026-03-27T05:59:08.618004+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -230,24 +212,6 @@
       "avg": 6.2,
       "iq": 102,
       "iq3": 104
-    },
-    "category": "like"
-  },
-  {
-    "tweet_id": "2036953780420235301",
-    "text": "you’re about to own the coolest offline phone setup on the planet. Drop your finished build on X with #TermuxXR #WebXR and tag the community like the guide says! 🚀 https://t.co/6573Ela4IE",
-    "author": "Teck1711178",
-    "engagement_score": 3,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-26T05:58:57.961867+00:00",
-    "scores": {
-      "o": 2,
-      "s": 6,
-      "p": 1,
-      "c": 8,
-      "avg": 4.2,
-      "iq": 69,
-      "iq3": 88
     },
     "category": "like"
   }
