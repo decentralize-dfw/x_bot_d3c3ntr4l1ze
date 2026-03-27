@@ -1306,5 +1306,22 @@
     "tweet_id": "2037430940973379936",
     "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable",
     "media_url": "https://video.wixstatic.com/video/54a996_2b529cb35fda488f8486f0a11871ee5c/1080p/mp4/file.mp4"
+  },
+  {
+    "content_id": "news_9814942bb37d",
+    "content_type": "news",
+    "posted_at": "2026-03-27T09:25:10.930748+00:00",
+    "tweet_text": "NEWS: India arrested a suspect tied to a Myanmar crypto scam.",
+    "tweet_id": "2037460914337620063",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "news_9814942bb37d_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-27T09:25:11.632076+00:00",
+    "tweet_text": "Decentralized identity verification is crucial for on-chain environments to prevent such scams #Web3 #OnChain #web3 #crypto",
+    "theme": "ownership",
+    "tweet_id": "2037460917269471322",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
   }
 ]
