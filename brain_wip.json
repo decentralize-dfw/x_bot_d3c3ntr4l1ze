@@ -775,6 +775,46 @@
       "source": "following",
       "engagement": 0,
       "added_at": "2026-03-23T05:57:38.917135+00:00"
+    },
+    {
+      "tweet_id": "2036857487379292613",
+      "author": "gaborpribek",
+      "text": "Testing @omma_ai  by @splinetool natively on the Vision Pro feels like a turning point.\n\nWebGPU + WebXR + real-time voice commands is pure magic. The \"Aha!\" moment? Editing the experience on-device while testing, refining physics and gestures on the spot.\n\nThe \"Edit → Build → https://t.co/crUAef9bZo",
+      "source": "niche_scan",
+      "engagement": 245,
+      "added_at": "2026-03-28T05:48:30.031692+00:00"
+    },
+    {
+      "tweet_id": "2037766125363274058",
+      "author": "AndhraBoxOffice",
+      "text": "For #Peddi, Ram Charan seems to have gone all-in.\n\nA Rugged pahelwan avatar radiating grit and authenticity, setting the stage for a powerful, massy cinematic experience. https://t.co/TiGKIwUNZq",
+      "source": "niche_scan",
+      "engagement": 252,
+      "added_at": "2026-03-28T05:48:30.031723+00:00"
+    },
+    {
+      "tweet_id": "2037090821649162551",
+      "author": "Cointelegraph",
+      "text": "🔥 LATEST: Google Research launches Vibe Coding XR to turn prompts into interactive WebXR apps.\n\nhttps://t.co/HFvfTGoQAL",
+      "source": "niche_scan",
+      "engagement": 170,
+      "added_at": "2026-03-28T05:48:30.031736+00:00"
+    },
+    {
+      "tweet_id": "2036978944998797730",
+      "author": "goyalshaliniuk",
+      "text": "Introducing Vibe Coding XR, a new rapid prototyping workflow that empowers Gemini Canvas w/ the XR Blocks framework to turn user prompts into interactive, physics-aware WebXR applications, allowing creators to quickly test intelligent spatial experiences →https://t.co/GZ6XpLxCVD https://t.co/2Q78xw0xHf",
+      "source": "niche_scan",
+      "engagement": 112,
+      "added_at": "2026-03-28T05:48:30.031797+00:00"
+    },
+    {
+      "tweet_id": "2037763924674920689",
+      "author": "emptyhouse1234",
+      "text": "간단 감성 프롬\n\ndynamic angle, cinematic angle, cinematic pose, depth of field, blurred foreground, volumetric lighting, cinematic lighting, https://t.co/6askIqAr6k",
+      "source": "niche_scan",
+      "engagement": 30,
+      "added_at": "2026-03-28T05:48:30.031818+00:00"
     }
   ]
 }
