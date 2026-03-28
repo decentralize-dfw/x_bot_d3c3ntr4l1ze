@@ -1389,5 +1389,22 @@
     "tweet_id": "2037849409182994781",
     "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable",
     "media_url": "https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives/main/2den0.jpg"
+  },
+  {
+    "content_id": "news_3216e60ec82a",
+    "content_type": "news",
+    "posted_at": "2026-03-28T13:27:42.715197+00:00",
+    "tweet_text": "NEWS: IndexCache optimizes sparse attention models for faster inference.",
+    "tweet_id": "2037884336805150771",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "news_3216e60ec82a_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-28T13:27:43.769368+00:00",
+    "tweet_text": "IndexCache's optimization of sparse attention models has significant implications for on-chain natural language processing, particularly in ",
+    "theme": "ownership",
+    "tweet_id": "2037884341267886523",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
   }
 ]
