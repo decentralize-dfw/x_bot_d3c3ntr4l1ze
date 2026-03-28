@@ -1361,5 +1361,23 @@
     "tweet_id": "2037791588206678474",
     "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable",
     "media_url": "https://raw.githubusercontent.com/decentralize-dfw/c2w2-pdf/main/C2W2%20Runway%20by%20DFW%2C%202025_Page_07.jpg"
+  },
+  {
+    "content_id": "news_4858861e7918",
+    "content_type": "news",
+    "posted_at": "2026-03-28T09:17:47.312055+00:00",
+    "tweet_text": "NEWS: Anthropic's AI model Claude Mythos leaked.",
+    "theme": "ai_design",
+    "tweet_id": "2037821441593204915",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "news_4858861e7918_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-28T09:17:47.994909+00:00",
+    "tweet_text": "Claude Mythos' leak raises questions about the security of training data, not just the model itself #AI #Cybersecurity #web3 #crypto",
+    "theme": "ai_design",
+    "tweet_id": "2037821444378206354",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
   }
 ]
