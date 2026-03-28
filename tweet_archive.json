@@ -1379,5 +1379,15 @@
     "theme": "ai_design",
     "tweet_id": "2037821444378206354",
     "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable"
+  },
+  {
+    "content_id": "people-3",
+    "content_type": "artwork",
+    "posted_at": "2026-03-28T11:08:55.764567+00:00",
+    "tweet_text": "On-chain photography archives like 2den0's Istanbul series challenge traditional notions of ownership and provenance in digital art #OnChain #DigitalArt #Web3 💿💿💿",
+    "theme": "ownership",
+    "tweet_id": "2037849409182994781",
+    "weekly_theme": "the permanence problem in virtual spaces — why most digital experiences feel disposable",
+    "media_url": "https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives/main/2den0.jpg"
   }
 ]
