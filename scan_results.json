@@ -3,9 +3,9 @@
     "tweet_id": "2036857487379292613",
     "text": "Testing @omma_ai  by @splinetool natively on the Vision Pro feels like a turning point.\n\nWebGPU + WebXR + real-time voice commands is pure magic. The \"Aha!\" moment? Editing the experience on-device while testing, refining physics and gestures on the spot.\n\nThe \"Edit → Build → https://t.co/crUAef9bZo",
     "author": "gaborpribek",
-    "engagement_score": 245,
+    "engagement_score": 247,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-28T05:47:38.444903+00:00",
+    "fetched_at": "2026-03-29T05:58:43.698914+00:00",
     "scores": {
       "o": 8,
       "s": 9,
@@ -18,30 +18,30 @@
     "category": "quote_rt"
   },
   {
-    "tweet_id": "2037766125363274058",
-    "text": "For #Peddi, Ram Charan seems to have gone all-in.\n\nA Rugged pahelwan avatar radiating grit and authenticity, setting the stage for a powerful, massy cinematic experience. https://t.co/TiGKIwUNZq",
-    "author": "AndhraBoxOffice",
-    "engagement_score": 252,
+    "tweet_id": "2037595948973424900",
+    "text": "🛞 Ready to embark on a new creative project with Google Maps Platform?\n\nGet inspired with one of our demos, like this one showcasing the Floom app. Its creators used the WebXR API and our APIs to let users open augmented reality tunnels to the other side of the globe, right from",
+    "author": "GMapsPlatform",
+    "engagement_score": 75,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-28T05:48:09.794505+00:00",
+    "fetched_at": "2026-03-29T05:58:43.699882+00:00",
     "scores": {
-      "o": 2,
+      "o": 6,
       "s": 8,
-      "p": 1,
-      "c": 6,
-      "avg": 4.2,
-      "iq": 69,
-      "iq3": 88
+      "p": 2,
+      "c": 9,
+      "avg": 6.2,
+      "iq": 102,
+      "iq3": 126
     },
-    "category": "rt"
+    "category": "reply"
   },
   {
-    "tweet_id": "2037090821649162551",
-    "text": "🔥 LATEST: Google Research launches Vibe Coding XR to turn prompts into interactive WebXR apps.\n\nhttps://t.co/HFvfTGoQAL",
-    "author": "Cointelegraph",
-    "engagement_score": 170,
+    "tweet_id": "2037831058180251986",
+    "text": "Just renewed my Apple Developer account. You can expect some TestFlight soon with OpenXR apps on it :-)",
+    "author": "cyannick",
+    "engagement_score": 31,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-28T05:48:07.575008+00:00",
+    "fetched_at": "2026-03-29T05:59:06.992282+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -51,33 +51,69 @@
       "iq": 82,
       "iq3": 104
     },
-    "category": "rt"
+    "category": "reply"
   },
   {
-    "tweet_id": "2035539478475858338",
-    "text": "It’s finally live! 🚀 I just launched my new interactive 3D developer portfolio.\n\nI wanted to challenge myself to blend hand-drawn aesthetics with real-time WebGL, custom shaders, and physics-based interactions. Built with @reactjs, @threejs, and @greensock. https://t.co/XPEbCYMVSF",
-    "author": "ITom_Dev",
-    "engagement_score": 138,
+    "tweet_id": "2038127823219798374",
+    "text": "Vivo X300 Pro haptics are so strong this time. And iQOO 15 got one of the large haptic motor. Good to see vivo stepped up the game in haptics 🔥\n\nSome person doesn't use haptics its personal preference. In my case I need haptics because it gives me premium feel to use a https://t.co/Kc8VmaBNo8",
+    "author": "encoword",
+    "engagement_score": 13,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-28T05:48:00.473533+00:00",
+    "fetched_at": "2026-03-29T05:58:59.319856+00:00",
     "scores": {
-      "o": 6,
-      "s": 9,
-      "p": 2,
-      "c": 8,
-      "avg": 6.2,
-      "iq": 102,
-      "iq3": 126
+      "o": 2,
+      "s": 8,
+      "p": 1,
+      "c": 9,
+      "avg": 5.0,
+      "iq": 82,
+      "iq3": 104
     },
     "category": "reply"
   },
   {
-    "tweet_id": "2037199957816381450",
-    "text": "Read Google’s XR + AI research this morning…\n\nfew hours later I had a small VR biology lab running 😅\n\nBuilt with WebXR concepts and testing ideas around @Android XR direction.\n\nDNA models\ninteractive hotspots\nvoice explanations\nVR movement\n\nJust testing ideas and learning how https://t.co/XbkWYbjh80",
-    "author": "Platinum_024",
+    "tweet_id": "2038129520864350222",
+    "text": "AVATAR : FIRE AND ASH (2025)\n1080p IMAX\n\nenglish audio w e-sub\n(I’ll upload the 4K HDR version whenever it’s released digitally) https://t.co/kDbO1aYkE7 https://t.co/HRigUz6aUs",
+    "author": "cdKadai",
+    "engagement_score": 12,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-29T05:59:16.642048+00:00",
+    "scores": {
+      "o": 2,
+      "s": 8,
+      "p": 1,
+      "c": 9,
+      "avg": 5.0,
+      "iq": 82,
+      "iq3": 104
+    },
+    "category": "reply"
+  },
+  {
+    "tweet_id": "2037986399744319993",
+    "text": "The good news about the Apple Developer renewal is that I'll be able to sign\n- The OpenXR OSX compagnon\n- Simulators / Players\n- The OpenXR Runtime/Server itself (which is x64/arm64 for maximum compatibility)\nAnd.... I'll be able to sign also Open Dark Basic and few games...",
+    "author": "cyannick",
     "engagement_score": 9,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-28T05:48:07.574692+00:00",
+    "fetched_at": "2026-03-29T05:59:06.991972+00:00",
+    "scores": {
+      "o": 2,
+      "s": 8,
+      "p": 1,
+      "c": 9,
+      "avg": 5.0,
+      "iq": 82,
+      "iq3": 104
+    },
+    "category": "reply"
+  },
+  {
+    "tweet_id": "2038064672654393422",
+    "text": "the funny thing about this is that i do work in a digital art museum with virtual reality headpieces so i can really say \"i'm going to my amazing digital work.\" https://t.co/PHsCzngwUr",
+    "author": "naiitiel",
+    "engagement_score": 3,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-29T05:59:12.140584+00:00",
     "scores": {
       "o": 6,
       "s": 8,
@@ -93,9 +129,9 @@
     "tweet_id": "2036978944998797730",
     "text": "Introducing Vibe Coding XR, a new rapid prototyping workflow that empowers Gemini Canvas w/ the XR Blocks framework to turn user prompts into interactive, physics-aware WebXR applications, allowing creators to quickly test intelligent spatial experiences →https://t.co/GZ6XpLxCVD https://t.co/2Q78xw0xHf",
     "author": "goyalshaliniuk",
-    "engagement_score": 112,
+    "engagement_score": 108,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-28T05:47:38.445674+00:00",
+    "fetched_at": "2026-03-29T05:58:43.701248+00:00",
     "scores": {
       "o": 6,
       "s": 9,
@@ -108,12 +144,30 @@
     "category": "like"
   },
   {
-    "tweet_id": "2037763924674920689",
-    "text": "간단 감성 프롬\n\ndynamic angle, cinematic angle, cinematic pose, depth of field, blurred foreground, volumetric lighting, cinematic lighting, https://t.co/6askIqAr6k",
-    "author": "emptyhouse1234",
-    "engagement_score": 30,
+    "tweet_id": "2038112725067604424",
+    "text": "MOUTION Weibo update\nMarch 29, 2026\n\n\"Lusi invites you to a virtual fashion show! On March 29th, at 8:20 PM, tune in to the official MOUTION livestream and join Lusi in \"Searching for Lusi Valley, where colors abound!\" Anytime, anywhere with MOUTION.\"\n\n#ZhaoLusixMoution\n#ZhaoLusi https://t.co/MgbWFXkSrW",
+    "author": "boots245",
+    "engagement_score": 56,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-28T05:47:54.413270+00:00",
+    "fetched_at": "2026-03-29T05:59:12.139133+00:00",
+    "scores": {
+      "o": 2,
+      "s": 8,
+      "p": 1,
+      "c": 9,
+      "avg": 5.0,
+      "iq": 82,
+      "iq3": 104
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2038093509635555656",
+    "text": "Made with seedance 2.0 on @yapper_so\n\nPrompt 👇 \n\nA hyper-realistic cinematic horror sequence set in an abandoned Victorian house at night, surrounded by dense fog and dead trees, unsettling atmosphere, cold desaturated tones, low-key lighting, volumetric fog, film grain, https://t.co/a4nbmB0SwL",
+    "author": "navi_Ai2",
+    "engagement_score": 40,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-29T05:58:59.320768+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -126,20 +180,92 @@
     "category": "like"
   },
   {
-    "tweet_id": "2037765537183212028",
-    "text": "Innovation is plentiful in Web3, but true integration remains rare. \n\nMany protocols operate in silos instead of creating synergy. \n\n@konnex_world is solving this by focusing on interoperability and coordination. \n\nWhen ecosystems connect, they compound value rather than compete. https://t.co/1pWBtSVqUd",
-    "author": "AnbasanETH",
-    "engagement_score": 5,
+    "tweet_id": "2038044805763133719",
+    "text": "So true. Makes zero sense that Epic Games Reality Scan app doesn't support native 3D gaussian splat training.\n\nNor does it make sense that Sketchfab doesn't support viewing/sharing of 3DGS files. Could be two layups.\n\nInstead, so many users pose/register their 3D scans in https://t.co/hzLJPHMiko",
+    "author": "bilawalsidhu",
+    "engagement_score": 36,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-28T05:48:09.795270+00:00",
+    "fetched_at": "2026-03-29T05:58:59.321967+00:00",
+    "scores": {
+      "o": 6,
+      "s": 9,
+      "p": 4,
+      "c": 8,
+      "avg": 6.8,
+      "iq": 112,
+      "iq3": 126
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2038112377892229494",
+    "text": "Moution Update!!\n\"☎️Lusi invites you to a virtual fashion show! Tune in to the official MOUTION livestream on Mar29th at 8:20 PM to join Lusi in \"Searching for the Valley of Dew, Where Colors Abound!\" Anytime, anywhere with MOUTION.\"\n\n#ZhaoLusi #赵露思 #RosyZhao\n#ZhaoLusixMoution https://t.co/KmffRwoLqK",
+    "author": "lusiwonii179",
+    "engagement_score": 33,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-29T05:59:12.140050+00:00",
+    "scores": {
+      "o": 2,
+      "s": 8,
+      "p": 1,
+      "c": 6,
+      "avg": 4.2,
+      "iq": 69,
+      "iq3": 88
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2038040923271987565",
+    "text": "Peace is found in the details. From HDR forest contrast to volumetric light on alpine peaks. \nDo you prefer the calm of the ground or the vastness of the peak? \n#AIWallpaper https://t.co/U6gFuWF5CC https://t.co/VFA4qdJ420",
+    "author": "Halleyapps",
+    "engagement_score": 26,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-29T05:58:59.322550+00:00",
     "scores": {
       "o": 6,
       "s": 8,
       "p": 4,
+      "c": 7,
+      "avg": 6.2,
+      "iq": 102,
+      "iq3": 116
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2038125322588270696",
+    "text": "Moution 茉寻 Xiaohongshu update\n\nLusi invites you to her virtual fashion show! \nMarch 29, 8:20PM,\nTune in to the official live stream of the MOUTION brand,\nJoin Lusi in \"Searching for Lusi Valley,\" where beauty awaits!”\nBe free, be MOUTION anytime.\n\n#ZhaoLusi #RosyZhao #赵露思 https://t.co/o1jqTC2qD3",
+    "author": "LiseNgo",
+    "engagement_score": 16,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-29T05:59:12.138304+00:00",
+    "scores": {
+      "o": 2,
+      "s": 8,
+      "p": 1,
       "c": 9,
-      "avg": 6.8,
-      "iq": 112,
-      "iq3": 126
+      "avg": 5.0,
+      "iq": 82,
+      "iq3": 104
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2038029429893398859",
+    "text": "digital oil painting masterpiece, best quality, ultra-detailed, cinematic volumetric lighting, ethereal glow, wide cinematic full body shot, entire figures clearly visible from head to toe, long shot, distant perspective, in a vast zero-gravity quantum garden with towering https://t.co/g5TmFYClvx",
+    "author": "Akitti",
+    "engagement_score": 13,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-03-29T05:58:59.323253+00:00",
+    "scores": {
+      "o": 6,
+      "s": 8,
+      "p": 2,
+      "c": 5,
+      "avg": 5.2,
+      "iq": 86,
+      "iq3": 104
     },
     "category": "like"
   },
@@ -149,7 +275,7 @@
     "author": "Metaverse",
     "engagement_score": 4,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-28T05:48:07.572771+00:00",
+    "fetched_at": "2026-03-29T05:59:14.329685+00:00",
     "scores": {
       "o": 2,
       "s": 8,
