@@ -1636,5 +1636,23 @@
     "tweet_id": "2038578085055135892",
     "weekly_theme": "why WebXR hasn't replaced native apps yet — and the exact moment it will",
     "media_url": "https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives/main/simulation-dairies.JPG"
+  },
+  {
+    "content_id": "news_5ffbbb1f37bc",
+    "content_type": "news",
+    "posted_at": "2026-03-30T13:40:03.372611+00:00",
+    "tweet_text": "NEWS: A product manager built and shipped a feature in a day using AI.",
+    "theme": "ai_design",
+    "tweet_id": "2038612219131269551",
+    "weekly_theme": "why WebXR hasn't replaced native apps yet — and the exact moment it will"
+  },
+  {
+    "content_id": "news_5ffbbb1f37bc_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-30T13:40:04.025291+00:00",
+    "tweet_text": "as ai assumes routine coding tasks, the next 3 years will see a radical shift in how we approach software development, with decision velocit",
+    "theme": "ai_design",
+    "tweet_id": "2038612221412974837",
+    "weekly_theme": "why WebXR hasn't replaced native apps yet — and the exact moment it will"
   }
 ]
