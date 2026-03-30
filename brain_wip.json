@@ -815,6 +815,30 @@
       "source": "niche_scan",
       "engagement": 30,
       "added_at": "2026-03-28T05:48:30.031818+00:00"
+    },
+    {
+      "tweet_id": "2038384743117737995",
+      "author": "rsasaki0109",
+      "text": "pytorch_volumetric\nVolumetric structures such as voxels and SDFs implemented in pytorch\nhttps://t.co/TLVVN2xmMd\n- signed distance field (SDF) pytorch implementation with parallelized query for value and gradients\n- voxel grids with automatic expanding range\n- unidirectional https://t.co/V4i3cFNLnR",
+      "source": "niche_scan",
+      "engagement": 149,
+      "added_at": "2026-03-30T06:08:45.487078+00:00"
+    },
+    {
+      "tweet_id": "2038186622441976184",
+      "author": "wreixidra",
+      "text": "SidraVerse unlocks a new era of ethical digital living in Web3. 🌙\nBuilt on SidraChain, it enables halal commerce, Islamic finance, and global business connections within a secure metaverse.\nPowered by Falcon Bay, users can access verified halal products, launch virtual stores, https://t.co/bpkNDESnB4",
+      "source": "niche_scan",
+      "engagement": 68,
+      "added_at": "2026-03-30T06:08:45.487105+00:00"
+    },
+    {
+      "tweet_id": "2038387657793802499",
+      "author": "Halleyapps",
+      "text": "Fury and silence in a single frame. Dynamic contrast between volcanic particles and high-fidelity stellar volumetric light. \nWhich natural phenomenon commands more respect? https://t.co/q63fezhvVT https://t.co/n7YZyip56T",
+      "source": "niche_scan",
+      "engagement": 17,
+      "added_at": "2026-03-30T06:08:45.487133+00:00"
     }
   ]
 }
