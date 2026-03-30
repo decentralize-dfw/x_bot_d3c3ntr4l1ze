@@ -1610,5 +1610,21 @@
     "theme": "ownership",
     "tweet_id": "2038519400622674009",
     "weekly_theme": "why WebXR hasn't replaced native apps yet — and the exact moment it will"
+  },
+  {
+    "content_id": "news_a5aa133ef5fa",
+    "content_type": "news",
+    "posted_at": "2026-03-30T09:41:34.024399+00:00",
+    "tweet_text": "NEWS: Bitcoin ETFs lost $290M last week.",
+    "tweet_id": "2038552200583258456",
+    "weekly_theme": "why WebXR hasn't replaced native apps yet — and the exact moment it will"
+  },
+  {
+    "content_id": "news_a5aa133ef5fa_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-30T09:41:34.654962+00:00",
+    "tweet_text": "bitcoin etf losses signal a deeper shift in investor sentiment, potentially leading to a reevaluation of crypto's role in traditional portfo",
+    "tweet_id": "2038552204035137831",
+    "weekly_theme": "why WebXR hasn't replaced native apps yet — and the exact moment it will"
   }
 ]
