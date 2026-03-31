@@ -1689,5 +1689,23 @@
     "tweet_id": "2038939545371107781",
     "weekly_theme": "why WebXR hasn't replaced native apps yet — and the exact moment it will",
     "media_url": "https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives/main/a145.png"
+  },
+  {
+    "content_id": "news_948b7a9c09f4",
+    "content_type": "news",
+    "posted_at": "2026-03-31T13:40:28.076419+00:00",
+    "tweet_text": "NEWS: Softr launched an AI-native platform to help non-technical teams build business apps without code.",
+    "theme": "architecture",
+    "tweet_id": "2038974710466449692",
+    "weekly_theme": "why WebXR hasn't replaced native apps yet — and the exact moment it will"
+  },
+  {
+    "content_id": "news_948b7a9c09f4_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-31T13:40:28.918461+00:00",
+    "tweet_text": "Decentralized platforms like Softr's AI-native platform will redefine the role of software developers, forcing a distinction between high-le",
+    "theme": "ai_design",
+    "tweet_id": "2038974714107064680",
+    "weekly_theme": "why WebXR hasn't replaced native apps yet — and the exact moment it will"
   }
 ]
