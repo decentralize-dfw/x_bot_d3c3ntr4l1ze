@@ -1663,5 +1663,21 @@
     "theme": "ownership",
     "tweet_id": "2038881564579319859",
     "weekly_theme": "why WebXR hasn't replaced native apps yet — and the exact moment it will"
+  },
+  {
+    "content_id": "news_a6e8adcde90b",
+    "content_type": "news",
+    "posted_at": "2026-03-31T09:32:29.008375+00:00",
+    "tweet_text": "NEWS: US proposes rule to allow 401(k) crypto investments.",
+    "tweet_id": "2038912303274541138",
+    "weekly_theme": "why WebXR hasn't replaced native apps yet — and the exact moment it will"
+  },
+  {
+    "content_id": "news_a6e8adcde90b_reply",
+    "content_type": "news_reply",
+    "posted_at": "2026-03-31T09:32:30.097397+00:00",
+    "tweet_text": "The actual catalyst is not the $8T market size, but the potential for mainstream crypto adoption to redefine traditional notions of retireme",
+    "tweet_id": "2038912307800281576",
+    "weekly_theme": "why WebXR hasn't replaced native apps yet — and the exact moment it will"
   }
 ]
