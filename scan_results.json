@@ -1,83 +1,11 @@
 [
   {
-    "tweet_id": "2036857487379292613",
-    "text": "Testing @omma_ai  by @splinetool natively on the Vision Pro feels like a turning point.\n\nWebGPU + WebXR + real-time voice commands is pure magic. The \"Aha!\" moment? Editing the experience on-device while testing, refining physics and gestures on the spot.\n\nThe \"Edit → Build → https://t.co/crUAef9bZo",
-    "author": "gaborpribek",
-    "engagement_score": 247,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-31T06:00:50.137139+00:00",
-    "scores": {
-      "o": 8,
-      "s": 9,
-      "p": 6,
-      "c": 7,
-      "avg": 7.5,
-      "iq": 124,
-      "iq3": 132
-    },
-    "category": "quote_rt"
-  },
-  {
-    "tweet_id": "2038763954562851032",
-    "text": "Pitch: a real-life sonic screwdriver. Take a Flipper Zero, add a thermal camera, LiDAR, a spectrometer, Geiger counter, ultrasonic transducer, and haptic feedback that lets you feel the signals around you. All in a handy screwdriver-shaped form factor. https://t.co/ysa4NAJgTV",
-    "author": "dioscuri",
-    "engagement_score": 24,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-31T06:01:05.584567+00:00",
-    "scores": {
-      "o": 8,
-      "s": 9,
-      "p": 6,
-      "c": 9,
-      "avg": 8.0,
-      "iq": 132,
-      "iq3": 143
-    },
-    "category": "quote_rt"
-  },
-  {
-    "tweet_id": "2038834001381818668",
-    "text": "Finally making a @threejs example with @shotamatsuda's geospatial volumetric clouds ~ ☁️ https://t.co/zW9M4euEiw",
-    "author": "mrdoob",
-    "engagement_score": 335,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-31T06:01:05.582895+00:00",
-    "scores": {
-      "o": 2,
-      "s": 8,
-      "p": 1,
-      "c": 6,
-      "avg": 4.2,
-      "iq": 69,
-      "iq3": 88
-    },
-    "category": "rt"
-  },
-  {
-    "tweet_id": "2038817237310533778",
-    "text": "Watch this severe thunderstorm grow and develop in real time, using our new 3d volumetric tool! https://t.co/w89mUmrsij",
-    "author": "aguacerowx",
-    "engagement_score": 64,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-31T06:01:05.583209+00:00",
-    "scores": {
-      "o": 6,
-      "s": 8,
-      "p": 2,
-      "c": 9,
-      "avg": 6.2,
-      "iq": 102,
-      "iq3": 126
-    },
-    "category": "rt"
-  },
-  {
     "tweet_id": "2038244453719159195",
     "text": "SpinMi is hiring, what are we looking for? \nAmbassador\nReply Guy\nChat Moderator\nDeveloper specialized in file conversions with ffmpeg, use of webGl, threejs and who knows in depth the lottie animations\n\nAmbassador: 500$\nReply Guy: 150$\nChat Moderator: 250$\nDeveloper: 1000$+",
     "author": "spinmibot",
-    "engagement_score": 38,
+    "engagement_score": 39,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-31T06:01:12.567026+00:00",
+    "fetched_at": "2026-04-01T06:06:04.893352+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -95,7 +23,7 @@
     "author": "cyannick",
     "engagement_score": 34,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-31T06:01:12.568016+00:00",
+    "fetched_at": "2026-04-01T06:06:04.894399+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -108,12 +36,30 @@
     "category": "reply"
   },
   {
+    "tweet_id": "2039221289370767512",
+    "text": "By the way, I’ve already picked an avatar for the quantum robot that will hack Bitcoin Satoshi coins and buy itself some oil. https://t.co/F3Du6qlnX9",
+    "author": "chieftokenbased",
+    "engagement_score": 17,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-04-01T06:06:16.062661+00:00",
+    "scores": {
+      "o": 8,
+      "s": 6,
+      "p": 9,
+      "c": 4,
+      "avg": 6.8,
+      "iq": 112,
+      "iq3": 99
+    },
+    "category": "reply"
+  },
+  {
     "tweet_id": "2037986399744319993",
     "text": "The good news about the Apple Developer renewal is that I'll be able to sign\n- The OpenXR OSX compagnon\n- Simulators / Players\n- The OpenXR Runtime/Server itself (which is x64/arm64 for maximum compatibility)\nAnd.... I'll be able to sign also Open Dark Basic and few games...",
     "author": "cyannick",
     "engagement_score": 16,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-31T06:01:12.567727+00:00",
+    "fetched_at": "2026-04-01T06:06:04.894129+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -129,9 +75,9 @@
     "tweet_id": "2038682351820042540",
     "text": "Excited to share that I will be presenting our #CHI2026 paper next month: To Slide or Not to Slide: Exploring Techniques for Comparing Immersive Videos.\n\nPreprint: https://t.co/oTFYfyFW0u\nVideo: https://t.co/3CJ7bEJF2O\nPresentation Schedule: https://t.co/Wn4swwGFlL\n\n#HCI #XR #VR https://t.co/WXz4dVyry8",
     "author": "xizi_lucy_wang",
-    "engagement_score": 6,
+    "engagement_score": 8,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-31T06:01:19.773330+00:00",
+    "fetched_at": "2026-04-01T06:06:13.823567+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -147,9 +93,9 @@
     "tweet_id": "2038703035443294232",
     "text": "“Marketing in the Metaverse” book references my “Lifespan (Half-Life) of Social Media Posts” research   \n\n- My article with details: https://t.co/ydodxnOVby   \n\n- \"Marketing in the Metaverse\" book on Amazon: https://t.co/Oy6fqJdDTm\n\n#Marketing #Metaverse #SocialMediaResearch https://t.co/xlVAeI3RL2",
     "author": "ScottGraffius",
-    "engagement_score": 5,
+    "engagement_score": 6,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-31T06:01:19.772638+00:00",
+    "fetched_at": "2026-04-01T06:06:13.822791+00:00",
     "scores": {
       "o": 2,
       "s": 8,
@@ -162,143 +108,53 @@
     "category": "reply"
   },
   {
-    "tweet_id": "2038752074519781379",
-    "text": "Here’s the roughest of rough sketches. \n\nI need to study anatomy so bad, but I do think the volumetric studies helped a LOT because I was struggling with seeing the body as 3D components rather than just flat lines https://t.co/AzP1vHeF1w",
-    "author": "BooSae_",
-    "engagement_score": 5,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-31T06:01:05.586174+00:00",
-    "scores": {
-      "o": 4,
-      "s": 8,
-      "p": 2,
-      "c": 6,
-      "avg": 5.0,
-      "iq": 82,
-      "iq3": 99
-    },
-    "category": "reply"
-  },
-  {
-    "tweet_id": "2038186622441976184",
-    "text": "SidraVerse unlocks a new era of ethical digital living in Web3. 🌙\nBuilt on SidraChain, it enables halal commerce, Islamic finance, and global business connections within a secure metaverse.\nPowered by Falcon Bay, users can access verified halal products, launch virtual stores, https://t.co/bpkNDESnB4",
-    "author": "wreixidra",
-    "engagement_score": 95,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-31T06:01:19.775888+00:00",
-    "scores": {
-      "o": 6,
-      "s": 8,
-      "p": 2,
-      "c": 9,
-      "avg": 6.2,
-      "iq": 102,
-      "iq3": 126
-    },
-    "category": "like"
-  },
-  {
-    "tweet_id": "2038797276609470489",
-    "text": "captured this 3d gaussian splat of the maritime plaza in san francisco\n\ncame out pretty damn crispy for a handheld 3d scan!\n\n- 334 stills taken with a sony a7iii + 18mm prime lens\n- imagery posed w/ epic's reality scan\n- radiance field trained w/ litchfeld studio https://t.co/MQN7RzPslJ",
-    "author": "bilawalsidhu",
-    "engagement_score": 57,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-31T06:01:05.583881+00:00",
-    "scores": {
-      "o": 6,
-      "s": 9,
-      "p": 2,
-      "c": 8,
-      "avg": 6.2,
-      "iq": 102,
-      "iq3": 126
-    },
-    "category": "like"
-  },
-  {
-    "tweet_id": "2038262435522421230",
-    "text": "🌭 **Ever Wonder Why You Should Get Involved with @WaywardWeenies?** Here’s Why!\n\n1. **Engaging Card Game:** Prepare for the launch of the @WaywardWeenies Card Game in the Ultra Kingdoms metaverse. Collect, play, and win with strategy and flair!\n\n2. **Trading Power:** Your https://t.co/uUecyIeccT",
-    "author": "jayMD01159935",
-    "engagement_score": 10,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-31T06:01:19.775048+00:00",
-    "scores": {
-      "o": 2,
-      "s": 8,
-      "p": 1,
-      "c": 6,
-      "avg": 4.2,
-      "iq": 69,
-      "iq3": 88
-    },
-    "category": "like"
-  },
-  {
-    "tweet_id": "2038732749234655295",
-    "text": "🇺🇸Openbox 2024 HP Spectre x360 14 inch 2-in-1Laptop PC 14-eu0000 | 32gbRAM | 2TB SSD 14th\nGen Intel ® Core Ultra 7 155H (up to 4.8 GHz with Intel ® Turbo Boost | 14\" diagonal 3K (2880 x 1800) | Intel ® integrated SoC HAPTIC TOUCHPAD | FP Reader | BLUE | N1,950,000-----BrandNew https://t.co/YRu367b2AN",
-    "author": "expressgadgets_",
-    "engagement_score": 5,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-31T06:01:05.587146+00:00",
-    "scores": {
-      "o": 1,
-      "s": 9,
-      "p": 1,
-      "c": 8,
-      "avg": 4.8,
-      "iq": 79,
-      "iq3": 99
-    },
-    "category": "like"
-  },
-  {
-    "tweet_id": "2038125561873326504",
-    "text": "Digital Gemstone Collective and #PR\n\nJewelry Making Cost 50% OFF is here! 💎✨\nCelebrate the launch of Region 3\nDon’t miss this limited-time campaign until April 15th!\nCreate, trade, and shine brighter than ever 💫\n\n@Brypto_Official \n\n#jewelry #DigitalGemstone #Metaverse https://t.co/MGyhGb2veF",
-    "author": "PAirdrop2955",
-    "engagement_score": 4,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-31T06:01:19.776726+00:00",
-    "scores": {
-      "o": 2,
-      "s": 6,
-      "p": 1,
-      "c": 8,
-      "avg": 4.2,
-      "iq": 69,
-      "iq3": 88
-    },
-    "category": "like"
-  },
-  {
-    "tweet_id": "2038757745437151337",
-    "text": "We rebuilt Haptic! 🎉\n\nJoin our discord and talk talk to Chris (@haptic_chris) and he’ll give you a month free just because you saw this post\n\nWe added so much it’s hard to put it all in one post:\n+ 16 new games\n+ Mod support\n+ Console support\n+ Invite friends to manage your",
-    "author": "hapticservers",
-    "engagement_score": 3,
-    "reply_settings": "everyone",
-    "fetched_at": "2026-03-31T06:01:05.585439+00:00",
-    "scores": {
-      "o": 2,
-      "s": 8,
-      "p": 1,
-      "c": 6,
-      "avg": 4.2,
-      "iq": 69,
-      "iq3": 88
-    },
-    "category": "like"
-  },
-  {
     "tweet_id": "2038847255080214969",
     "text": "The XR Week Peek (2026.03.30): Meta to launch two new smartglasses, the metaverse dies again and again, and much more!\nhttps://t.co/YeatR0dVcY\n\n#VirtualReality #Meta #smartglasses",
     "author": "SkarredGhost",
-    "engagement_score": 3,
+    "engagement_score": 15,
     "reply_settings": "everyone",
-    "fetched_at": "2026-03-31T06:01:19.771427+00:00",
+    "fetched_at": "2026-04-01T06:06:13.820518+00:00",
     "scores": {
       "o": 2,
       "s": 6,
-      "p": 1,
+      "p": 3,
       "c": 8,
+      "avg": 4.8,
+      "iq": 79,
+      "iq3": 88
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2039198662241259637",
+    "text": "🧬 \"Bioengineering in a Generative AI World\" is open for submissions!\n\n🕑 Deadline: 31 August 2026\n\n🎉 Submit your research now!\n#GenerativeAI #MachineLearning #SyntheticBiology https://t.co/etiIC2g4Nf",
+    "author": "Bioeng_MDPI",
+    "engagement_score": 6,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-04-01T06:06:02.777107+00:00",
+    "scores": {
+      "o": 2,
+      "s": 8,
+      "p": 1,
+      "c": 9,
+      "avg": 5.0,
+      "iq": 82,
+      "iq3": 104
+    },
+    "category": "like"
+  },
+  {
+    "tweet_id": "2039221121552093300",
+    "text": "MSAK AVATAR IS NOW ENTIRELY COMPLETE!!! HANDOUT WILL BE AT SOME POINT TOMORROW IN THE REGECT HOUSE YET AGAIN!!! HOPE Y'ALL ENJOY! ^_^ #monsterloverarg #monsterfuckerarg #msak https://t.co/FlbyjRcV6g",
+    "author": "Manicbugzzzz",
+    "engagement_score": 4,
+    "reply_settings": "everyone",
+    "fetched_at": "2026-04-01T06:06:16.063171+00:00",
+    "scores": {
+      "o": 2,
+      "s": 8,
+      "p": 1,
+      "c": 6,
       "avg": 4.2,
       "iq": 69,
       "iq3": 88
